@@ -1,0 +1,20 @@
+/** PAU WORLD palette. Single source for 3D materials and CSS tokens. */
+export const palette = {
+  background: "#080F1D",
+  ground: "#142538",
+  groundDeep: "#0C1829",
+  road: "#1D3249",
+  roadLine: "#3A5876",
+  building: "#24394F",
+  buildingDark: "#1C2E42",
+  buildingLight: "#2F4760",
+  cyan: "#4DD5DE",
+  amber: "#FFAE70",
+  carOrange: "#FF7A3D",
+  carDark: "#1A1F2B",
+  glass: "#6FE3EA",
+  tree: "#1F5A5E",
+  treeDark: "#174347",
+  text: "#F4F7FA",
+  muted: "#9BAFC2",
+} as const;
