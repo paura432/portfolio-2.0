@@ -54,22 +54,37 @@ export function forwardVector(heading: number): [x: number, z: number] {
   return [Math.sin(heading), Math.cos(heading)];
 }
 
+/** Position constraint applied after every sub-step (collisions, boundaries). */
+export type Constrain = (x: number, z: number) => { x: number; z: number; blocked: boolean };
+
+/** Fraction of speed kept (and reversed) on a blocked sub-step: a soft bump. */
+export const BUMP_RESTITUTION = 0.2;
+
 /**
  * Advance the car by `dt` seconds. Large `dt` values are split into sub-steps
- * so behaviour is identical at 30, 60 or 144 fps.
+ * so behaviour is identical at 30, 60 or 144 fps, and the constraint runs after
+ * each sub-step so the car can never travel more than maxSpeed·maxDt (≈0.67 u)
+ * into an obstacle before being pushed back out: no tunneling, no teleports.
  */
 export function stepCar(
   state: CarState,
   input: DriveInput,
   dt: number,
   config: CarConfig = CAR_CONFIG,
+  constrain?: Constrain,
 ): CarState {
   if (dt <= 0) return state;
   const clamped = Math.min(dt, config.maxDt * 3);
   const steps = Math.max(1, Math.ceil(clamped / config.maxDt));
   const h = clamped / steps;
   let s = state;
-  for (let i = 0; i < steps; i++) s = integrate(s, input, h, config);
+  for (let i = 0; i < steps; i++) {
+    s = integrate(s, input, h, config);
+    if (constrain) {
+      const c = constrain(s.x, s.z);
+      if (c.blocked) s = { ...s, x: c.x, z: c.z, speed: -s.speed * BUMP_RESTITUTION };
+    }
+  }
   return s;
 }
 

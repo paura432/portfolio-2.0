@@ -55,7 +55,7 @@ export const districts: District[] = [
   {
     id: "duplex",
     name: "DUPLEX",
-    tagline: "AI technical operations · SAT",
+    tagline: "AI technical operations · SAT diagnosis",
     kind: "project",
     projectSlug: "duplex",
     position: [-28, -17],
@@ -69,7 +69,7 @@ export const districts: District[] = [
   {
     id: "ovi",
     name: "OVI",
-    tagline: "AI productivity · integrations",
+    tagline: "AI productivity · Microsoft 365",
     kind: "project",
     projectSlug: "ovi",
     position: [28, -17],
@@ -83,7 +83,7 @@ export const districts: District[] = [
   {
     id: "broki",
     name: "BROKI",
-    tagline: "Airport operations platform",
+    tagline: "Airport operations · legacy modernization",
     kind: "project",
     projectSlug: "broki",
     position: [28, 17],
@@ -97,7 +97,7 @@ export const districts: District[] = [
   {
     id: "trustos",
     name: "TrustOS",
-    tagline: "Digital identity · credentials",
+    tagline: "Digital identity · verifiable credentials",
     kind: "project",
     projectSlug: "trustos",
     position: [-28, 17],

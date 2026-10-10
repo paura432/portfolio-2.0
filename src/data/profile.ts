@@ -51,6 +51,35 @@ export const profile = {
     { area: "Systems", items: "C · C++ · UNIX · processes · threads · networking" },
     { area: "Delivery", items: "Docker · Vercel · Git · Linux · Postman" },
   ],
-  /** CV files are not bundled in this phase. Marked pending on purpose. */
-  cv: { status: "pending" as const, note: "CV download links pending for this phase." },
+  /**
+   * What Pau builds, for the intro. Each line is backed by a verified project.
+   */
+  focus: [
+    {
+      title: "AI-assisted workflows",
+      detail: "Retrieval, embeddings and source-traceable assistance for technical and productivity work.",
+      projects: ["duplex", "ovi"],
+    },
+    {
+      title: "Operational platforms",
+      detail: "Supabase, PostgreSQL, Edge Functions and realtime interfaces for real operations.",
+      projects: ["broki"],
+    },
+    {
+      title: "Digital identity",
+      detail: "Verifiable credential lifecycle APIs across identity providers.",
+      projects: ["trustos"],
+    },
+  ],
+  /**
+   * CV downloads. Links are rendered only when `available` is true, and a unit
+   * test checks that an available file really exists under public/.
+   * Drop the PDFs at public/cv/<file> and flip the flag.
+   */
+  cv: {
+    es: { label: "CV (español)", href: "/cv/pau-ramos-cv-es.pdf", available: false },
+    en: { label: "CV (English)", href: "/cv/pau-ramos-cv-en.pdf", available: false },
+  },
 } as const;
+
+export type CvEntry = (typeof profile.cv)[keyof typeof profile.cv];

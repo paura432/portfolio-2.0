@@ -1,12 +1,15 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3101;
+const GL_ARGS = ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"];
 
 export default defineConfig({
   testDir: "./e2e",
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
+  // Software WebGL is CPU-bound: one worker keeps frame times (and the drive-until checks) stable.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
   use: {
@@ -16,18 +19,15 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        launchOptions: {
-          // Software WebGL so the 3D scene renders in headless/CI environments.
-          args: [
-            "--use-angle=swiftshader",
-            "--enable-unsafe-swiftshader",
-            "--ignore-gpu-blocklist",
-          ],
-        },
-      },
+      name: "desktop",
+      testIgnore: /mobile\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"], launchOptions: { args: GL_ARGS } },
+    },
+    {
+      name: "mobile",
+      testMatch: /mobile\.spec\.ts/,
+      // Pixel-class phone: touch, coarse pointer, portrait by default.
+      use: { ...devices["Pixel 7"], launchOptions: { args: GL_ARGS } },
     },
   ],
   webServer: {

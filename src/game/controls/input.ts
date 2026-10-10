@@ -16,6 +16,7 @@ export const KEY_BINDINGS = {
   brake: ["Space", "ShiftLeft", "ShiftRight"],
   interact: ["KeyE", "Enter"],
   menu: ["KeyM"],
+  reset: ["KeyR"],
 } as const;
 
 export type Action = keyof typeof KEY_BINDINGS;

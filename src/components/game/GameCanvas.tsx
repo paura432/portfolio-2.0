@@ -10,6 +10,8 @@ import { FollowCamera } from "./FollowCamera";
 import { ProximitySensor } from "./ProximitySensor";
 import { SceneLighting } from "./SceneLighting";
 import { World } from "./World";
+import { Signposts } from "./Signposts";
+import { ContextLossHandler, FirstFrameSignal } from "./SceneSignals";
 
 /** Applies the quality tier to the renderer without remounting the canvas. */
 function QualityController() {
@@ -30,7 +32,6 @@ declare global {
 }
 
 export function GameCanvas() {
-  const setSceneReady = useGameStore((s) => s.setSceneReady);
   const setQuality = useGameStore((s) => s.setQuality);
 
   useEffect(() => {
@@ -46,14 +47,16 @@ export function GameCanvas() {
       dpr={[1, 1.5]}
       camera={{ fov: 50, near: 0.5, far: 240, position: [0, 8, 40] }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
-      onCreated={() => setSceneReady(true)}
       aria-hidden
       style={{ position: "absolute", inset: 0 }}
     >
       <PerformanceMonitor onDecline={() => setQuality("low")} flipflops={2} />
       <QualityController />
+      <FirstFrameSignal />
+      <ContextLossHandler />
       <SceneLighting />
       <World />
+      <Signposts />
       <Car />
       <ProximitySensor />
       <FollowCamera />

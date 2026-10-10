@@ -4,7 +4,11 @@ import { districts } from "@/data/districts";
 import { ProfileContent } from "@/components/portfolio/ProfileContent";
 import { SiteFrame } from "@/components/portfolio/SiteFrame";
 
-export const metadata: Metadata = { title: "Projects" };
+export const metadata: Metadata = {
+  title: "Projects",
+  description: "Projects and experience of Pau Ramos: DUPLEX, OVI, BROKI, TrustOS and 42 Madrid, readable without the 3D city.",
+  alternates: { canonical: "/projects" },
+};
 
 /** Server-rendered index. Works with no JavaScript and no WebGL. */
 export default function ProjectsPage() {

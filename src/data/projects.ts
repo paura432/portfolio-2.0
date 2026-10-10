@@ -1,6 +1,8 @@
 /**
  * Project content. Only verified information about Pau Ramos' work.
- * Where details are missing they are listed under `pending`, never invented.
+ * Sources and verification notes live in docs/content-audit.md.
+ * Where details are missing they are listed under `pending` (internal only,
+ * never rendered publicly) and are not invented.
  */
 export type ProjectSlug = "duplex" | "ovi" | "broki" | "trustos" | "42-madrid";
 
@@ -10,6 +12,22 @@ export interface ProjectDecision {
   tradeOff: string;
 }
 
+/** One step of a public, conceptual system flow (labels only, no private topology). */
+export interface FlowStep {
+  id: string;
+  label: string;
+  note?: string;
+}
+
+/** Public-safe media. Files must exist under public/ and be approved for publication. */
+export interface ProjectMedia {
+  src: string;
+  alt: string;
+  caption?: string;
+  width: number;
+  height: number;
+}
+
 export interface Project {
   slug: ProjectSlug;
   title: string;
@@ -17,16 +35,23 @@ export interface Project {
   organisation: string;
   period: string;
   role: string;
+  /** One line used in cards, menus and page metadata. */
+  tagline: string;
   summary: string;
   challenge?: string;
+  /** Verified technical highlights, public-safe. */
+  highlights: string[];
+  /** Conceptual flow rendered as a diagram in the case study. */
+  flow?: FlowStep[];
   delivered: string[];
   technologies: string[];
   decisions: ProjectDecision[];
   quality: string[];
+  media: ProjectMedia[];
   /** Public-safe boundary: what is intentionally not disclosed. */
   boundary?: string;
   confidential?: boolean;
-  /** Information that is known to be missing. Rendered as "pending". */
+  /** Internal tracking of missing information. Rendered only in internal/dev views. */
   pending: string[];
 }
 
@@ -38,10 +63,24 @@ export const projects: Project[] = [
     organisation: "Performanze",
     period: "2026 — now",
     role: "Technical leadership on SAT module",
+    tagline: "Technical operations software for diagnosis, documentation and field context.",
     summary:
-      "Technical service workflows that join equipment context, retrieval and traceable assisted diagnosis.",
+      "Technical service (SAT) workflows that join equipment context, retrieval and traceable assisted diagnosis. A system, not a chatbot: assistance needs evidence.",
     challenge:
       "Keep technical diagnosis grounded in equipment context and traceable sources.",
+    highlights: [
+      "Equipment context is explicit state during a diagnostic session",
+      "Manuals, checklists and case history are retrieved as evidence before an answer",
+      "Each assisted answer carries the sources it relies on",
+      "Escalation keeps the gathered context",
+    ],
+    flow: [
+      { id: "equipment", label: "Equipment context", note: "active during the session" },
+      { id: "retrieval", label: "Retrieval", note: "manuals · checklists · history" },
+      { id: "diagnosis", label: "Assisted diagnosis", note: "source-backed" },
+      { id: "trace", label: "Trace", note: "sources follow the answer" },
+      { id: "escalation", label: "Escalation", note: "context preserved" },
+    ],
     delivered: ["SAT assistant workflow", "Source-backed diagnosis", "Escalation context"],
     technologies: ["TypeScript", "React", "Next.js", "Supabase", "PostgreSQL", "RAG"],
     decisions: [
@@ -62,8 +101,9 @@ export const projects: Project[] = [
       },
     ],
     quality: ["Husky pre-commit gates", "Playwright browser checks", "Public-safe sanitized reconstruction"],
+    media: [],
     boundary: "No manuals, customer data, equipment records or private integrations.",
-    pending: ["Usage metrics and measurable outcomes"],
+    pending: ["Usage metrics and measurable outcomes", "Approved public screenshots"],
   },
   {
     slug: "ovi",
@@ -72,14 +112,29 @@ export const projects: Project[] = [
     organisation: "Performanze",
     period: "2026 — now",
     role: "Full Stack Product Engineer",
-    summary: "Private current system for AI-assisted productivity workflows.",
+    tagline: "AI-assisted productivity system on Microsoft 365 context.",
+    summary:
+      "Private current system for AI-assisted productivity workflows. Context from Microsoft 365 becomes product work: requests are routed to explicit actions with the context they need.",
     challenge: "Turn work requests into reliable actions across Microsoft 365 context.",
+    highlights: [
+      "Microsoft Graph surfaces: Outlook, Teams, Calendar, OneDrive and SharePoint",
+      "Structured routing: every action has explicit intent and context",
+      "Semantic retrieval (embeddings) brings related knowledge in when relevant",
+      "Artifact generation integrated into the workflow, including presentations through Gamma",
+    ],
+    flow: [
+      { id: "request", label: "Work request" },
+      { id: "context", label: "Microsoft 365 context", note: "Graph surfaces" },
+      { id: "routing", label: "Structured routing", note: "intent + context" },
+      { id: "retrieval", label: "Semantic retrieval", note: "when relevant" },
+      { id: "artifact", label: "Action / artifact" },
+    ],
     delivered: [
       "AI-assisted productivity workflows",
       "Microsoft 365 context integration",
       "Artifact generation integration",
     ],
-    technologies: ["React", "Supabase", "Microsoft Graph"],
+    technologies: ["React", "Supabase", "Microsoft Graph", "Embeddings", "Gamma"],
     decisions: [
       {
         decision: "Structured product routing",
@@ -98,9 +153,10 @@ export const projects: Project[] = [
       },
     ],
     quality: ["Husky pre-commit gates", "Playwright browser checks", "Public-safe conceptual demo"],
-    boundary: "No tenant data, credentials, private payloads or exact architecture.",
+    media: [],
+    boundary: "No tenant data, credentials, private payloads or exact architecture. Conceptual public architecture only.",
     confidential: true,
-    pending: ["Public technology list beyond the core stack", "Usage metrics"],
+    pending: ["Public technology list beyond the core stack", "Usage metrics", "Approved public screenshots"],
   },
   {
     slug: "broki",
@@ -109,13 +165,30 @@ export const projects: Project[] = [
     organisation: "Independent product",
     period: "2026",
     role: "Independent product engineering",
+    tagline: "Airport ground operations platform replacing a legacy dashboard and automation stack.",
     summary:
-      "Operational platform for airport ground operations, connecting fleet, GSE, tools, personnel and operational traceability.",
-    challenge: "Model airport ground operations in one coherent operational platform.",
+      "Operational platform for airport ground operations: fleet, GSE, tools, personnel, planning, incidents and operational traceability. Built as the modern replacement for a legacy dashboard and automation stack, with the migration verified through parity audits and cutover and rollback runbooks.",
+    challenge:
+      "Model airport ground operations in one coherent platform while keeping legacy records and flows operationally meaningful during the transition.",
+    highlights: [
+      "Operational domains as one system: fleet, GSE, tooling, personnel, planner, incidents, inventory",
+      "Supabase Edge Functions per domain, Row Level Security and realtime updates",
+      "PWA delivery for operational use",
+      "Legacy-vs-modern parity audit, data audits and cutover / rollback runbooks for the migration",
+      "Pre-commit gate: install, lint, type check, unit, integration and E2E",
+    ],
+    flow: [
+      { id: "legacy", label: "Legacy dashboard + automations", note: "source of truth before" },
+      { id: "audit", label: "Data audit + parity", note: "per operation" },
+      { id: "platform", label: "Next.js + Supabase platform", note: "Edge Functions · RLS · Realtime" },
+      { id: "ops", label: "Operations UI (PWA)", note: "fleet · GSE · personnel · planner" },
+      { id: "cutover", label: "Cutover / rollback", note: "runbooks" },
+    ],
     delivered: [
       "Airport operations platform",
       "Operational resource workflows",
       "PWA and realtime interfaces",
+      "Migration parity audits and cutover runbooks",
     ],
     technologies: [
       "Next.js",
@@ -135,14 +208,15 @@ export const projects: Project[] = [
         tradeOff: "Requires clear domain relations and access boundaries.",
       },
       {
-        decision: "Legacy transition as secondary work",
-        why: "Existing records must keep operational meaning.",
-        tradeOff: "Audit and normalization add delivery complexity.",
+        decision: "Legacy transition as a parallel, audited track",
+        why: "Existing records and flows must keep operational meaning until each operation is proven at parity.",
+        tradeOff: "Audit, normalization and dual operation add delivery complexity.",
       },
     ],
     quality: ["Husky pre-commit gate", "Unit, integration and E2E coverage", "Offline smoke checks"],
+    media: [],
     boundary: "No airport name, customer data, production records or private workflows.",
-    pending: ["Deployment status and public demo link"],
+    pending: ["Deployment status and public demo link", "Approved public screenshots"],
   },
   {
     slug: "trustos",
@@ -151,9 +225,23 @@ export const projects: Project[] = [
     organisation: "Telefónica Tech",
     period: "2025 — 2026",
     role: "Software Developer",
+    tagline: "Verifiable credential infrastructure across issuance, wallets and verification.",
     summary:
-      "Verifiable credential infrastructure across issuance, wallets and verification.",
+      "TrustOS VCS Core API: a unified layer for credential lifecycle operations, provider integration, wallet flows and verification. Identity as a system of trust.",
     challenge: "Provide a coherent credential lifecycle across identity providers.",
+    highlights: [
+      "Unified REST API documented with OpenAPI",
+      "Provider abstraction over PrivadoID, Procivis and Idenfy",
+      "Credential lifecycle: issuance, wallet flows, verification",
+      "QR-based verification flows",
+    ],
+    flow: [
+      { id: "issuer", label: "Issuance" },
+      { id: "api", label: "VCS Core API", note: "REST · OpenAPI" },
+      { id: "providers", label: "Provider abstraction", note: "PrivadoID · Procivis · Idenfy" },
+      { id: "wallet", label: "Wallet flows" },
+      { id: "verify", label: "Verification", note: "QR" },
+    ],
     delivered: [
       "Credential lifecycle services",
       "Provider integrations",
@@ -169,8 +257,9 @@ export const projects: Project[] = [
       },
     ],
     quality: ["Infrastructure-level public model"],
+    media: [],
     boundary: "No tenant data, credentials, provider configuration or private infrastructure.",
-    pending: ["Team size and scope of individual ownership"],
+    pending: ["Team size and scope of individual ownership", "Approved public diagrams"],
   },
   {
     slug: "42-madrid",
@@ -179,8 +268,9 @@ export const projects: Project[] = [
     organisation: "42 Madrid",
     period: "2023 — now",
     role: "Student",
-    summary: "C, C++, UNIX, graphics, concurrency and networking foundations.",
-    delivered: [
+    tagline: "C, C++, UNIX, graphics, concurrency and networking foundations.",
+    summary: "Systems foundations built project by project: memory, algorithms, processes, threads, graphics and networking.",
+    highlights: [
       "Memory / C: libft, ft_printf, get_next_line",
       "Algorithms: push_swap",
       "UNIX / processes: pipex, minishell",
@@ -189,10 +279,12 @@ export const projects: Project[] = [
       "Networking: net_practice",
       "Object oriented: C++ modules 00 → 08",
     ],
+    delivered: [],
     technologies: ["C", "C++", "UNIX", "Makefile"],
     decisions: [],
     quality: [],
-    pending: ["Current cursus level and completed common core status"],
+    media: [],
+    pending: ["Current cursus level and completed common core status", "Public repository links per project"],
   },
 ];
 

@@ -4,10 +4,9 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Object3D, type Group, type Mesh } from "three";
 import { inputState } from "@/game/controls/input";
-import { resolveCollisions } from "@/game/physics/collision";
 import { stepCar } from "@/game/vehicle/carPhysics";
 import { liveCar } from "@/game/vehicle/carState";
-import { CAR_RADIUS, DRIVE_HALF_SIZE, obstacles } from "@/game/world/obstacles";
+import { constrainCar } from "@/game/world/obstacles";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 
@@ -29,14 +28,10 @@ export function Car() {
     const driving = useGameStore.getState().phase === "playing";
 
     // Pause semantics: while a panel or menu is open the car stops dead and ignores input.
-    let next = driving
-      ? stepCar(liveCar.state, inputState.drive, delta)
+    // Collisions are resolved inside every physics sub-step (see stepCar).
+    const next = driving
+      ? stepCar(liveCar.state, inputState.drive, delta, undefined, constrainCar)
       : { ...liveCar.state, speed: 0, steerAngle: 0 };
-    const hit = resolveCollisions({ x: next.x, z: next.z, r: CAR_RADIUS }, obstacles, DRIVE_HALF_SIZE);
-    if (hit.hits.length > 0 || hit.boundary) {
-      // Soft bump: place the car at the resolved position and kill most of the speed.
-      next = { ...next, x: hit.x, z: hit.z, speed: -next.speed * 0.2 };
-    }
     liveCar.state = next;
 
     const g = group.current;

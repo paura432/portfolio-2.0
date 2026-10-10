@@ -21,7 +21,7 @@ A **technological diorama city** floating in the dark: a square island with a ce
 
 - **Lighting:** one cool directional "moonlight" with a 2048 shadow map covering the island (high quality only), a hemisphere fill, low ambient, linear fog that fades into the background colour. Accent point lights: one per built building (cyan at the hub and OVI, amber at DUPLEX). Car headlights are a single spot light.
 - **Typography (HTML):** system UI stack (no font downloads). Labels use tracked uppercase small caps for a "control room" feel.
-- **Signs:** canvas-rendered textures (district name + tagline) on posts at each entrance; the hub sign hangs on the pavilion wall.
+- **Signs:** canvas-rendered textures (district name + tagline) on posts at each entrance; the hub sign hangs on the pavilion wall. Sprint 02 raised the contrast: near-black panel, 104 px extra-bold title, lighter subtitle, anisotropy 8.
 
 ## District silhouettes
 | district | silhouette | accent |
@@ -57,8 +57,18 @@ Third-person follow: 13 units behind, 7 up, pulls back slightly with speed, look
 ## Car
 Low-poly orange car: chassis, sloped hood, darker cabin, dark glass, warm headlights, red tail light bar, four wheels (front pair steers, all spin). Arcade handling: max 20 u/s, strong brakes, turn authority grows with speed, reversing flips steering.
 
+## Intro (sprint 02)
+Two-column hero. Left: who (name, role, location), what he builds (verified summary), three focus areas each backed by a project, actions (Explore the 3D city, View projects, Contact), CV links when published, social links. Right: a still JPEG preview of the city (47 KB, captured from the real scene) that also starts the game on click. WebGL is never initialised until the visitor asks. On phones the preview sits under the actions.
+
+## Navigation aids (sprint 02)
+- **Signposts** at the four plaza exits list the districts down that road with left/right/ahead arrows; planned districts show muted with "planned district". Positions are derived from district data (`src/game/world/signposts.ts`).
+- **Minimap** (HUD, bottom-right on desktop, under the buttons on touch) draws roads, plaza and district plots from the same data; built plots are filled with their accent, planned plots dashed; the car marker is updated outside React.
+- **Reset car** (R key or HUD button) teleports to the spawn and snaps the camera.
+
 ## HUD and panels
-- Intro: name, role, **Explore world** / **View projects**.
-- HUD: title, graphics toggle, Projects menu (M), key hints (desktop), interaction prompt (E or click), touch pad on coarse pointers.
-- Panel: accessible modal (`role="dialog"`, focus moved in and restored, Tab trapped, Esc / backdrop / button close). Driving pauses while open and resumes on close.
-- Menu: every district, built or planned, opens its panel directly.
+- HUD: brand line with the one-line instruction, Graphics toggle, Reset car (R), Projects (M), key hints (desktop ≥ lg), interaction prompt (E or click), touch pad on coarse pointers, minimap.
+- Panel: accessible modal. Full-screen sheet with a sticky header on phones; centred 44rem card from `sm:` up. Header = eyebrow + title + meta + close; body scrolls; footer = Back to the road / Open as page. Focus goes to the close button on open and back to the opener on close; Tab and Shift+Tab cycle inside; the rest of the page is `inert`. Driving pauses while open and resumes on close.
+- Menu: two groups, "On the map" (built, accent dot) and "Content ready · building planned" (outline dot); every entry opens the panel and has a "Page ↗" link.
+
+## Case-study template (sprint 02)
+Order in `ProjectContent`: header (chapter, title, org · period · role, confidentiality badge) → tagline → summary → **How it works** (flow diagram from `project.flow`, labels only) → technical highlights (2-col grid) → challenge → decisions (why / trade-off) → delivered → technologies → quality → public captures (`project.media`, only files that exist under `public/`) → boundary → internal pending (dev builds only). Diagrams are data-driven HTML/CSS, so a project can get one without any asset.

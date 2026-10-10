@@ -50,7 +50,8 @@ There are no extra abstraction layers (no ECS, no event bus, no plugin system). 
 ```
 keyboard / touch ──► inputState (mutable Set)        ┐
                                                       ▼
-useFrame(Car, -3):  stepCar ─► resolveCollisions ─► liveCar.state ─► car mesh
+useFrame(Car, -3):  stepCar(…, constrainCar) ─► liveCar.state ─► car mesh
+                    (constraint runs after every physics sub-step: no tunneling)
 useFrame(Proximity, -2): resolveActiveZone(liveCar) ─► store.setNearby (only on change)
 useFrame(Camera, -1):   desiredCamera(liveCar) ─► damp ─► camera
 store.phase ──► Car reads it with getState() each frame: "playing" drives, anything else stops
@@ -67,13 +68,25 @@ HUD / Panel / Menu ──► subscribe to store slices (React re-renders only on
 - No post-processing, no textures or models loaded from the network. The only textures are canvas-rendered signs.
 - Fog colour = background colour so the island edge dissolves.
 
+## Scene readiness and context loss (sprint 02)
+- `FirstFrameSignal` flips `sceneReady` on the second `useFrame` callback, i.e. after the first frame has really been rendered; the loading overlay is removed only then.
+- `ContextLossHandler` listens for `webglcontextlost` (calls `preventDefault` so the browser may restore) and `webglcontextrestored`, writing `contextLost` to the store; the shell shows a recovery overlay with Reload and a link to the HTML pages. Covered by an e2e test using `WEBGL_lose_context`.
+- `resetCar()` bumps `liveCar.generation`; the follow camera snaps instead of gliding when the generation changes.
+
 ## Client-only rendering
 `GameShell` (client component) imports `GameCanvas` through `next/dynamic` with `ssr: false`. WebGL support is read once with `useSyncExternalStore` (server snapshot = "checking") so there is no hydration mismatch and no effect-driven setState. Without WebGL the page renders `WebGLFallback` with a link to `/projects`. Renderer exceptions are caught by `SceneErrorBoundary`.
 
 ## Content separation
 `src/data/*` contains only verified content and map data. Nothing in `src/game/*` or `src/components/game/*` knows what a project is beyond its id, name and route. Unknown details are listed under `pending` and rendered as "Pending information", never filled in.
 
+## CI
+`.github/workflows/ci.yml`: pnpm 10 + Node 22, `install --frozen-lockfile`, lint, typecheck, unit tests, build, Playwright (Chromium with SwiftShader flags from the config), report uploaded on failure.
+
+## Metadata
+`src/lib/site.ts` reads `NEXT_PUBLIC_SITE_URL`; when set, `metadataBase`, canonical URLs and the sitemap use it, otherwise absolute URLs are omitted (never invented). Root layout defines Open Graph and Twitter cards with the preview image; project pages get per-project descriptions and canonicals; `robots.ts` and `sitemap.ts` are static routes.
+
 ## Testing
-- **Unit (vitest, 37 tests):** car physics (frame-rate independence, caps, braking, clamped gaps), collisions, proximity hysteresis, input mapping, camera damping, store transitions, data integrity, map reachability (entrances on roads, no building on a road, spawn clear), deterministic props.
-- **E2E (Playwright, 3 tests, Chromium with SwiftShader):** full run (intro → drive → prompt → E → panel → driving blocked → Esc → driving resumes → menu → panel → close → page route), HTML routes incl. 404, WebGL-unavailable fallback.
+- **Unit (vitest, 49 tests):** car physics (frame-rate independence, caps, braking, clamped gaps), collisions, proximity hysteresis, input mapping, camera damping, store transitions, data integrity, map reachability (entrances on roads, no building on a road, spawn clear), deterministic props.
+  Sprint 02 added: collision inside sub-steps (no tunneling at 10 fps, soft bump, ejection), signposts (coverage, off-road, side detection), content integrity (taglines, flow ids, media and CV files exist, focus→project links, preview image).
+- **E2E (Playwright, 10 tests, one worker, Chromium with SwiftShader):** desktop project: full run, reset car, HTML routes + metadata + robots, WebGL fallback, dialog focus cycle (initial focus, Tab/Shift+Tab wrap, inert background, restore to opener), backdrop click, WebGL context loss/restore. Mobile project (Pixel 7 emulation): intro portrait + landscape without overflow, touch controls move the car, full-width sheet with sticky header, reduced motion.
 - `pnpm check` runs lint, typecheck, unit tests, build and e2e.

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { actionForCode, inputState, isEditableTarget } from "@/game/controls/input";
+import { resetCar } from "@/game/vehicle/carState";
 import { useGameStore } from "@/stores/gameStore";
 
 /**
@@ -33,6 +34,10 @@ export function useKeyboardControls(enabled: boolean): void {
       }
       if (action === "menu") {
         if (!e.repeat) store.toggleMenu();
+        return;
+      }
+      if (action === "reset") {
+        if (!e.repeat && store.phase === "playing") resetCar();
         return;
       }
       // Driving keys: only while playing, and never let them scroll the page.

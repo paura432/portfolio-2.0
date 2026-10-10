@@ -3,7 +3,7 @@
 import { useEffect, useState, type PointerEvent } from "react";
 import { inputState, type Action } from "@/game/controls/input";
 
-function useIsCoarsePointer(): boolean {
+export function useIsCoarsePointer(): boolean {
   const [coarse, setCoarse] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(pointer: coarse)");
@@ -46,7 +46,7 @@ export function TouchControls({ enabled }: { enabled: boolean }) {
   }, [enabled]);
   if (!coarse) return null;
   return (
-    <div className={`pointer-events-auto flex items-end gap-6 ${enabled ? "" : "opacity-40"}`}>
+    <div className={`pointer-events-auto flex items-end gap-5 ${enabled ? "" : "opacity-40"}`} data-testid="touch-controls">
       <div className="flex gap-2">
         <HoldButton action="left" label="◀" title="Steer left" />
         <HoldButton action="right" label="▶" title="Steer right" />

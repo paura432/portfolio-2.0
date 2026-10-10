@@ -9,17 +9,18 @@ import { liveCar } from "@/game/vehicle/carState";
 /** Smooth third-person camera; damping is exponential so it is frame-rate independent. */
 export function FollowCamera() {
   const target = useRef(new Vector3());
-  const initialised = useRef(false);
+  const seenGeneration = useRef(-1);
 
   useFrame(({ camera }, delta) => {
     const { x, z, heading, speed } = liveCar.state;
     const want = desiredCamera(x, z, heading, speed);
     const dt = Math.min(delta, 0.1);
 
-    if (!initialised.current) {
+    // First frame and every car reset: snap instead of gliding across the map.
+    if (seenGeneration.current !== liveCar.generation) {
       camera.position.set(want.position.x, want.position.y, want.position.z);
       target.current.set(want.target.x, want.target.y, want.target.z);
-      initialised.current = true;
+      seenGeneration.current = liveCar.generation;
     } else {
       camera.position.x = damp(camera.position.x, want.position.x, FOLLOW_CONFIG.positionLambda, dt);
       camera.position.y = damp(camera.position.y, want.position.y, FOLLOW_CONFIG.positionLambda, dt);

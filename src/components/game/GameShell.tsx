@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { isWebGLAvailable } from "@/lib/webgl";
@@ -33,7 +34,9 @@ export function GameShell() {
   const support = useSyncExternalStore(noSubscribe, readSupport, serverSupport);
   const phase = useGameStore((s) => s.phase);
   const sceneReady = useGameStore((s) => s.sceneReady);
+  const contextLost = useGameStore((s) => s.contextLost);
   const started = phase !== "intro";
+  const dialogOpen = phase === "panel" || phase === "menu";
 
   useKeyboardControls(started && support === "ok");
 
@@ -41,24 +44,44 @@ export function GameShell() {
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-bg">
-      {support === "ok" && started && (
-        <SceneErrorBoundary>
-          <GameCanvas />
-        </SceneErrorBoundary>
-      )}
+      {/* Everything behind a dialog is inert: no focus, no clicks, no screen-reader traversal. */}
+      <div inert={dialogOpen} className="absolute inset-0">
+        {support === "ok" && started && (
+          <SceneErrorBoundary>
+            <GameCanvas />
+          </SceneErrorBoundary>
+        )}
 
-      {started && !sceneReady && (
-        <div
-          className="absolute inset-0 z-20 flex items-center justify-center bg-bg"
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-sm tracking-[0.3em] text-muted uppercase">Loading world</p>
-        </div>
-      )}
+        {started && !sceneReady && !contextLost && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg" role="status" aria-live="polite" data-testid="loading">
+            <p className="eyebrow">Loading world</p>
+          </div>
+        )}
 
-      {!started && <IntroScreen checking={support === "checking"} />}
-      {started && <Hud />}
+        {started && contextLost && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/90 p-6" role="alert" data-testid="context-lost">
+            <div className="panel max-w-md p-8 text-center">
+              <p className="eyebrow text-amber">Graphics interrupted</p>
+              <h2 className="mt-2 text-xl font-semibold">The 3D context was lost</h2>
+              <p className="mt-3 text-sm text-muted">
+                The browser released the graphics context. It usually comes back by itself in a moment. If it does not, reload the page or read the projects as pages.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+                  Reload
+                </button>
+                <Link href="/projects" className="btn btn-secondary">
+                  View projects
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!started && <IntroScreen checking={support === "checking"} />}
+        {started && <Hud />}
+      </div>
+
       {phase === "panel" && <ProjectPanel />}
       {phase === "menu" && <ProjectsMenu />}
     </main>
