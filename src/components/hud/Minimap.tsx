@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { districts } from "@/data/districts";
 import { PLATFORM, PLAZA, ROADS } from "@/data/world";
 import { liveCar } from "@/game/vehicle/carState";
+import { accentHex } from "@/lib/palette";
 
 const SIZE = 100; // viewBox units
 const SCALE = SIZE / (PLATFORM.halfSize * 2);
@@ -41,11 +42,21 @@ export function Minimap() {
         const [cx, cz] = toMap(d.position[0], d.position[1]);
         const w = d.footprint[0] * SCALE;
         const h = d.footprint[1] * SCALE;
-        const color = d.accent === "cyan" ? "#4DD5DE" : "#FFAE70";
+        const color = accentHex[d.accent];
         return d.built ? (
-          <rect key={d.id} x={cx - w / 2} y={cz - h / 2} width={w} height={h} rx="1" fill={color} opacity="0.9">
-            <title>{d.name}</title>
-          </rect>
+          <g key={d.id} data-district={d.id}>
+            <rect x={cx - w / 2} y={cz - h / 2} width={w} height={h} rx="1" fill={color} opacity="0.9">
+              <title>{d.name}</title>
+            </rect>
+            {(d.plots ?? []).map((p) => {
+              const [px, pz] = toMap(p.position[0], p.position[1]);
+              return (
+                <rect key={p.id} x={px - (p.footprint[0] * SCALE) / 2} y={pz - (p.footprint[1] * SCALE) / 2} width={p.footprint[0] * SCALE} height={p.footprint[1] * SCALE} rx="0.6" fill={color} opacity="0.55">
+                  <title>{p.name}</title>
+                </rect>
+              );
+            })}
+          </g>
         ) : (
           <rect key={d.id} x={cx - w / 2} y={cz - h / 2} width={w} height={h} rx="1" fill="none" stroke="#9BAFC2" strokeWidth="0.8" strokeDasharray="1.5 1.2">
             <title>{`${d.name} (planned)`}</title>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { districts } from "./districts";
+import { allPlots, districts } from "./districts";
 import { projects } from "./projects";
 import { CAR_SPAWN, PLATFORM, PLAZA, distanceToRoad } from "./world";
 import { boxFromFootprint, resolveCollisions } from "@/game/physics/collision";
@@ -16,7 +16,7 @@ describe("content data", () => {
     }
   });
   it("builds every district on the map", () => {
-    expect(districts.filter((d) => d.built).map((d) => d.id)).toEqual(["hub", "duplex", "ovi", "broki", "trustos", "fortytwo", "contact"]);
+    expect(districts.filter((d) => d.built).map((d) => d.id)).toEqual(["hub", "duplex", "ovi", "broki", "trustos", "fortytwo", "fourgeeks", "contact"]);
   });
 });
 
@@ -30,8 +30,18 @@ describe("world layout", () => {
     expect(distanceToRoad(CAR_SPAWN.position[0], CAR_SPAWN.position[1])).toBe(0);
     expect(Math.abs(CAR_SPAWN.position[0])).toBeLessThan(PLATFORM.driveHalfSize);
   });
-  it("buildings do not overlap each other or the roads", () => {
-    const boxes = districts.map((d) => boxFromFootprint(d.id, d.position, d.footprint));
+  it("every plot entrance is reachable (off the asphalt, not inside a building, inside the island)", () => {
+    for (const d of districts) {
+      for (const p of d.plots ?? []) {
+        if (!p.entrance) continue;
+        const r = resolveCollisions({ x: p.entrance[0], z: p.entrance[1], r: CAR_RADIUS }, obstacles, DRIVE_HALF_SIZE);
+        expect(r.hits, `${d.id}:${p.id}`).toEqual([]);
+        expect(r.boundary, `${d.id}:${p.id}`).toBe(false);
+      }
+    }
+  });
+  it("buildings (including campus plots) do not overlap each other or the roads", () => {
+    const boxes = allPlots().map((d) => boxFromFootprint(d.id, d.position, d.footprint));
     for (const a of boxes) {
       if (a.id === "hub") {
         // Round pavilion inside the plaza: its radius must stay inside the inner ring.

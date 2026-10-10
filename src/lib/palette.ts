@@ -44,6 +44,9 @@ export const palette = {
   amber: "#FFAE70",
   amberDeep: "#E0803A",
   red: "#FF4A3D",
+  /** Secondary accent reserved for the 4Geeks campus emitters (V5). */
+  violet: "#8B7CFF",
+  violetDeep: "#5B4FD6",
 
   // Vehicle
   carOrange: "#FF7A3D",
@@ -65,3 +68,6 @@ export const palette = {
   text: "#F4F7FA",
   muted: "#9BAFC2",
 } as const;
+
+/** Hex for a district accent (menu, minimap and signs share it). */
+export const accentHex = { cyan: palette.cyan, amber: palette.amber, violet: palette.violet } as const;

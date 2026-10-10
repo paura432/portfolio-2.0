@@ -13,9 +13,28 @@ export type DistrictId =
   | "broki"
   | "trustos"
   | "fortytwo"
+  | "fourgeeks"
   | "contact";
 
-export type DistrictKind = "hub" | "project" | "contact";
+export type DistrictKind = "hub" | "project" | "education" | "contact";
+
+/** How the menu and the pages group districts; never mixes learning with professional work. */
+export type DistrictCategory = "hub" | "experience" | "personal" | "education" | "ai-engineering" | "contact";
+
+export type Accent = "cyan" | "amber" | "violet";
+
+/**
+ * A secondary building inside a district (e.g. a campus lab). Collides like a
+ * building; with an `entrance` it also gets its own small interaction zone.
+ */
+export interface Plot {
+  id: string;
+  name: string;
+  position: [x: number, z: number];
+  footprint: [w: number, d: number];
+  entrance?: [x: number, z: number];
+  interactRadius?: number;
+}
 
 export interface District {
   id: DistrictId;
@@ -23,6 +42,7 @@ export interface District {
   /** Short descriptor shown under the district name. */
   tagline: string;
   kind: DistrictKind;
+  category: DistrictCategory;
   projectSlug?: ProjectSlug;
   /** Building centre on the XZ plane. */
   position: [x: number, z: number];
@@ -31,7 +51,9 @@ export interface District {
   /** Point in front of the building, on the road, where the interaction prompt triggers. */
   entrance: [x: number, z: number];
   interactRadius: number;
-  accent: "cyan" | "amber";
+  accent: Accent;
+  /** Extra buildings of a composite district (campus labs). */
+  plots?: Plot[];
   /** HTML route for the content (works without WebGL). */
   route: string;
   /** Built on the map (collisions, interaction zone, sign). All districts are built since V3. */
@@ -41,6 +63,7 @@ export interface District {
 export const districts: District[] = [
   {
     id: "hub",
+    category: "hub",
     name: "Central Hub",
     tagline: "Pau Ramos · Full Stack Product Engineer",
     kind: "hub",
@@ -54,6 +77,7 @@ export const districts: District[] = [
   },
   {
     id: "duplex",
+    category: "experience",
     name: "DUPLEX",
     tagline: "AI technical operations · SAT diagnosis",
     kind: "project",
@@ -68,6 +92,7 @@ export const districts: District[] = [
   },
   {
     id: "ovi",
+    category: "experience",
     name: "OVI",
     tagline: "AI productivity · Microsoft 365",
     kind: "project",
@@ -82,6 +107,7 @@ export const districts: District[] = [
   },
   {
     id: "broki",
+    category: "personal",
     name: "BROKI",
     tagline: "Airport operations · legacy modernization",
     kind: "project",
@@ -96,6 +122,7 @@ export const districts: District[] = [
   },
   {
     id: "trustos",
+    category: "experience",
     name: "TrustOS",
     tagline: "Digital identity · verifiable credentials",
     kind: "project",
@@ -110,6 +137,7 @@ export const districts: District[] = [
   },
   {
     id: "fortytwo",
+    category: "education",
     name: "42 Madrid",
     tagline: "Engineering foundations",
     kind: "project",
@@ -123,7 +151,28 @@ export const districts: District[] = [
     built: true,
   },
   {
+    id: "fourgeeks",
+    category: "ai-engineering",
+    name: "4Geeks AI Campus",
+    tagline: "AI Engineering · applied labs",
+    kind: "education",
+    position: [30, -57],
+    footprint: [12, 10],
+    entrance: [30, -47],
+    interactRadius: 8,
+    accent: "violet",
+    route: "/education/4geeks",
+    built: true,
+    plots: [
+      { id: "trackflow", name: "Lab 01 · TrackFlow", position: [15, -57], footprint: [8, 10], entrance: [15, -49.5], interactRadius: 4.5 },
+      { id: "financial-dashboard", name: "Lab 02 · Financial Dashboard", position: [44, -57], footprint: [8, 10], entrance: [44, -49.5], interactRadius: 4.5 },
+      { id: "back-office", name: "Lab 03 · Back-office", position: [58, -58], footprint: [8, 8], entrance: [51, -58], interactRadius: 4.5 },
+      { id: "ai-workflow", name: "Lab 04 · AI Workflow", position: [58, -49], footprint: [8, 6], entrance: [51, -49], interactRadius: 4.5 },
+    ],
+  },
+  {
     id: "contact",
+    category: "contact",
     name: "Contact Station",
     tagline: "GitHub · LinkedIn · email",
     kind: "contact",
@@ -138,6 +187,29 @@ export const districts: District[] = [
 ];
 
 export const builtDistricts = districts.filter((d) => d.built);
+
+export interface PlotBox {
+  id: string;
+  position: [number, number];
+  footprint: [number, number];
+}
+
+/** Every building box on the map: each district's main footprint plus its plots. */
+export function allPlots(): PlotBox[] {
+  return districts.flatMap((d): PlotBox[] => [
+    { id: d.id, position: d.position, footprint: d.footprint },
+    ...(d.plots ?? []).map((p) => ({ id: `${d.id}:${p.id}`, position: p.position, footprint: p.footprint })),
+  ]);
+}
+
+export const CATEGORY_LABEL: Record<DistrictCategory, string> = {
+  hub: "Profile",
+  experience: "Professional experience",
+  personal: "Personal projects",
+  education: "Education",
+  "ai-engineering": "AI engineering",
+  contact: "Contact",
+};
 
 export function getDistrict(id: DistrictId): District {
   const d = districts.find((x) => x.id === id);

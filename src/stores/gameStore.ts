@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { DistrictId } from "@/data/districts";
+import type { LabZoneId } from "@/game/interaction/zones";
 import { DEFAULT_LIGHTING, type LightingPresetId } from "@/game/render/lighting";
 import type { Quality } from "@/game/render/quality";
 
@@ -19,6 +20,10 @@ interface GameState {
   nearbyDistrict: DistrictId | null;
   /** District whose content panel is open. */
   openDistrict: DistrictId | null;
+  /** Secondary building (campus lab) whose zone the car is inside, if any. */
+  nearbyLab: LabZoneId | null;
+  /** Lab selected inside the open campus panel (plot id), if any. */
+  openLab: string | null;
   /** Trees currently knocked down or falling (drives the "Reset world" action). */
   treesDown: number;
   /** Last tree impact for the HUD toast; `at` is performance.now(). */
@@ -32,7 +37,10 @@ interface GameState {
   setTreesDown: (n: number) => void;
   noteImpact: (kind: "shake" | "topple" | "break") => void;
   setNearby: (id: DistrictId | null) => void;
-  openPanel: (id: DistrictId) => void;
+  setNearbyLab: (id: LabZoneId | null) => void;
+  openPanel: (id: DistrictId, lab?: string | null) => void;
+  /** Navigate inside the open panel (campus ↔ lab) without closing it. */
+  selectLab: (lab: string | null) => void;
   /** Opens the panel for the nearby district, if any. Returns true if it opened. */
   interact: () => boolean;
   closePanel: () => void;
@@ -49,6 +57,8 @@ export const useGameStore = create<GameState>()((set, get) => ({
   lighting: DEFAULT_LIGHTING,
   nearbyDistrict: null,
   openDistrict: null,
+  nearbyLab: null,
+  openLab: null,
   treesDown: 0,
   lastImpact: null,
 
@@ -64,14 +74,24 @@ export const useGameStore = create<GameState>()((set, get) => ({
   setNearby: (id) => {
     if (get().nearbyDistrict !== id) set({ nearbyDistrict: id });
   },
-  openPanel: (id) => set({ phase: "panel", openDistrict: id }),
+  setNearbyLab: (id) => {
+    if (get().nearbyLab !== id) set({ nearbyLab: id });
+  },
+  openPanel: (id, lab = null) => set({ phase: "panel", openDistrict: id, openLab: lab }),
+  selectLab: (openLab) => set({ openLab }),
   interact: () => {
-    const { phase, nearbyDistrict } = get();
-    if (phase !== "playing" || !nearbyDistrict) return false;
-    set({ phase: "panel", openDistrict: nearbyDistrict });
+    const { phase, nearbyDistrict, nearbyLab } = get();
+    if (phase !== "playing") return false;
+    if (nearbyLab) {
+      const [district, lab] = nearbyLab.split(":") as [DistrictId, string];
+      set({ phase: "panel", openDistrict: district, openLab: lab });
+      return true;
+    }
+    if (!nearbyDistrict) return false;
+    set({ phase: "panel", openDistrict: nearbyDistrict, openLab: null });
     return true;
   },
-  closePanel: () => set({ phase: "playing", openDistrict: null }),
+  closePanel: () => set({ phase: "playing", openDistrict: null, openLab: null }),
   openMenu: () => set({ phase: "menu" }),
   closeMenu: () => set({ phase: "playing" }),
   toggleMenu: () => {

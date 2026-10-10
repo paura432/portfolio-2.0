@@ -35,6 +35,8 @@ const EXIT_DIR: Record<Exit, [number, number]> = {
 
 function exitFor(d: District): Exit | null {
   const [x, z] = d.entrance;
+  // Beyond the ring road (|z| >= 40) a district is reached from the north/south exit whatever its x.
+  if (Math.abs(z) >= 40) return z < 0 ? "north" : "south";
   if (Math.abs(x) >= 10 && Math.abs(z) < 10) return x < 0 ? "west" : "east";
   if (Math.abs(z) >= 20 && Math.abs(x) < 10) return z < 0 ? "north" : "south";
   return null;

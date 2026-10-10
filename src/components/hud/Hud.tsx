@@ -1,6 +1,6 @@
 "use client";
 
-import { getDistrict } from "@/data/districts";
+import { getDistrict, type DistrictId } from "@/data/districts";
 import { QUALITY_LABEL, nextQuality } from "@/game/render/quality";
 import { liveCar, resetCar } from "@/game/vehicle/carState";
 import { treeWorld } from "@/game/world/treeWorld";
@@ -11,6 +11,7 @@ import { TouchControls, useIsCoarsePointer } from "./TouchControls";
 export function Hud() {
   const phase = useGameStore((s) => s.phase);
   const nearby = useGameStore((s) => s.nearbyDistrict);
+  const nearbyLab = useGameStore((s) => s.nearbyLab);
   const quality = useGameStore((s) => s.quality);
   const treesDown = useGameStore((s) => s.treesDown);
   const lastImpact = useGameStore((s) => s.lastImpact);
@@ -20,6 +21,14 @@ export function Hud() {
   const coarse = useIsCoarsePointer();
   const playing = phase === "playing";
   const district = nearby ? getDistrict(nearby) : null;
+  // A lab zone (campus secondary building) takes precedence over the district zone it sits in.
+  const labDistrict = nearbyLab ? getDistrict(nearbyLab.split(":")[0] as DistrictId) : null;
+  const lab = nearbyLab ? labDistrict?.plots?.find((p) => p.id === nearbyLab.split(":")[1]) : null;
+  const prompt = lab && labDistrict
+    ? { eyebrow: "Open lab", title: lab.name }
+    : district
+      ? { eyebrow: district.kind === "hub" ? "Open" : district.kind === "education" ? "Explore" : "Open project", title: district.name }
+      : null;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-3 sm:p-6">
@@ -92,17 +101,19 @@ export function Hud() {
               {lastImpact.kind === "break" ? "Trunk snapped" : lastImpact.kind === "topple" ? "Tree knocked down" : "Tree shaken"}
             </span>
           )}
-          {playing && district && (
+          {playing && prompt && (
             <button
               type="button"
               className="panel flex items-center gap-3 px-4 py-3 text-left shadow-lg shadow-black/30"
               onClick={() => interact()}
+              onPointerDown={(e) => e.stopPropagation()}
               data-testid="interact-prompt"
+              data-lab={lab?.id ?? ""}
             >
               <span className="kbd text-base">E</span>
               <span>
-                <span className="eyebrow block">{district.kind === "hub" ? "Open" : "Open project"}</span>
-                <span className="block text-lg font-semibold leading-tight">{district.name}</span>
+                <span className="eyebrow block">{prompt.eyebrow}</span>
+                <span className="block text-lg font-semibold leading-tight">{prompt.title}</span>
               </span>
             </button>
           )}

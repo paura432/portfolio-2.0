@@ -51,7 +51,7 @@ describe("urban furniture", () => {
   });
   it("forecourts connect the sidewalk to each built project facade", () => {
     const fc = generateForecourts();
-    expect(fc.map((f) => f.id).sort()).toEqual(["broki", "contact", "duplex", "fortytwo", "ovi", "trustos"]);
+    expect(fc.map((f) => f.id).sort()).toEqual(["broki", "contact", "duplex", "fortytwo", "fourgeeks", "ovi", "trustos"]);
     for (const f of fc) {
       expect(f.depth, f.id).toBeGreaterThan(0.9);
       expect(distanceToRoad(f.x, f.z), f.id).toBeGreaterThan(0);

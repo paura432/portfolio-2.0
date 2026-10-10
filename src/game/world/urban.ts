@@ -2,7 +2,7 @@
  * Urban furniture derived from the road network: curbs, sidewalks, crossings,
  * lane markings and parking pads. Pure data, consumed by instanced meshes.
  */
-import { districts } from "@/data/districts";
+import { allPlots, districts } from "@/data/districts";
 import { PLAZA, ROADS, distanceToRoad, type RoadSegment } from "@/data/world";
 
 /** A straight run of a repeated element, centred at (x, z), rotated around Y, `length` long. */
@@ -45,8 +45,9 @@ export function insideParkingPad(x: number, z: number, margin = 0): boolean {
   return PARKING_PADS.some((p) => Math.abs(x - p.x) < p.width / 2 + margin && Math.abs(z - p.z) < p.depth / 2 + margin);
 }
 
+const PLOTS = allPlots();
 export function insideAnyFootprint(x: number, z: number, margin = 0): boolean {
-  return districts.some((d) => Math.abs(x - d.position[0]) < d.footprint[0] / 2 + margin && Math.abs(z - d.position[1]) < d.footprint[1] / 2 + margin);
+  return PLOTS.some((d) => Math.abs(x - d.position[0]) < d.footprint[0] / 2 + margin && Math.abs(z - d.position[1]) < d.footprint[1] / 2 + margin);
 }
 
 /** A segment end is a corner when another segment ends there too; dead ends get no wrap-around. */

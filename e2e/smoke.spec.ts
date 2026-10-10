@@ -48,13 +48,16 @@ test.describe("PAU WORLD smoke", () => {
     const after = await car(page);
     expect(Math.hypot(after.x - before.x, after.z - before.z), "car moves again after closing the panel").toBeGreaterThan(0.5);
 
-    // Projects menu: every district is on the map (V3), the planned group is gone.
+    // Projects menu: every district is on the map (V3 + the V5 campus), grouped by category, the planned group is gone.
     await page.keyboard.press("KeyM");
     const menu = page.getByTestId("projects-menu");
     await expect(menu).toBeVisible();
-    await expect(page.getByTestId("menu-built").getByRole("listitem")).toHaveCount(7);
+    await expect(page.getByTestId("menu-built").getByRole("listitem")).toHaveCount(8);
     await expect(page.getByTestId("menu-planned")).toHaveCount(0);
-    for (const name of ["Central Hub", "DUPLEX", "OVI", "BROKI", "TrustOS", "42 Madrid", "Contact Station"]) {
+    for (const category of ["experience", "personal", "ai-engineering", "education"]) {
+      await expect(page.getByTestId("menu-built").locator(`[data-category="${category}"]`)).toBeVisible();
+    }
+    for (const name of ["Central Hub", "DUPLEX", "OVI", "BROKI", "TrustOS", "42 Madrid", "4Geeks AI Campus", "Contact Station"]) {
       await expect(menu.getByRole("button", { name: new RegExp(`^${name}`) })).toBeVisible();
     }
     await menu.getByRole("button", { name: /^DUPLEX/ }).click();
@@ -94,7 +97,7 @@ test.describe("PAU WORLD smoke", () => {
   test("HTML routes work without the 3D scene", async ({ page }) => {
     await page.goto("/projects");
     const list = page.getByTestId("projects-list");
-    await expect(list.getByRole("link")).toHaveCount(6);
+    await expect(list.getByRole("link")).toHaveCount(7);
     await page.getByRole("link", { name: /DUPLEX/ }).click();
     await expect(page).toHaveURL(/\/projects\/duplex$/);
     await expect(page.getByRole("heading", { name: "DUPLEX", level: 1 })).toBeVisible();

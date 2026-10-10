@@ -39,6 +39,8 @@ export const ROADS: RoadSegment[] = [
   // Spurs to the future north (42 Madrid) and south (Contact) districts
   { from: [0, -40], to: [0, -47], width: ROAD_WIDTH },
   { from: [0, 40], to: [0, 47], width: ROAD_WIDTH },
+  // Spur to the 4Geeks AI Engineering Campus (V5), off the north ring road
+  { from: [30, -40], to: [30, -47], width: ROAD_WIDTH },
 ];
 
 export const CAR_SPAWN = {

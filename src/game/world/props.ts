@@ -1,4 +1,4 @@
-import { districts } from "@/data/districts";
+import { allPlots } from "@/data/districts";
 import { PLATFORM, PLAZA, ROADS, distanceToRoad } from "@/data/world";
 import { seededRandom } from "@/lib/seededRandom";
 import { insideParkingPad, roadsideExtent } from "./urban";
@@ -48,8 +48,9 @@ export interface PropSet {
 const TREE_SEED = 20261010;
 const CANOPY_TINTS = 4;
 
+const PLOTS = allPlots();
 function onPlot(x: number, z: number, margin: number): boolean {
-  return districts.some((d) => {
+  return PLOTS.some((d) => {
     const [cx, cz] = d.position;
     const [w, dpt] = d.footprint;
     return Math.abs(x - cx) < w / 2 + margin && Math.abs(z - cz) < dpt / 2 + margin;

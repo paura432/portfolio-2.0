@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { builtDistricts, type District } from "@/data/districts";
 import { SIGN_MOUNTS } from "@/game/world/signage";
 import { makeLabelTexture } from "@/lib/labelTexture";
-import { palette } from "@/lib/palette";
+import { accentHex } from "@/lib/palette";
 import { getMaterials } from "./materials";
 
 /** Single-sided label on a solid backing plate: readable from the front, dark from behind, never mirrored. */
@@ -28,7 +28,7 @@ export function SignPanel({ title, subtitle, accent, width, height, compact = fa
 function Sign({ district }: { district: District }) {
   const mount = SIGN_MOUNTS[district.id];
   if (!mount) return null;
-  const accent = district.accent === "cyan" ? palette.cyan : palette.amber;
+  const accent = accentHex[district.accent];
   return (
     <group position={mount.position} rotation={[0, mount.rotationY, 0]}>
       <SignPanel title={district.name} subtitle={district.tagline} accent={accent} width={mount.width} height={mount.height} />

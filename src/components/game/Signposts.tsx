@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { buildSignposts, SIGNPOST_PANEL_PITCH, SIGNPOST_TOP_Y, type SignpostEntry } from "@/game/world/signposts";
-import { palette } from "@/lib/palette";
+import { accentHex, palette } from "@/lib/palette";
 import { SignPanel } from "./DistrictSigns";
 import { getMaterials } from "./materials";
 
@@ -10,7 +10,7 @@ const ARROW = { left: "←", right: "→", ahead: "↑" } as const;
 
 function Panel({ entry, y }: { entry: SignpostEntry; y: number }) {
   const { district, side } = entry;
-  const accent = district.built ? (district.accent === "cyan" ? palette.cyan : palette.amber) : palette.muted;
+  const accent = district.built ? accentHex[district.accent] : palette.muted;
   const title = side === "left" ? `${ARROW.left} ${district.name}` : `${district.name} ${ARROW[side]}`;
   return (
     <group position={[0, y, 0]}>
