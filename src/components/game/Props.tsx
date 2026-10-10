@@ -4,7 +4,8 @@ import { useCallback, useMemo } from "react";
 import { Color, InstancedMesh, Object3D } from "three";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { generateFurniture, generateLamps, type Placed, type TreeInstance } from "@/game/world/props";
-import { treeDefs } from "@/game/world/trees";
+import { treeDefs, visibleTreeCount } from "@/game/world/trees";
+import { districts } from "@/data/districts";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "./materials";
@@ -89,6 +90,21 @@ export function Props() {
   }, []);
 
   const gardensAsPlaced = useMemo(() => furniture.gardens.map((g) => ({ ...g, rotation: 0 })), [furniture.gardens]);
+  // V4 depth: soft contact blobs under the rendered trees and warm pools at every district entrance.
+  const treeBlobs = useMemo(() => treeDefs().slice(0, visibleTreeCount(profile.vegetation)).map((t) => ({ x: t.x, z: t.z, rotation: 0, scale: 0.7 + t.scale * 0.75 })), [profile.vegetation]);
+  const entrances = useMemo(() => districts.filter((d) => d.built).map((d) => ({ x: d.entrance[0], z: d.entrance[1], rotation: 0, scale: d.kind === "hub" ? 4.2 : 3.4 })), []);
+  const blob: Placer = useCallback((o, p) => {
+    o.position.set(p.x, 0.025, p.z);
+    o.rotation.set(-Math.PI / 2, 0, 0);
+    o.scale.set(p.scale ?? 1, p.scale ?? 1, 1);
+  }, []);
+  const entrancePool: Placer = useCallback((o, p) => {
+    o.position.set(p.x, 0.035, p.z);
+    o.rotation.set(-Math.PI / 2, 0, 0);
+    o.scale.set(p.scale ?? 1, p.scale ?? 1, 1);
+  }, []);
+  const refTreeBlobs = useInstances(treeBlobs, blob);
+  const refEntrancePools = useInstances(entrances, entrancePool);
 
   const refBushes = useInstances(furniture.bushes, bush, tintOf);
   const refGardens = useInstances(gardensAsPlaced, garden);
@@ -110,6 +126,16 @@ export function Props() {
       <instancedMesh ref={refGardens} args={[undefined, undefined, gardensAsPlaced.length]} material={m.turf} receiveShadow>
         <circleGeometry args={[1, 9]} />
       </instancedMesh>
+
+      {/* Contact blobs under trees (grounding on turf) */}
+      <instancedMesh ref={refTreeBlobs} args={[undefined, undefined, Math.max(1, treeBlobs.length)]} material={m.shadowBlob} renderOrder={-1}>
+        <circleGeometry args={[1, 10]} />
+      </instancedMesh>
+      {profile.lampPools && (
+        <instancedMesh ref={refEntrancePools} args={[undefined, undefined, entrances.length]} material={m.lampPool}>
+          <circleGeometry args={[1, 16]} />
+        </instancedMesh>
+      )}
 
       {/* Trees: instanced forest + pooled dynamic trees (destructible, see Trees.tsx) */}
       <Trees />

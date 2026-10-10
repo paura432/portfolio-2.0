@@ -1,7 +1,12 @@
 "use client";
 
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import type { Group } from "three";
 import { getDistrict } from "@/data/districts";
+import { QUALITY_PROFILES } from "@/game/render/quality";
 import { palette } from "@/lib/palette";
+import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "../materials";
 import { StaticBatch } from "../StaticBatch";
 import { WindowGrid } from "./WindowGrid";
@@ -23,6 +28,17 @@ export function Broki() {
   const hallW = 9.5;
   const hallH = 5.0;
   const yardX = -4.75;
+  const trolley = useRef<Group>(null);
+  const ambientMotion = QUALITY_PROFILES[useGameStore((s) => s.quality)].ambientMotion;
+
+  // Ambient activity (V4): the gantry trolley crawls along the beam. Gated by the tier.
+  useFrame(({ clock }) => {
+    if (!ambientMotion || !trolley.current) return;
+    const p = (clock.elapsedTime % 12) / 12;
+    const tri = p < 0.5 ? p * 2 : 2 - p * 2;
+    const ease = tri * tri * (3 - 2 * tri);
+    trolley.current.position.x = yardX - 1.7 + ease * 3.4;
+  });
 
   return (
     <group position={[x, 0, z]}>
@@ -114,6 +130,18 @@ export function Broki() {
       <mesh position={[yardX, 6.6, 0]} material={m.lightAmber}>
         <boxGeometry args={[0.3, 0.2, 4.4]} />
       </mesh>
+      {/* Gantry trolley on the north beam (animated; never merged) */}
+      <group ref={trolley} position={[yardX - 1.7, 6.75, -2.2]} userData={{ dynamic: true }}>
+        <mesh material={m.metalDark} castShadow>
+          <boxGeometry args={[0.7, 0.5, 0.6]} />
+        </mesh>
+        <mesh position={[0, -0.55, 0]} material={m.metal}>
+          <boxGeometry args={[0.08, 0.6, 0.08]} />
+        </mesh>
+        <mesh position={[0, 0.3, 0.32]} material={m.lightAmber}>
+          <boxGeometry args={[0.12, 0.08, 0.04]} />
+        </mesh>
+      </group>
       {/* Mast with beacon on the hall corner */}
       <mesh position={[hallX + hallW / 2 - 0.5, hallH + 3.2, depth / 2 - 0.5]} material={m.metalDark}>
         <boxGeometry args={[0.12, 4.0, 0.12]} />

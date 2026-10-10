@@ -120,7 +120,7 @@ function createMaterials() {
     leaf: standard("#ffffff", 0.9, 0, { flatShading: true }),
     splinter: standard("#4A3B33", 1),
     skid: (() => {
-      const k = new MeshBasicMaterial({ color: "#04070D", transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const k = new MeshBasicMaterial({ color: "#04070D", transparent: true, opacity: 0.4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       return k;
     })(),
     // Ground & urbanism
@@ -169,6 +169,8 @@ function createMaterials() {
     lightWindowWarm: basicLight(palette.windowWarm),
     lightWindowCool: basicLight(palette.windowCool),
     lightRed: basicLight(palette.red),
+    /** Status LED template: cloned per blinking LED so each can pulse on its own. */
+    statusAmber: emissive(palette.amber, 0.8),
 
     // Vegetation
     trunk: standard(palette.trunk, 1),

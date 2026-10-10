@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { ExtrudeGeometry, Shape } from "three";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { ExtrudeGeometry, Shape, type Group, type Mesh, type MeshStandardMaterial } from "three";
 import { getDistrict } from "@/data/districts";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { palette } from "@/lib/palette";
@@ -41,6 +42,27 @@ export function Duplex() {
   const towerX = 5.0;
   const towerW = 3.4;
   const roof = useMemo(() => sawtooth(4.4, 1.5, depth - 1.2), [depth]);
+  const cab = useRef<Group>(null);
+  const leds = useRef<Mesh[]>([]);
+  const addLed = (mesh: Mesh | null) => {
+    if (mesh && !leds.current.includes(mesh)) leds.current.push(mesh);
+  };
+
+  // Ambient activity (V4): the lift cab rides the shaft slowly; the panel LEDs alternate. Gated by the tier.
+  useFrame(({ clock }) => {
+    if (!profile.ambientMotion) return;
+    const t = clock.elapsedTime;
+    if (cab.current) {
+      const p = (t % 16) / 16;
+      const tri = p < 0.5 ? p * 2 : 2 - p * 2;
+      const ease = tri * tri * (3 - 2 * tri);
+      cab.current.position.y = 1.4 + ease * 10.2;
+    }
+    leds.current.forEach((led, i) => {
+      const on = Math.floor(t * 1.5 + i) % 2 === 0;
+      (led.material as MeshStandardMaterial).emissiveIntensity = on ? 1.2 : 0.25;
+    });
+  });
 
   return (
     <group position={[x, 0, z]}>
@@ -96,6 +118,15 @@ export function Duplex() {
           <boxGeometry args={[0.1, 12.6, 0.1]} />
         </mesh>
       ))}
+      {/* Lift cab in the shaft (animated; never merged) */}
+      <group ref={cab} position={[towerX, 1.4, 1.2]} userData={{ dynamic: true }}>
+        <mesh material={m.metalDark} castShadow>
+          <boxGeometry args={[0.9, 1.2, 0.16]} />
+        </mesh>
+        <mesh position={[0, 0.2, 0.09]} material={m.lightAmberSoft}>
+          <boxGeometry args={[0.7, 0.08, 0.02]} />
+        </mesh>
+      </group>
       <mesh position={[towerX, 13.85, -0.8]} material={m.metalDark} castShadow>
         <boxGeometry args={[2.6, 1.3, 3.0]} />
       </mesh>
@@ -182,6 +213,9 @@ export function Duplex() {
           </mesh>
           <mesh position={[-0.08, 0.5, 0]} material={m.lightAmber}>
             <boxGeometry args={[0.02, 0.06, 1.4]} />
+          </mesh>
+          <mesh ref={addLed} position={[-0.08, -0.4, 0.6]} material={m.statusAmber.clone()} userData={{ dynamic: true }}>
+            <boxGeometry args={[0.02, 0.12, 0.12]} />
           </mesh>
         </group>
       ))}

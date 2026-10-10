@@ -241,6 +241,11 @@ export function Car() {
         </StaticBatch>
       </group>
 
+      {/* Contact shadow: a soft blob that follows the car (the key-light shadow alone floats at low sun angles) */}
+      <mesh material={m.shadowBlob} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={-1}>
+        <planeGeometry args={[3.4, 5.4]} />
+      </mesh>
+
       {/* Headlight beam (quality gated) */}
       <primitive object={headlightTarget} />
       {profileQ.headlight && (

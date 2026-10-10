@@ -37,10 +37,10 @@ export const LIGHTING_PRESETS: Record<LightingPresetId, LightingPreset> = {
     background: "#0C1A30",
     fog: { near: 95, far: 215 },
     exposure: 1.2,
-    hemisphere: { sky: "#86A9D8", ground: "#27405C", intensity: 1.35 },
-    ambient: { color: "#B2C6E2", intensity: 0.45 },
+    hemisphere: { sky: "#86A9D8", ground: "#2C4866", intensity: 1.5 },
+    ambient: { color: "#B2C6E2", intensity: 0.52 },
     key: { color: "#E2ECFA", intensity: 2.6, position: [-30, 58, 35] },
-    fill: { color: "#FFC08A", intensity: 0.9, position: [38, 20, -42] },
+    fill: { color: "#FFC08A", intensity: 1.05, position: [38, 20, -42] },
     rim: { color: "#7FE6EE", intensity: 0.4, position: [20, 26, 70] },
   },
   "soft-dusk": {

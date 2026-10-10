@@ -62,7 +62,7 @@ export function SkidMarks() {
   if (!enabled) return null;
   return (
     <instancedMesh ref={mesh} args={[undefined, m.skid, SKID_CAPACITY]} count={0} frustumCulled={false} renderOrder={1}>
-      <planeGeometry args={[0.26, 0.6]} />
+      <planeGeometry args={[0.2, 0.62]} />
     </instancedMesh>
   );
 }
