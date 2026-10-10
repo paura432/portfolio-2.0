@@ -19,12 +19,18 @@ interface GameState {
   nearbyDistrict: DistrictId | null;
   /** District whose content panel is open. */
   openDistrict: DistrictId | null;
+  /** Trees currently knocked down or falling (drives the "Reset world" action). */
+  treesDown: number;
+  /** Last tree impact for the HUD toast; `at` is performance.now(). */
+  lastImpact: { kind: "shake" | "topple" | "break"; at: number } | null;
 
   startGame: () => void;
   setSceneReady: (ready: boolean) => void;
   setContextLost: (lost: boolean) => void;
   setQuality: (q: Quality) => void;
   setLighting: (l: LightingPresetId) => void;
+  setTreesDown: (n: number) => void;
+  noteImpact: (kind: "shake" | "topple" | "break") => void;
   setNearby: (id: DistrictId | null) => void;
   openPanel: (id: DistrictId) => void;
   /** Opens the panel for the nearby district, if any. Returns true if it opened. */
@@ -43,12 +49,18 @@ export const useGameStore = create<GameState>()((set, get) => ({
   lighting: DEFAULT_LIGHTING,
   nearbyDistrict: null,
   openDistrict: null,
+  treesDown: 0,
+  lastImpact: null,
 
   startGame: () => set({ phase: "playing" }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
   setContextLost: (contextLost) => set({ contextLost }),
   setQuality: (quality) => set({ quality }),
   setLighting: (lighting) => set({ lighting }),
+  setTreesDown: (treesDown) => {
+    if (get().treesDown !== treesDown) set({ treesDown });
+  },
+  noteImpact: (kind) => set({ lastImpact: { kind, at: performance.now() } }),
   setNearby: (id) => {
     if (get().nearbyDistrict !== id) set({ nearbyDistrict: id });
   },

@@ -3,12 +3,13 @@
 import { useCallback, useMemo } from "react";
 import { Color, InstancedMesh, Object3D } from "three";
 import { QUALITY_PROFILES } from "@/game/render/quality";
-import { generateFurniture, generateLamps, generateTrees, type Placed, type TreeInstance } from "@/game/world/props";
+import { generateFurniture, generateLamps, type Placed, type TreeInstance } from "@/game/world/props";
+import { treeDefs } from "@/game/world/trees";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "./materials";
+import { Trees } from "./Trees";
 
-const TREE_COUNT = 140;
 const CANOPY_TINTS = [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue];
 
 type Placer = (o: Object3D, item: TreeInstance | Placed, i: number) => void;
@@ -47,45 +48,10 @@ export function Props() {
   const quality = useGameStore((s) => s.quality);
   const profile = QUALITY_PROFILES[quality];
 
-  const allTrees = useMemo(() => generateTrees(TREE_COUNT), []);
-  const furniture = useMemo(() => generateFurniture(allTrees), [allTrees]);
+  // Trees come from the shared deterministic list (stable ids; see Trees.tsx for rendering).
+  const furniture = useMemo(() => generateFurniture(treeDefs()), []);
   const lamps = useMemo(() => generateLamps(), []);
-  // Lower tiers drop the last part of the deterministic list (clusters), never the boulevards.
-  const trees = useMemo(() => allTrees.slice(0, Math.round(allTrees.length * profile.vegetation)), [allTrees, profile.vegetation]);
-  const pines = useMemo(() => trees.filter((t) => t.kind === "pine"), [trees]);
-  const rounds = useMemo(() => trees.filter((t) => t.kind === "round"), [trees]);
-  const tiered = useMemo(() => trees.filter((t) => t.kind === "tiered"), [trees]);
 
-  const trunk: Placer = useCallback((o, t) => {
-    const s = (t as TreeInstance).scale ?? 1;
-    o.position.set(t.x, 0.7 * s, t.z);
-    o.scale.set(s, s, s);
-    o.rotation.y = t.rotation;
-  }, []);
-  const pineCanopy: Placer = useCallback((o, t) => {
-    const s = (t as TreeInstance).scale ?? 1;
-    o.position.set(t.x, (1.1 + 1.5) * s, t.z);
-    o.scale.set(s, s * 1.05, s);
-    o.rotation.y = t.rotation;
-  }, []);
-  const roundCanopy: Placer = useCallback((o, t) => {
-    const s = (t as TreeInstance).scale ?? 1;
-    o.position.set(t.x, (1.2 + 1.3) * s, t.z);
-    o.scale.set(s * 1.1, s * 1.25, s * 1.1);
-    o.rotation.set(t.rotation * 0.3, t.rotation, 0);
-  }, []);
-  const tierLow: Placer = useCallback((o, t) => {
-    const s = (t as TreeInstance).scale ?? 1;
-    o.position.set(t.x, (1.0 + 0.9) * s, t.z);
-    o.scale.set(s, s, s);
-    o.rotation.y = t.rotation;
-  }, []);
-  const tierHigh: Placer = useCallback((o, t) => {
-    const s = (t as TreeInstance).scale ?? 1;
-    o.position.set(t.x, (1.0 + 2.2) * s, t.z);
-    o.scale.set(s * 0.72, s * 0.9, s * 0.72);
-    o.rotation.y = t.rotation + 0.5;
-  }, []);
   const bush: Placer = useCallback((o, b) => {
     const s = b.scale ?? 1;
     o.position.set(b.x, 0.45 * s, b.z);
@@ -124,11 +90,6 @@ export function Props() {
 
   const gardensAsPlaced = useMemo(() => furniture.gardens.map((g) => ({ ...g, rotation: 0 })), [furniture.gardens]);
 
-  const refTrunks = useInstances(trees, trunk);
-  const refPines = useInstances(pines, pineCanopy, tintOf);
-  const refRounds = useInstances(rounds, roundCanopy, tintOf);
-  const refTierLow = useInstances(tiered, tierLow, tintOf);
-  const refTierHigh = useInstances(tiered, tierHigh, tintOf);
   const refBushes = useInstances(furniture.bushes, bush, tintOf);
   const refGardens = useInstances(gardensAsPlaced, garden);
   const refBenchSeat = useInstances(furniture.benches, benchSeat);
@@ -150,22 +111,8 @@ export function Props() {
         <circleGeometry args={[1, 9]} />
       </instancedMesh>
 
-      {/* Trees: one trunk mesh, three canopy families with per-instance tint */}
-      <instancedMesh ref={refTrunks} args={[undefined, undefined, trees.length]} material={m.trunk} castShadow>
-        <cylinderGeometry args={[0.16, 0.26, 1.4, 6]} />
-      </instancedMesh>
-      <instancedMesh ref={refPines} args={[undefined, undefined, Math.max(1, pines.length)]} material={m.canopy} castShadow>
-        <coneGeometry args={[1.15, 3.1, 6]} />
-      </instancedMesh>
-      <instancedMesh ref={refRounds} args={[undefined, undefined, Math.max(1, rounds.length)]} material={m.canopy} castShadow>
-        <dodecahedronGeometry args={[1.35, 0]} />
-      </instancedMesh>
-      <instancedMesh ref={refTierLow} args={[undefined, undefined, Math.max(1, tiered.length)]} material={m.canopy} castShadow>
-        <coneGeometry args={[1.35, 1.9, 5]} />
-      </instancedMesh>
-      <instancedMesh ref={refTierHigh} args={[undefined, undefined, Math.max(1, tiered.length)]} material={m.canopy} castShadow>
-        <coneGeometry args={[1.35, 1.9, 5]} />
-      </instancedMesh>
+      {/* Trees: instanced forest + pooled dynamic trees (destructible, see Trees.tsx) */}
+      <Trees />
 
       {/* Bushes and planters */}
       <instancedMesh ref={refBushes} args={[undefined, undefined, Math.max(1, furniture.bushes.length)]} material={m.canopy} castShadow>

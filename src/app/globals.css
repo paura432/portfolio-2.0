@@ -247,3 +247,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0ms !important; animation-duration: 0ms !important; animation-delay: 0ms !important; }
 }
+
+/* V4: short impact toast under the HUD prompt; respects reduced motion (just fades). */
+.impact-toast { animation: impact-toast 2s ease-out forwards; }
+@keyframes impact-toast {
+  0% { opacity: 0; transform: translateY(6px); }
+  12% { opacity: 1; transform: translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .impact-toast { animation: impact-toast-still 2s linear forwards; }
+  @keyframes impact-toast-still { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+}

@@ -121,6 +121,8 @@ function createMaterials() {
     // Vegetation
     trunk: standard(palette.trunk, 1),
     canopy: standard("#ffffff", 0.9, 0, { flatShading: true }),
+    /** Pre-tinted canopies for the pooled dynamic trees (instanced canopies tint per instance). */
+    canopyTints: [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue].map((c) => standard(c, 0.9, 0, { flatShading: true })),
     bush: standard(palette.treeTeal, 0.95, 0, { flatShading: true }),
     planter: standard(palette.concreteLight, 0.9, 0, { flatShading: true }),
 

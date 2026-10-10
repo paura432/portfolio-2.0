@@ -2,7 +2,8 @@
 
 import { getDistrict } from "@/data/districts";
 import { QUALITY_LABEL, nextQuality } from "@/game/render/quality";
-import { resetCar } from "@/game/vehicle/carState";
+import { liveCar, resetCar } from "@/game/vehicle/carState";
+import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
 import { Minimap } from "./Minimap";
 import { TouchControls, useIsCoarsePointer } from "./TouchControls";
@@ -11,6 +12,8 @@ export function Hud() {
   const phase = useGameStore((s) => s.phase);
   const nearby = useGameStore((s) => s.nearbyDistrict);
   const quality = useGameStore((s) => s.quality);
+  const treesDown = useGameStore((s) => s.treesDown);
+  const lastImpact = useGameStore((s) => s.lastImpact);
   const interact = useGameStore((s) => s.interact);
   const openMenu = useGameStore((s) => s.openMenu);
   const setQuality = useGameStore((s) => s.setQuality);
@@ -56,6 +59,19 @@ export function Hud() {
             <span className="hidden sm:inline">Reset car</span>
             <span className="kbd ml-1 hidden sm:inline-flex">R</span>
           </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-hud"
+            onClick={() => treeWorld.resetWorld(liveCar.state.x, liveCar.state.z)}
+            disabled={!playing || treesDown === 0}
+            title="Regrow every knocked-down tree (the car stays where it is)"
+            data-testid="reset-world"
+            data-trees-down={treesDown}
+          >
+            <span className="sm:hidden">World</span>
+            <span className="hidden sm:inline">Reset world</span>
+            {treesDown > 0 && <span className="ml-1 text-cyan">{treesDown}</span>}
+          </button>
           <button type="button" className="btn btn-secondary btn-hud" onClick={openMenu} disabled={!playing} data-testid="open-menu">
             Projects <span className="kbd ml-1 hidden sm:inline-flex">M</span>
           </button>
@@ -70,7 +86,12 @@ export function Hud() {
           <span className="kbd">E</span> open · <span className="kbd">Esc</span> close · <span className="kbd">R</span> reset
         </div>
 
-        <div className={`pointer-events-auto flex flex-1 justify-center ${coarse ? "self-end pb-1" : ""}`} aria-live="polite">
+        <div className={`pointer-events-auto flex flex-1 flex-col items-center justify-end gap-2 ${coarse ? "self-end pb-1" : ""}`} aria-live="polite">
+          {playing && lastImpact && (
+            <span key={lastImpact.at} className="impact-toast text-[0.72rem] tracking-[0.2em] text-muted uppercase" data-testid="impact-toast" data-kind={lastImpact.kind}>
+              {lastImpact.kind === "break" ? "Trunk snapped" : lastImpact.kind === "topple" ? "Tree knocked down" : "Tree shaken"}
+            </span>
+          )}
           {playing && district && (
             <button
               type="button"

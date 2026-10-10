@@ -80,7 +80,7 @@ export interface TreeConfig {
 export const TREE_CONFIG: TreeConfig = {
   topple: 6,
   break: 13,
-  retainTopple: 0.55,
+  retainTopple: 0.65,
   retainBreak: 0.7,
   shakeDuration: 0.9,
   fallenDuration: 25,
@@ -115,6 +115,8 @@ export class TreeWorld {
   reducedMotion = false;
   /** World clock, seconds. */
   time = 0;
+  /** Capture tooling only: slows the fall so software renderers can film it. */
+  timeScale = 1;
   private accumulator = 0;
   private readonly events: TreeEvent[] = [];
   private readonly dirty = new Set<number>();
@@ -205,7 +207,17 @@ export class TreeWorld {
       // Approach speed: velocity component toward the trunk (negative when moving away).
       const approach = speed * (fx * nx + fz * nz);
       if (approach >= c.topple && this.canAnimate()) {
-        this.topple(s, approach, nx, nz, approach >= c.break);
+        // Off-centre hits push the tree forward *and* sideways, away from the car's path.
+        const rx = fz;
+        const rz = -fx;
+        const off = ((d.x - px) * rx + (d.z - pz) * rz) / r; // -1..1, 0 = dead centre
+        const side = Math.abs(off) < 0.05 ? 0 : Math.max(-1, Math.min(1, off)) * 0.7;
+        let ddx = nx + side * rx;
+        let ddz = nz + side * rz;
+        const dl = Math.hypot(ddx, ddz) || 1;
+        ddx /= dl;
+        ddz /= dl;
+        this.topple(s, approach, ddx, ddz, approach >= c.break);
         speed *= s.broken ? c.retainBreak : c.retainTopple;
         yielded = true;
         continue;
@@ -253,6 +265,7 @@ export class TreeWorld {
   /** Advance the simulation; `dt` is real frame time, integrated in fixed steps. */
   update(dt: number, carX: number, carZ: number): void {
     if (!(dt > 0)) return;
+    dt *= this.timeScale;
     this.time += dt;
     this.accumulator += Math.min(dt, 0.25);
     const h = this.config.step;
