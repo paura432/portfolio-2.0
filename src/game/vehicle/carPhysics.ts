@@ -54,8 +54,35 @@ export function forwardVector(heading: number): [x: number, z: number] {
   return [Math.sin(heading), Math.cos(heading)];
 }
 
-/** Position constraint applied after every sub-step (collisions, boundaries). */
-export type Constrain = (x: number, z: number) => { x: number; z: number; blocked: boolean };
+/** What the constraint learns about the sub-step that produced the proposed position. */
+export interface StepInfo {
+  /** Position before this sub-step. */
+  prevX: number;
+  prevZ: number;
+  /** Signed speed along the heading during the sub-step. */
+  speed: number;
+  heading: number;
+  /** Sub-step duration in seconds. */
+  dt: number;
+}
+
+export interface ConstrainResult {
+  x: number;
+  z: number;
+  /** True when a rigid obstacle or the boundary was hit: the car bumps back. */
+  blocked: boolean;
+  /**
+   * Optional new speed when the car ploughed through something yielding (a tree
+   * that gives way). Ignored when `blocked` is true.
+   */
+  speed?: number;
+}
+
+/**
+ * Position constraint applied after every sub-step (collisions, boundaries).
+ * The step info is optional so simple constraints `(x, z) => …` keep working.
+ */
+export type Constrain = (x: number, z: number, step?: StepInfo) => ConstrainResult;
 
 /** Fraction of speed kept (and reversed) on a blocked sub-step: a soft bump. */
 export const BUMP_RESTITUTION = 0.2;
@@ -79,10 +106,12 @@ export function stepCar(
   const h = clamped / steps;
   let s = state;
   for (let i = 0; i < steps; i++) {
+    const prev = s;
     s = integrate(s, input, h, config);
     if (constrain) {
-      const c = constrain(s.x, s.z);
+      const c = constrain(s.x, s.z, { prevX: prev.x, prevZ: prev.z, speed: s.speed, heading: s.heading, dt: h });
       if (c.blocked) s = { ...s, x: c.x, z: c.z, speed: -s.speed * BUMP_RESTITUTION };
+      else if (c.speed !== undefined || c.x !== s.x || c.z !== s.z) s = { ...s, x: c.x, z: c.z, speed: c.speed ?? s.speed };
     }
   }
   return s;
