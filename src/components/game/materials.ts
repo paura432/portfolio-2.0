@@ -106,6 +106,8 @@ function createMaterials() {
   lampPool.toneMapped = false;
   const cyanPool = new MeshBasicMaterial({ map: glow, color: "#4DD5DE", transparent: true, opacity: 0.35, depthWrite: false, blending: AdditiveBlending });
   cyanPool.toneMapped = false;
+  const violetPool = new MeshBasicMaterial({ map: glow, color: palette.violet, transparent: true, opacity: 0.3, depthWrite: false, blending: AdditiveBlending });
+  violetPool.toneMapped = false;
   const shadowBlob = new MeshBasicMaterial({ map: glow, color: "#000000", transparent: true, opacity: 0.55, depthWrite: false });
   /** Dust puffs: additive so per-instance colour doubles as the fade. */
   const dust = new MeshBasicMaterial({ map: glow, color: "#ffffff", transparent: true, opacity: 0.42, depthWrite: false, blending: AdditiveBlending });
@@ -114,6 +116,7 @@ function createMaterials() {
   return {
     lampPool,
     cyanPool,
+    violetPool,
     shadowBlob,
     dust,
     /** White flat material tinted per instance (leaf particles). */
@@ -169,6 +172,11 @@ function createMaterials() {
     lightWindowWarm: basicLight(palette.windowWarm),
     lightWindowCool: basicLight(palette.windowCool),
     lightRed: basicLight(palette.red),
+    // V5 campus accent (violet) — emitters only
+    lightViolet: basicLight(palette.violet),
+    lightVioletSoft: emissive("#A79CFF", 0.9),
+    glassViolet: standard("#1C1A3A", 0.2, 0.25, { emissive: "#4A3FB8", emissiveIntensity: 0.22 }),
+    doorViolet: basicLight("#A79CF0"),
     /** Status LED template: cloned per blinking LED so each can pulse on its own. */
     statusAmber: emissive(palette.amber, 0.8),
 

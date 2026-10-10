@@ -58,6 +58,26 @@ test.describe("mobile viewport", () => {
     await noHorizontalScroll(page);
   });
 
+  test("campus prompt and panel work with touch", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("explore").tap();
+    await expect(page.getByTestId("loading")).toBeHidden();
+    await expect.poll(() => page.evaluate(() => typeof window.__pauWorld)).toBe("object");
+    await page.evaluate(() => window.__pauWorld!.teleport(30, -46.5, Math.PI));
+    const prompt = page.getByTestId("interact-prompt");
+    await expect(prompt).toContainText("4Geeks AI Campus");
+    await prompt.tap();
+    const panel = page.getByTestId("project-panel");
+    await expect(panel).toBeVisible();
+    await page.getByTestId("campus-lab-ai-workflow").tap();
+    await expect(page.getByTestId("lab-ai-workflow")).toBeVisible();
+    await page.getByTestId("lab-back").tap();
+    await expect(page.getByTestId("campus-content")).toBeVisible();
+    await page.getByTestId("dialog-close").tap();
+    await expect(panel).toBeHidden();
+    await noHorizontalScroll(page);
+  });
+
   test("reduced motion disables intro animations", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");

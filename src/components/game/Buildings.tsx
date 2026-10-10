@@ -5,6 +5,7 @@ import { Broki } from "./buildings/Broki";
 import { Contact } from "./buildings/Contact";
 import { Duplex } from "./buildings/Duplex";
 import { FortyTwo } from "./buildings/FortyTwo";
+import { FourGeeks } from "./buildings/FourGeeks";
 import { Hub } from "./buildings/Hub";
 import { Ovi } from "./buildings/Ovi";
 import { TrustOs } from "./buildings/TrustOs";
@@ -50,6 +51,7 @@ export function Buildings() {
       <Broki />
       <TrustOs />
       <FortyTwo />
+      <FourGeeks />
       <Contact />
       <ReservedPlots />
     </group>

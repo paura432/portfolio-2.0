@@ -1,5 +1,5 @@
 import { allPlots } from "@/data/districts";
-import { PLATFORM, PLAZA, ROADS, distanceToRoad } from "@/data/world";
+import { PLATFORM, PLAZA, ROADS, distanceToRoad, insidePavedArea } from "@/data/world";
 import { seededRandom } from "@/lib/seededRandom";
 import { insideParkingPad, roadsideExtent } from "./urban";
 
@@ -68,6 +68,7 @@ export function isFreeGround(x: number, z: number, roadMargin = 3.2): boolean {
   if (insidePlaza(x, z, 3)) return false;
   if (onPlot(x, z, 4)) return false;
   if (insideParkingPad(x, z, 1.5)) return false;
+  if (insidePavedArea(x, z, 1.5)) return false;
   return true;
 }
 

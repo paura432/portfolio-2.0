@@ -9,6 +9,7 @@ describe("surface classification", () => {
     expect(surfaceAt(-7.3, 29)).toBe("turf"); // boulevard tree row
     expect(surfaceAt(0, 0)).toBe("pavement"); // plaza island
     expect(surfaceAt(11, 0)).toBe("asphalt"); // roundabout ring
+    expect(surfaceAt(40, -49)).toBe("pavement"); // 4Geeks research plaza
   });
 });
 

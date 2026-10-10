@@ -43,6 +43,24 @@ export const ROADS: RoadSegment[] = [
   { from: [30, -40], to: [30, -47], width: ROAD_WIDTH },
 ];
 
+/** Paved areas that are not roads: no vegetation, "pavement" for the driving feedback. */
+export interface PavedArea {
+  id: string;
+  x0: number;
+  x1: number;
+  z0: number;
+  z1: number;
+}
+
+export const PAVED_AREAS: PavedArea[] = [
+  // 4Geeks campus research plaza (V5): across the campus front, between the ring-road sidewalk and the buildings.
+  { id: "fourgeeks-plaza", x0: 12, x1: 62, z0: -52, z1: -46 },
+];
+
+export function insidePavedArea(x: number, z: number, margin = 0): boolean {
+  return PAVED_AREAS.some((a) => x > a.x0 - margin && x < a.x1 + margin && z > a.z0 - margin && z < a.z1 + margin);
+}
+
 export const CAR_SPAWN = {
   /** South road, facing the plaza. */
   position: [0, 27] as [number, number],

@@ -27,11 +27,26 @@ B was chosen for the composition (hall in the middle, labs on both sides, a clos
 | Research plaza (paved) | x 12…60, z −52…−46 | | sidewalk material, violet inset line, benches, planters |
 | Hall — 4Geeks AI Engineering Campus | (30, −57) | 12 × 10 | three storeys, glazed atrium, cantilevered top floor, data mast with violet rings |
 | Lab 01 — TrackFlow | (15, −57) | 8 × 10 | logistics shed: dock, two containers, conveyor, flow-arrow light strip |
-| Lab 02 — Financial Dashboard | (45, −57) | 8 × 10 | glazed analytics box with a 3D bar-chart crown |
-| Lab 03 — Back-office | (57, −58) | 8 × 8 | ops block: server fins, pipe rack, status LEDs |
-| Lab 04 — AI Workflow | (57, −49) | 8 × 6 | automation pavilion: five nodes linked by a travelling light pulse |
+| Lab 02 — Financial Dashboard | (44, −57) | 8 × 10 | glazed analytics box with a 3D bar-chart crown and a data screen |
+| Lab 03 — Back-office | (58, −58) | 8 × 8 | ops block: server fins behind glass, status LEDs, pipe rack, stack; entrance faces west |
+| Lab 04 — AI Workflow | (58, −49) | 8 × 6 | automation pavilion: five node pylons on a light rail with a travelling pulse, consoles; entrance faces west |
 
-Lab entrances face the plaza (south for the row, west for the corner pair). Secondary zones (radius 4.5) at each lab entrance let the car "visit" a lab from the plaza; they are optional, the hall zone opens the whole campus.
+Lab entrances face the plaza (south for the row, west for the corner pair); entrance points sit on the plaza at (15, −49.5), (44, −49.5), (51, −58) and (51, −49), each with a 4.5-unit zone that opens that lab directly ("Open lab · Lab 0n"). They are optional: the hall zone (radius 8 at the spur end) opens the whole campus. The corner pair was shifted one unit east during the data phase so the car fits between Lab 02 and Lab 03 (collision padding 1 + car radius 1.3).
+
+Plots, zones, collisions, sidewalks, vegetation exclusion, the minimap and the menu all derive from `districts.ts` (`plots[]`, `allPlots()`) and from `PAVED_AREAS` in `world.ts`; the 3D file only places geometry at those coordinates.
+
+## Materials and light
+
+- Violet accent (`palette.violet #8B7CFF`, `violetDeep`) on emitters only: hall light bar, cantilever strip, data-mast rings, plaza guide line and light paths, bollard caps, lab plaques and screens, workflow nodes. `glassViolet` is the hall's ground-floor glass (low emissive). Everything else uses the V3 library (facade, concrete, glass, metal, shutter, hazard, doorWarm/doorCool).
+- No new lights. Entrance warm pool from V4 appears at the campus entrance like every district; lamps follow the spur automatically.
+- Ambient activity: mast rings rotate and bob (hall), a pulse travels along the node rail (Lab 04), both `userData.dynamic` and gated by `ambientMotion`; everything else is merged by `StaticBatch` (one batch per building).
+- Plaques per lab use the V3 single-sided `SignPanel` (label texture on a plate); the campus sign hangs on the hall's cantilevered top floor facing the spur, validated by the signage test.
+
+## Adding a lab later
+
+1. Add a `Lab` entry in `src/data/education/fourgeeks.ts` (status from the fixed vocabulary, evidence paths, verified repository).
+2. Add a plot with the same id to the `fourgeeks` district (`plots[]`): collisions, zone, minimap, HTML route and panel navigation follow automatically (`fourgeeks.test.ts` fails if the ids do not match).
+3. Optionally add a pavilion component in `FourGeeks.tsx` at the plot's coordinates. No engine code changes.
 
 ## Data and code structure
 
