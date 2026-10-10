@@ -17,13 +17,12 @@ export function SceneLighting() {
   const presetId = useGameStore((s) => s.lighting);
   const preset = LIGHTING_PRESETS[presetId];
   const profile = QUALITY_PROFILES[quality];
-  const gl = useThree((s) => s.gl);
-
   const key = useRef<DirectionalLight>(null);
 
-  useEffect(() => {
-    gl.toneMappingExposure = preset.exposure;
-  }, [gl, preset.exposure]);
+  // Exposure is a renderer uniform, applied before each frame when the preset changes.
+  useFrame(({ gl }) => {
+    if (gl.toneMappingExposure !== preset.exposure) gl.toneMappingExposure = preset.exposure;
+  }, -20);
 
   // three only allocates the shadow map once; a new size needs the old map disposed.
   useEffect(() => {
