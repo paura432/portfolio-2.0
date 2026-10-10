@@ -11,6 +11,7 @@ import { useGameStore } from "@/stores/gameStore";
 import { SignPanel } from "../DistrictSigns";
 import { getMaterials } from "../materials";
 import { StaticBatch } from "../StaticBatch";
+
 import { WindowGrid } from "./WindowGrid";
 
 /**
@@ -22,23 +23,14 @@ import { WindowGrid } from "./WindowGrid";
  */
 const PLAZA = PAVED_AREAS.find((a) => a.id === "fourgeeks-plaza")!;
 
+const HALL = { front: 5, g1: 3.6, f2: 3.3, f3: 3.0 };
+
+/** Static geometry of the hall (merged into the campus batch). */
 function Hall({ x, z }: { x: number; z: number }) {
   const m = getMaterials();
-  const front = 5; // footprint 12 × 10
-  const g1 = 3.6;
-  const f2 = 3.3;
-  const f3 = 3.0;
-  const mast = useRef<Group>(null);
-  const ambientMotion = QUALITY_PROFILES[useGameStore((s) => s.quality)].ambientMotion;
-  useFrame(({ clock }, delta) => {
-    if (!ambientMotion || !mast.current) return;
-    mast.current.rotation.y += delta * 0.35;
-    mast.current.position.y = 11.6 + Math.sin(clock.elapsedTime * 0.8) * 0.08;
-  });
-
+  const { front, g1, f2, f3 } = HALL;
   return (
     <group position={[x, 0, z]}>
-      <StaticBatch>
         {/* Plinth and steps */}
         <mesh position={[0, 0.12, 0.3]} material={m.concrete} receiveShadow>
           <boxGeometry args={[12.4, 0.24, 10.6]} />
@@ -110,9 +102,23 @@ function Hall({ x, z }: { x: number; z: number }) {
         <mesh position={[0, 0.24 + g1 / 2, -1.5]} material={m.lightVioletSoft}>
           <cylinderGeometry args={[0.4, 0.4, g1 - 0.1, 8]} />
         </mesh>
-      </StaticBatch>
-      {/* Data mast rings (animated, never merged) */}
-      <group ref={mast} position={[-3.4, 11.6, -2.5]} userData={{ dynamic: true }}>
+    </group>
+  );
+}
+
+/** Data mast rings on the hall roof (animated, outside the batch). */
+function HallMast({ x, z }: { x: number; z: number }) {
+  const m = getMaterials();
+  const mast = useRef<Group>(null);
+  const ambientMotion = QUALITY_PROFILES[useGameStore((s) => s.quality)].ambientMotion;
+  useFrame(({ clock }, delta) => {
+    if (!ambientMotion || !mast.current) return;
+    mast.current.rotation.y += delta * 0.35;
+    mast.current.position.y = 11.6 + Math.sin(clock.elapsedTime * 0.8) * 0.08;
+  });
+  return (
+    <group position={[x, 0, z]}>
+      <group ref={mast} position={[-3.4, 11.6, -2.5]}>
         {[0, 0.7, 1.4].map((ry, i) => (
           <mesh key={ry} position={[0, ry, 0]} rotation={[Math.PI / 2, 0, 0]} material={m.lightViolet}>
             <torusGeometry args={[0.9 - i * 0.25, 0.05, 6, 20]} />
@@ -136,7 +142,6 @@ function Plaza() {
   const campus = getDistrict("fourgeeks");
   return (
     <group>
-      <StaticBatch>
         <mesh position={[cx, 0.05, cz]} material={m.sidewalk} receiveShadow>
           <boxGeometry args={[w, 0.1, d]} />
         </mesh>
@@ -197,7 +202,6 @@ function Plaza() {
             </mesh>
           </group>
         ))}
-      </StaticBatch>
     </group>
   );
 }
@@ -212,7 +216,6 @@ function LabTrackFlow({ x, z }: { x: number; z: number }) {
   const dockZ = shedZ + shedD / 2 + 0.8;
   return (
     <group position={[x, 0, z]}>
-      <StaticBatch>
         <mesh position={[0, 0.06, 0]} material={m.concrete} receiveShadow>
           <boxGeometry args={[8.4, 0.12, 10.4]} />
         </mesh>
@@ -299,8 +302,6 @@ function LabTrackFlow({ x, z }: { x: number; z: number }) {
             )),
           )}
         </group>
-      </StaticBatch>
-      <LabPlaque code="Lab 01" title="TrackFlow" position={[-2.3, 2.95, shedZ + shedD / 2 + 0.08]} />
     </group>
   );
 }
@@ -322,7 +323,6 @@ function LabFinancial({ x, z }: { x: number; z: number }) {
   const bars = [1.0, 1.6, 1.3, 2.2, 1.8, 2.6];
   return (
     <group position={[x, 0, z]}>
-      <StaticBatch>
         <mesh position={[0, 0.06, 0]} material={m.concrete} receiveShadow>
           <boxGeometry args={[8.4, 0.12, 10.4]} />
         </mesh>
@@ -375,8 +375,6 @@ function LabFinancial({ x, z }: { x: number; z: number }) {
         <mesh position={[0, 0.1, front - 0.2]} material={m.concreteLight} receiveShadow>
           <boxGeometry args={[6.0, 0.2, 2.2]} />
         </mesh>
-      </StaticBatch>
-      <LabPlaque code="Lab 02" title="Financial Dashboard" position={[1.9, 3.6, front - 1.3 + 0.08]} />
     </group>
   );
 }
@@ -388,7 +386,6 @@ function LabBackOffice({ x, z }: { x: number; z: number }) {
   const west = -4; // plot 8 × 8; entrance side x = −4
   return (
     <group position={[x, 0, z]}>
-      <StaticBatch>
         <mesh position={[0, 0.06, 0]} material={m.concrete} receiveShadow>
           <boxGeometry args={[8.4, 0.12, 8.4]} />
         </mesh>
@@ -454,8 +451,6 @@ function LabBackOffice({ x, z }: { x: number; z: number }) {
         <mesh position={[west + 1.0, 0.1, -2.0]} material={m.concreteLight} receiveShadow>
           <boxGeometry args={[2.4, 0.2, 3.0]} />
         </mesh>
-      </StaticBatch>
-      <LabPlaque code="Lab 03" title="Back-office" position={[west + 2.34, 4.0, -2.0]} rotationY={-Math.PI / 2} />
     </group>
   );
 }
@@ -463,19 +458,10 @@ function LabBackOffice({ x, z }: { x: number; z: number }) {
 /** Lab 04 — AI Workflow: a glass automation pavilion with five nodes linked by a travelling light pulse. Entrance faces west. */
 function LabWorkflow({ x, z }: { x: number; z: number }) {
   const m = getMaterials();
-  const pulse = useRef<Group>(null);
-  const ambientMotion = QUALITY_PROFILES[useGameStore((s) => s.quality)].ambientMotion;
   const west = -4; // plot 8 × 6
   const nodes = [-2.2, -1.1, 0, 1.1, 2.2];
-  useFrame(({ clock }) => {
-    if (!ambientMotion || !pulse.current) return;
-    const p = (clock.elapsedTime * 0.35) % 1;
-    pulse.current.position.z = -2.2 + p * 4.4;
-    pulse.current.scale.setScalar(0.8 + 0.4 * Math.sin(p * Math.PI));
-  });
   return (
     <group position={[x, 0, z]}>
-      <StaticBatch>
         <mesh position={[0, 0.06, 0]} material={m.concrete} receiveShadow>
           <boxGeometry args={[8.4, 0.12, 6.4]} />
         </mesh>
@@ -523,14 +509,28 @@ function LabWorkflow({ x, z }: { x: number; z: number }) {
         <mesh position={[west + 2.19, 1.3, 1.4]} rotation={[0, -Math.PI / 2, 0]} material={m.doorViolet}>
           <planeGeometry args={[1.0, 2.4]} />
         </mesh>
-      </StaticBatch>
-      {/* Pulse travelling along the rail (animated, never merged) */}
-      <group ref={pulse} position={[west + 0.9, 1.5, -2.2]} userData={{ dynamic: true }}>
+    </group>
+  );
+}
+
+/** Pulse travelling along the Lab 04 node rail (animated, outside the batch). */
+function WorkflowPulse({ x, z }: { x: number; z: number }) {
+  const m = getMaterials();
+  const pulse = useRef<Group>(null);
+  const ambientMotion = QUALITY_PROFILES[useGameStore((s) => s.quality)].ambientMotion;
+  useFrame(({ clock }) => {
+    if (!ambientMotion || !pulse.current) return;
+    const p = (clock.elapsedTime * 0.35) % 1;
+    pulse.current.position.z = -2.2 + p * 4.4;
+    pulse.current.scale.setScalar(0.8 + 0.4 * Math.sin(p * Math.PI));
+  });
+  return (
+    <group position={[x, 0, z]}>
+      <group ref={pulse} position={[-4 + 0.9, 1.5, -2.2]}>
         <mesh material={m.lightViolet}>
           <sphereGeometry args={[0.12, 8, 8]} />
         </mesh>
       </group>
-      <LabPlaque code="Lab 04" title="AI Workflow" position={[west + 2.14, 2.6, -1.0]} rotationY={-Math.PI / 2} />
     </group>
   );
 }
@@ -544,12 +544,30 @@ export function FourGeeks() {
   const workflow = plot("ai-workflow");
   return (
     <group>
-      <Plaza />
-      <Hall x={d.position[0]} z={d.position[1]} />
-      <LabTrackFlow x={trackflow.position[0]} z={trackflow.position[1]} />
-      <LabFinancial x={financial.position[0]} z={financial.position[1]} />
-      <LabBackOffice x={backoffice.position[0]} z={backoffice.position[1]} />
-      <LabWorkflow x={workflow.position[0]} z={workflow.position[1]} />
+      {/* One batch for the whole campus: ~25 materials → ~25 draw calls instead of one batch per building */}
+      <StaticBatch>
+        <Plaza />
+        <Hall x={d.position[0]} z={d.position[1]} />
+        <LabTrackFlow x={trackflow.position[0]} z={trackflow.position[1]} />
+        <LabFinancial x={financial.position[0]} z={financial.position[1]} />
+        <LabBackOffice x={backoffice.position[0]} z={backoffice.position[1]} />
+        <LabWorkflow x={workflow.position[0]} z={workflow.position[1]} />
+      </StaticBatch>
+      {/* Animated parts and label plaques stay outside the batch */}
+      <HallMast x={d.position[0]} z={d.position[1]} />
+      <WorkflowPulse x={workflow.position[0]} z={workflow.position[1]} />
+      <group position={[trackflow.position[0], 0, trackflow.position[1]]}>
+        <LabPlaque code="Lab 01" title="TrackFlow" position={[-2.3, 2.95, -1.7 + 3.3 + 0.08]} />
+      </group>
+      <group position={[financial.position[0], 0, financial.position[1]]}>
+        <LabPlaque code="Lab 02" title="Financial Dashboard" position={[1.9, 3.6, 3.5 - 1.3 + 0.08]} />
+      </group>
+      <group position={[backoffice.position[0], 0, backoffice.position[1]]}>
+        <LabPlaque code="Lab 03" title="Back-office" position={[-4 + 2.34, 4.0, -2.0]} rotationY={-Math.PI / 2} />
+      </group>
+      <group position={[workflow.position[0], 0, workflow.position[1]]}>
+        <LabPlaque code="Lab 04" title="AI Workflow" position={[-4 + 2.14, 2.6, -1.0]} rotationY={-Math.PI / 2} />
+      </group>
     </group>
   );
 }

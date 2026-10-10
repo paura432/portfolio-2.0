@@ -1,0 +1,90 @@
+{
+ "label": "v5",
+ "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "firstFrameMs": 1047,
+ "introMs": 600,
+ "scenarios": {
+  "world": {
+   "high": {
+    "fps": 3.2,
+    "frameMs": 316.7,
+    "calls": 336,
+    "triangles": 53398,
+    "geometries": 260,
+    "textures": 24,
+    "programs": 23,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "medium": {
+    "fps": 5,
+    "frameMs": 200.7,
+    "calls": 320,
+    "triangles": 49610,
+    "geometries": 260,
+    "textures": 24,
+    "programs": 23,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "low": {
+    "fps": 5.6,
+    "frameMs": 178.2,
+    "calls": 198,
+    "triangles": 26416,
+    "geometries": 257,
+    "textures": 22,
+    "programs": 36,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   }
+  },
+  "prolonged": {
+   "seconds": 34,
+   "turns": 10,
+   "start": {
+    "calls": 198,
+    "triangles": 26416,
+    "geometries": 257,
+    "textures": 22,
+    "programs": 36,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "end": {
+    "fps": 13,
+    "frameMs": 77,
+    "calls": 159,
+    "triangles": 39188,
+    "geometries": 261,
+    "textures": 24,
+    "programs": 40,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "geometryGrowth": 4,
+   "textureGrowth": 2,
+   "programGrowth": 4
+  }
+ }
+}

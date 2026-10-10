@@ -26,7 +26,7 @@ export const SIGN_MOUNTS: Partial<Record<DistrictId, SignMount>> = {
   broki: { position: [28 + 2.25, 5.7, 17 - 6.25], rotationY: Math.PI, width: 4.4, height: 1.15 },
   trustos: { position: [-28, 3.6, 17 - 7.15], rotationY: Math.PI, width: 3.6, height: 0.95 },
   fortytwo: { position: [0, 6.0, -57 + 2.65], rotationY: 0, width: 3.4, height: 0.95 },
-  fourgeeks: { position: [30, 8.2, -57 + 5.0 + 0.45], rotationY: 0, width: 4.6, height: 1.05 },
+  fourgeeks: { position: [30, 8.3, -57 + 5.5 + 0.06], rotationY: 0, width: 4.6, height: 1.05 },
   contact: { position: [0, 3.1, 57 - 4.1], rotationY: Math.PI, width: 3.6, height: 0.9 },
 };
 

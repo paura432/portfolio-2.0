@@ -41,6 +41,10 @@ Set `NEXT_PUBLIC_SITE_URL` to the public origin to enable canonical URLs, Open G
 ## Status
 MVP phase: Central Hub, DUPLEX and OVI are built. BROKI, TrustOS, 42 Madrid and Contact Station are defined as data (menu, routes, reserved plots) for the next phase.
 
+## V5 4Geeks AI Engineering Campus
+
+Branch `feat/v5-4geeks-ai-campus`. An eighth district on the north edge next to 42 Madrid: a spur off the ring road, a three-storey hall with a data mast, a research plaza and four lab pavilions for the real 4Geeks AI Engineering work (TrackFlow, Financial Dashboard, Back-office, AI workflow), each with an explicit status and verified repository links. Content lives in `src/data/education/fourgeeks.ts`; adding a lab is one data entry plus one plot. Routes: `/education/4geeks` and `/education/4geeks/[slug]`. Docs: `docs/education/4geeks-content-audit.md`, `docs/art-direction/v5-4geeks-campus.md`, `docs/qa/v5-4geeks-validation.md`; captures in `docs/screenshots/v5/`.
+
 ## V4 destructible & reactive world
 
 Branch `feat/v4-destructible-reactive-world`. The car can now knock trees down: soft hits shake them, faster hits topple them away from the car, fast hits snap the trunk; fallen trees stay down and regrow by time + distance or with the HUD "Reset world" button. The forest stays instanced (standing and fallen trees are instances; only animating trees borrow one of eight pooled mesh sets), canopies sway in the vertex shader, the car kicks up dust on turf and leaves skid marks on asphalt. Docs: `docs/gameplay/v4-tree-destruction.md`, `docs/art-direction/v4-reactive-world.md`, `docs/qa/v4-regression-report.md`; captures in `docs/screenshots/v4/`.

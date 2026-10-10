@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { BufferGeometry, Group, InstancedMesh, Material, Matrix4, Mesh } from "three";
+import { BufferGeometry, Group, InstancedMesh, Material, Matrix4, Mesh, MeshBasicMaterial } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 /**
@@ -48,7 +48,8 @@ export function StaticBatch({ children }: { children: ReactNode }) {
       for (const g of geometries) g.dispose();
       if (!merged) continue;
       const mesh = new Mesh(merged, material);
-      mesh.castShadow = true;
+      // Emissive accents (unlit basic materials: strips, screens, lamps) are thin and never need a shadow pass.
+      mesh.castShadow = !(material instanceof MeshBasicMaterial);
       mesh.receiveShadow = true;
       dst.add(mesh);
       created.push(mesh);

@@ -1,0 +1,41 @@
+{
+ "01-aerial-island": {
+  "calls": 388,
+  "triangles": 57468,
+  "geometries": 282,
+  "textures": 27,
+  "programs": 24,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "03-access-follow": {
+  "calls": 206,
+  "triangles": 42198,
+  "geometries": 282,
+  "textures": 27,
+  "programs": 24,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "04-hall-front": {
+  "calls": 172,
+  "triangles": 41378,
+  "geometries": 282,
+  "textures": 27,
+  "programs": 24,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ }
+}

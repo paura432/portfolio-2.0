@@ -1,4 +1,4 @@
-# Visual QA scripts (V3 + V4)
+# Visual QA scripts (V3 + V4 + V5)
 
 All scripts drive a production build with Playwright's Chromium + SwiftShader and the in-page probe `window.__pauWorld` (photo mode, teleport, quality lock, renderer stats, fps sampler). Start the build first:
 
@@ -20,6 +20,7 @@ pnpm build && pnpm exec next start -p 3101
 | `v4sequence.mjs <outDir> [base] [--mode soft\|medium\|strong] [--quality q] [--slow k] [--video] [--reduced] [--mobile]` | V4: real-driving impact on a boulevard tree from a fixed side camera (or the follow camera on a phone): intact → impact → falling → fallen → reset → regrow, plus a state timeline; `--slow` scales the tree clock so software rendering films the fall; `--video` records a webm |
 | `v4tree.mjs <outDir> [base] [--mode m] [--quality q]` | V4: the same impact seen from the follow camera |
 | `v4drive.mjs <outDir> [base] [--quality q]` | V4: hard brake (skid marks + brake lights), fast turn, off-road dust, canopy sway pair |
+| `v5shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V5: campus set (island aerial, campus aerials, access, hall, plaza, four labs, prompt, campus/lab panels, menu) + `*-stats.json` |
 | `v4perf.mjs [base] [--label name] [--base-only]` | V4: five performance scenarios (world, one tree, several trees, prolonged driving, repeated restorations); `--base-only` for a build without destructible trees |
 
 SwiftShader numbers are software rendering: use them for relative comparisons only, never as hardware performance.

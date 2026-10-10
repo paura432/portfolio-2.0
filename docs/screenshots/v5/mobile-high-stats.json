@@ -1,0 +1,67 @@
+{
+ "03-access-follow": {
+  "calls": 219,
+  "triangles": 45994,
+  "geometries": 229,
+  "textures": 15,
+  "programs": 23,
+  "dpr": 1.5,
+  "width": 412,
+  "height": 915,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "11-prompt": {
+  "calls": 218,
+  "triangles": 45754,
+  "geometries": 229,
+  "textures": 15,
+  "programs": 23,
+  "dpr": 1.5,
+  "width": 412,
+  "height": 915,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "12-panel-campus": {
+  "calls": 218,
+  "triangles": 45754,
+  "geometries": 229,
+  "textures": 15,
+  "programs": 23,
+  "dpr": 1.5,
+  "width": 412,
+  "height": 915,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "13-panel-lab01": {
+  "calls": 218,
+  "triangles": 45754,
+  "geometries": 229,
+  "textures": 15,
+  "programs": 23,
+  "dpr": 1.5,
+  "width": 412,
+  "height": 915,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "14-menu": {
+  "calls": 218,
+  "triangles": 45754,
+  "geometries": 229,
+  "textures": 15,
+  "programs": 23,
+  "dpr": 1.5,
+  "width": 412,
+  "height": 915,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ }
+}

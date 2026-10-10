@@ -1,0 +1,67 @@
+{
+ "02-aerial-campus": {
+  "calls": 98,
+  "triangles": 17130,
+  "geometries": 261,
+  "textures": 22,
+  "programs": 34,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "04-hall-front": {
+  "calls": 60,
+  "triangles": 16044,
+  "geometries": 261,
+  "textures": 22,
+  "programs": 35,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "06-lab01-trackflow": {
+  "calls": 68,
+  "triangles": 15742,
+  "geometries": 261,
+  "textures": 22,
+  "programs": 35,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "11-prompt": {
+  "calls": 91,
+  "triangles": 16536,
+  "geometries": 261,
+  "textures": 22,
+  "programs": 35,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "12-panel-campus": {
+  "calls": 91,
+  "triangles": 16536,
+  "geometries": 261,
+  "textures": 22,
+  "programs": 35,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ }
+}

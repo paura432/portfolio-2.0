@@ -19,7 +19,7 @@ test.describe("4Geeks AI Engineering Campus", () => {
     await expect(prompt).toContainText("Explore");
     await expect(prompt).toContainText("4Geeks AI Campus");
     const c = await car(page);
-    expect(c.z).toBeLessThan(-42);
+    expect(c.z).toBeLessThan(-38); // past the ring road, inside the 8-unit zone around (30, -47)
     // 6. The spur is drivable and the hall blocks: push on and the car stops before the facade (z = -52 minus padding and radius).
     await page.keyboard.down("KeyW");
     await page.waitForTimeout(1500);
@@ -97,7 +97,7 @@ test.describe("4Geeks AI Engineering Campus", () => {
     await page.getByTestId("campus-lab-back-office").click();
     await expect(page).toHaveURL(/\/education\/4geeks\/back-office$/);
     await expect(page.getByRole("heading", { name: "Back-office", level: 1 })).toBeVisible();
-    await expect(page.getByText("Evidence")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Evidence", level: 3 })).toBeVisible();
     expect(VERIFIED).toContain(await page.getByTestId("lab-repo-back-office").getAttribute("href"));
     await page.getByRole("link", { name: /Back to the campus/ }).click();
     await expect(page).toHaveURL(/\/education\/4geeks$/);

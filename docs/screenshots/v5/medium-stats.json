@@ -1,0 +1,41 @@
+{
+ "02-aerial-campus": {
+  "calls": 239,
+  "triangles": 44054,
+  "geometries": 264,
+  "textures": 24,
+  "programs": 23,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "04-hall-front": {
+  "calls": 201,
+  "triangles": 42968,
+  "geometries": 264,
+  "textures": 24,
+  "programs": 23,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ },
+ "06-lab01-trackflow": {
+  "calls": 209,
+  "triangles": 42666,
+  "geometries": 264,
+  "textures": 24,
+  "programs": 23,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0
+ }
+}

@@ -1,0 +1,173 @@
+{
+ "label": "v4",
+ "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "firstFrameMs": 1002,
+ "introMs": 532,
+ "scenarios": {
+  "world": {
+   "high": {
+    "fps": 4.2,
+    "frameMs": 237.7,
+    "calls": 267,
+    "triangles": 49144,
+    "geometries": 213,
+    "textures": 18,
+    "programs": 23,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "medium": {
+    "fps": 4.2,
+    "frameMs": 236.1,
+    "calls": 266,
+    "triangles": 46676,
+    "geometries": 213,
+    "textures": 18,
+    "programs": 23,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "low": {
+    "fps": 4,
+    "frameMs": 251.8,
+    "calls": 160,
+    "triangles": 23410,
+    "geometries": 210,
+    "textures": 16,
+    "programs": 36,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   }
+  },
+  "oneTree": {
+   "fps": 5.6,
+   "frameMs": 178.7,
+   "calls": 194,
+   "triangles": 43268,
+   "geometries": 217,
+   "textures": 19,
+   "programs": 41,
+   "dpr": 1,
+   "width": 1280,
+   "height": 800,
+   "dynamicTrees": 1,
+   "fallenTrees": 1,
+   "particles": 41
+  },
+  "severalTrees": {
+   "fps": 4.2,
+   "frameMs": 240.8,
+   "calls": 215,
+   "triangles": 43614,
+   "geometries": 224,
+   "textures": 20,
+   "programs": 41,
+   "dpr": 1,
+   "width": 1280,
+   "height": 800,
+   "dynamicTrees": 4,
+   "fallenTrees": 1,
+   "particles": 42,
+   "summary": {
+    "active": 140,
+    "dynamic": 4,
+    "fallen": 1,
+    "reducedMotion": false,
+    "phases": {
+     "standing": 135,
+     "shaking": 1,
+     "falling": 3,
+     "fallen": 1
+    }
+   }
+  },
+  "prolonged": {
+   "seconds": 34,
+   "turns": 10,
+   "start": {
+    "calls": 200,
+    "triangles": 43288,
+    "geometries": 224,
+    "textures": 20,
+    "programs": 41,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 4,
+    "fallenTrees": 0,
+    "particles": 45
+   },
+   "end": {
+    "fps": 11.5,
+    "frameMs": 87,
+    "calls": 160,
+    "triangles": 39882,
+    "geometries": 224,
+    "textures": 20,
+    "programs": 41,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 2,
+    "particles": 0
+   },
+   "geometryGrowth": 0,
+   "textureGrowth": 0,
+   "programGrowth": 0
+  },
+  "restorations": {
+   "cycles": 6,
+   "before": {
+    "calls": 160,
+    "triangles": 39882,
+    "geometries": 224,
+    "textures": 20,
+    "programs": 41,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 2,
+    "particles": 0
+   },
+   "after": {
+    "calls": 286,
+    "triangles": 50874,
+    "geometries": 224,
+    "textures": 20,
+    "programs": 41,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0
+   },
+   "geometryGrowth": 0,
+   "textureGrowth": 0,
+   "programGrowth": 0,
+   "summary": {
+    "active": 140,
+    "dynamic": 0,
+    "fallen": 0,
+    "reducedMotion": false,
+    "phases": {
+     "standing": 140
+    }
+   }
+  }
+ }
+}
