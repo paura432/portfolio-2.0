@@ -2,6 +2,7 @@ import { districts } from "@/data/districts";
 import { PLATFORM } from "@/data/world";
 import { boxFromFootprint, resolveCollisions, type Obstacle } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
+import { treeWorld } from "./treeWorld";
 
 /** Collision shapes derived from district data: one source of truth for visuals and physics. */
 export const BUILDING_PADDING = 1.0;
@@ -19,8 +20,14 @@ export const obstacles: Obstacle[] = districts
     return { kind: "box", ...boxFromFootprint(d.id, d.position, d.footprint, BUILDING_PADDING) };
   });
 
-/** Constraint used by the vehicle each sub-step: buildings plus the island edge. */
-export const constrainCar: Constrain = (x, z) => {
+/**
+ * Constraint used by the vehicle each sub-step: buildings and the island edge
+ * (rigid), then the trees (rigid when standing, yielding when hit fast enough).
+ */
+export const constrainCar: Constrain = (x, z, step) => {
   const r = resolveCollisions({ x, z, r: CAR_RADIUS }, obstacles, DRIVE_HALF_SIZE);
-  return { x: r.x, z: r.z, blocked: r.hits.length > 0 || r.boundary };
+  const rigid = r.hits.length > 0 || r.boundary;
+  const t = treeWorld.constrain(r.x, r.z, step);
+  if (rigid || t.blocked) return { x: t.x, z: t.z, blocked: true };
+  return t;
 };
