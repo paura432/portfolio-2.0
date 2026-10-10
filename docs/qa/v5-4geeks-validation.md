@@ -9,7 +9,7 @@ Branch `feat/v5-4geeks-ai-campus`, base `feat/world-art-direction-v4` @ `ef3792a
 | `pnpm lint` | 0 / 0 | 0 / 0 |
 | `pnpm typecheck` | clean | clean |
 | `pnpm test` (Vitest) | 100 / 100 | 106 / 106 (20 files) |
-| `pnpm build` | 13 routes | 6 routes (+ /education/4geeks and 4 lab pages) |
+| `pnpm build` | 13 routes | 18 static pages (V4: 13; + /education/4geeks and 4 lab pages) |
 | `pnpm test:e2e` | 12 / 12 | 15 / 15 (new: campus ×2, mobile touch ×1) |
 
 ## 2. Functional QA (brief §16)
