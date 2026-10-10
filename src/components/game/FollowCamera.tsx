@@ -2,8 +2,9 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Vector3 } from "three";
+import { PerspectiveCamera, Vector3 } from "three";
 import { damp, desiredCamera, FOLLOW_CONFIG } from "@/game/camera/followCamera";
+import { photoMode } from "@/game/camera/photoMode";
 import { liveCar } from "@/game/vehicle/carState";
 
 /** Smooth third-person camera; damping is exponential so it is frame-rate independent. */
@@ -12,6 +13,20 @@ export function FollowCamera() {
   const seenGeneration = useRef(-1);
 
   useFrame(({ camera }, delta) => {
+    const photo = photoMode.camera;
+    if (photo) {
+      camera.position.set(photo.position[0], photo.position[1], photo.position[2]);
+      target.current.set(photo.target[0], photo.target[1], photo.target[2]);
+      camera.lookAt(target.current);
+      if (photo.fov && camera instanceof PerspectiveCamera && camera.fov !== photo.fov) {
+        camera.fov = photo.fov;
+        camera.updateProjectionMatrix();
+      }
+      // Next frame without photo mode snaps back to the car.
+      seenGeneration.current = -1;
+      return;
+    }
+
     const { x, z, heading, speed } = liveCar.state;
     const want = desiredCamera(x, z, heading, speed);
     const dt = Math.min(delta, 0.1);

@@ -1,0 +1,162 @@
+{
+  "03-spawn-desktop": {
+    "calls": 150,
+    "triangles": 21588,
+    "geometries": 122,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "05-car-rear": {
+    "calls": 134,
+    "triangles": 21516,
+    "geometries": 122,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "06-car-side": {
+    "calls": 71,
+    "triangles": 19726,
+    "geometries": 137,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "07-car-three-quarter": {
+    "calls": 111,
+    "triangles": 21242,
+    "geometries": 141,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "07b-car-top": {
+    "calls": 56,
+    "triangles": 19780,
+    "geometries": 141,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "08-car-turning": {
+    "calls": 129,
+    "triangles": 21412,
+    "geometries": 167,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "09-central-hub": {
+    "calls": 120,
+    "triangles": 21596,
+    "geometries": 169,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "10-duplex": {
+    "calls": 74,
+    "triangles": 19896,
+    "geometries": 169,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "11-ovi": {
+    "calls": 75,
+    "triangles": 20264,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "12-aerial": {
+    "calls": 198,
+    "triangles": 22632,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "13-roads-intersection": {
+    "calls": 64,
+    "triangles": 19620,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "14-signs": {
+    "calls": 75,
+    "triangles": 19908,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "15-night-driving": {
+    "calls": 103,
+    "triangles": 21310,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 15,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "16-quality-low": {
+    "calls": 88,
+    "triangles": 14908,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 19,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "16-quality-high": {
+    "calls": 117,
+    "triangles": 21580,
+    "geometries": 170,
+    "textures": 12,
+    "programs": 21,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800
+  },
+  "04-spawn-mobile": {
+    "calls": 93,
+    "triangles": 21180,
+    "geometries": 78,
+    "textures": 6,
+    "programs": 14,
+    "dpr": 1.5,
+    "width": 390,
+    "height": 844
+  }
+}
