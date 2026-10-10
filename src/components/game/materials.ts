@@ -106,7 +106,7 @@ function createMaterials() {
     carBodyDark: standard(palette.carOrangeDark, 0.4, 0.1),
     carUnder: standard(palette.carDark, 0.9, 0.1),
     carTrim: standard(palette.carTrim, 0.35, 0.7),
-    carGlass: standard(palette.carGlass, 0.08, 0.55, { emissive: "#0E2235", emissiveIntensity: 0.3 }),
+    carGlass: standard("#223C55", 0.1, 0.5, { emissive: "#17304A", emissiveIntensity: 0.55 }),
     carRim: standard(palette.carRim, 0.3, 0.8),
     tire: standard("#141821", 1, 0),
     headlight: basicLight("#FFF6E0"),
