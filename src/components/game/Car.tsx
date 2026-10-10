@@ -11,6 +11,7 @@ import { dampTo, isBraking, targetPitch, targetRoll, VISUAL_CONFIG } from "@/gam
 import { constrainCar } from "@/game/world/obstacles";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "./materials";
+import { StaticBatch } from "./StaticBatch";
 
 const WHEEL_RADIUS = 0.38;
 const WHEEL_X = 0.98;
@@ -158,6 +159,7 @@ export function Car() {
   return (
     <group ref={group} position={[liveCar.state.x, 0, liveCar.state.z]} rotation={[0, liveCar.state.heading, 0]}>
       <group ref={body}>
+        <StaticBatch>
         {/* Body shell and greenhouse (extruded side profiles) */}
         <mesh geometry={bodyGeometry} material={m.carBody} rotation={[0, -Math.PI / 2, 0]} castShadow />
         <mesh geometry={cabinGeometry} material={m.carGlass} rotation={[0, -Math.PI / 2, 0]} castShadow />
@@ -211,7 +213,7 @@ export function Car() {
             <mesh material={m.drl} position={[s * 0.6, 0.67, 2.1]}>
               <boxGeometry args={[0.46, 0.025, 0.04]} />
             </mesh>
-            <mesh material={m.tailLight} position={[s * 0.64, 0.9, -2.11]}>
+            <mesh material={m.tailLight} position={[s * 0.64, 0.9, -2.11]} userData={{ dynamic: true }}>
               <boxGeometry args={[0.34, 0.12, 0.06]} />
             </mesh>
             {/* Exhausts */}
@@ -221,7 +223,7 @@ export function Car() {
           </group>
         ))}
         {/* Full-width light bar + spoiler lip */}
-        <mesh ref={tail} material={m.tailLight} position={[0, 0.9, -2.11]}>
+        <mesh ref={tail} material={m.tailLight} position={[0, 0.9, -2.11]} userData={{ dynamic: true }}>
           <boxGeometry args={[1.2, 0.05, 0.05]} />
         </mesh>
         <mesh material={m.carBodyDark} position={[0, 1.0, -2.0]} rotation={[0.12, 0, 0]}>
@@ -230,6 +232,7 @@ export function Car() {
         <mesh material={m.carBodyDark} position={[0, 1.46, -0.78]}>
           <boxGeometry args={[0.05, 0.06, 0.2]} />
         </mesh>
+        </StaticBatch>
       </group>
 
       {/* Headlight beam (quality gated) */}

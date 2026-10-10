@@ -1,9 +1,13 @@
 "use client";
 
 import { districts } from "@/data/districts";
+import { Broki } from "./buildings/Broki";
+import { Contact } from "./buildings/Contact";
 import { Duplex } from "./buildings/Duplex";
+import { FortyTwo } from "./buildings/FortyTwo";
 import { Hub } from "./buildings/Hub";
 import { Ovi } from "./buildings/Ovi";
+import { TrustOs } from "./buildings/TrustOs";
 import { getMaterials } from "./materials";
 
 /** Reserved plots for unbuilt districts: a low plinth with corner markers, no content. */
@@ -43,6 +47,10 @@ export function Buildings() {
       <Hub />
       <Duplex />
       <Ovi />
+      <Broki />
+      <TrustOs />
+      <FortyTwo />
+      <Contact />
       <ReservedPlots />
     </group>
   );

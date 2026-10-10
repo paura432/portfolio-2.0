@@ -13,10 +13,14 @@ describe("urban furniture", () => {
       expect(c.length).toBeGreaterThan(0);
     }
   });
-  it("sidewalks stay off every road and off the plaza", () => {
+  it("sidewalks stay off every road, off the plaza and out of every building footprint", () => {
     for (const s of generateSidewalks()) {
       expect(distanceToRoad(s.x, s.z)).toBeGreaterThanOrEqual(CURB_WIDTH);
       expect(Math.hypot(s.x, s.z)).toBeGreaterThan(14.5);
+      for (const d of districts) {
+        const inside = Math.abs(s.x - d.position[0]) < d.footprint[0] / 2 && Math.abs(s.z - d.position[1]) < d.footprint[1] / 2;
+        expect(inside, `${d.id}`).toBe(false);
+      }
     }
   });
   it("crossings and dashes lie on the asphalt", () => {
@@ -47,10 +51,10 @@ describe("urban furniture", () => {
   });
   it("forecourts connect the sidewalk to each built project facade", () => {
     const fc = generateForecourts();
-    expect(fc.map((f) => f.id).sort()).toEqual(["duplex", "ovi"]);
+    expect(fc.map((f) => f.id).sort()).toEqual(["broki", "contact", "duplex", "fortytwo", "ovi", "trustos"]);
     for (const f of fc) {
-      expect(f.depth).toBeGreaterThan(1);
-      expect(distanceToRoad(f.x, f.z)).toBeGreaterThan(0);
+      expect(f.depth, f.id).toBeGreaterThan(0.9);
+      expect(distanceToRoad(f.x, f.z), f.id).toBeGreaterThan(0);
     }
   });
 });

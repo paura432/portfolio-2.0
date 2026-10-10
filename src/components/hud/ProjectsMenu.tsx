@@ -55,15 +55,17 @@ export function ProjectsMenu() {
           ))}
         </ul>
       </section>
-      <section className="mt-6">
-        <h3 className="eyebrow">Content ready · building planned</h3>
-        <p className="mt-1 text-sm text-muted">These districts are not on the map yet. Their content is complete and opens here or as a page.</p>
-        <ul className="mt-2 grid gap-2 sm:grid-cols-2" data-testid="menu-planned">
-          {planned.map((d) => (
-            <Entry key={d.id} district={d} onOpen={() => openPanel(d.id)} />
-          ))}
-        </ul>
-      </section>
+      {planned.length > 0 && (
+        <section className="mt-6">
+          <h3 className="eyebrow">Content ready · building planned</h3>
+          <p className="mt-1 text-sm text-muted">These districts are not on the map yet. Their content is complete and opens here or as a page.</p>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2" data-testid="menu-planned">
+            {planned.map((d) => (
+              <Entry key={d.id} district={d} onOpen={() => openPanel(d.id)} />
+            ))}
+          </ul>
+        </section>
+      )}
     </Dialog>
   );
 }

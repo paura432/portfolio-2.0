@@ -34,7 +34,7 @@ export interface District {
   accent: "cyan" | "amber";
   /** HTML route for the content (works without WebGL). */
   route: string;
-  /** Built in the current phase. Unbuilt districts exist as data and menu entries only. */
+  /** Built on the map (collisions, interaction zone, sign). All districts are built since V3. */
   built: boolean;
 }
 
@@ -92,7 +92,7 @@ export const districts: District[] = [
     interactRadius: 9,
     accent: "amber",
     route: "/projects/broki",
-    built: false,
+    built: true,
   },
   {
     id: "trustos",
@@ -106,7 +106,7 @@ export const districts: District[] = [
     interactRadius: 9,
     accent: "cyan",
     route: "/projects/trustos",
-    built: false,
+    built: true,
   },
   {
     id: "fortytwo",
@@ -120,7 +120,7 @@ export const districts: District[] = [
     interactRadius: 8,
     accent: "amber",
     route: "/projects/42-madrid",
-    built: false,
+    built: true,
   },
   {
     id: "contact",
@@ -133,7 +133,7 @@ export const districts: District[] = [
     interactRadius: 8,
     accent: "cyan",
     route: "/contact",
-    built: false,
+    built: true,
   },
 ];
 

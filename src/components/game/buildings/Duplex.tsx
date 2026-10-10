@@ -7,6 +7,7 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "../materials";
+import { StaticBatch } from "../StaticBatch";
 import { WindowGrid } from "./WindowGrid";
 
 /** Sawtooth roof module: right triangle profile extruded along the hall depth. */
@@ -43,6 +44,7 @@ export function Duplex() {
 
   return (
     <group position={[x, 0, z]}>
+      <StaticBatch>
       {/* Hall */}
       <mesh position={[-1, hallH / 2, 0]} material={m.facade} castShadow receiveShadow>
         <boxGeometry args={[w - towerW + 0.4, hallH, depth]} />
@@ -154,7 +156,7 @@ export function Duplex() {
 
       {/* Loading dock on the east wall of the hall: shutter, canopy, hazard chevrons */}
       <group position={[w / 2 - towerW + 0.22, 0, -3.2]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh position={[0, 1.6, 0]} material={m.grille}>
+        <mesh position={[0, 1.6, 0]} material={m.shutter}>
           <boxGeometry args={[3.2, 3.2, 0.12]} />
         </mesh>
         {[0.6, 1.2, 1.8, 2.4].map((sy) => (
@@ -184,6 +186,7 @@ export function Duplex() {
         </group>
       ))}
 
+      </StaticBatch>
       {profile.headlight && <pointLight position={[-3, 4, front + 3]} color={palette.amber} intensity={16} distance={20} decay={2} />}
     </group>
   );

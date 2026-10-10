@@ -95,6 +95,13 @@ function createMaterials() {
     metalDark: standard("#36434F", 0.55, 0.25),
     glass: standard("#14283D", 0.2, 0.25, { emissive: "#1A6E78", emissiveIntensity: 0.16 }),
     glassAmber: standard("#2E2419", 0.25, 0.25, { emissive: palette.amberDeep, emissiveIntensity: 0.22 }),
+    glassClear: (() => {
+      const g = standard("#1E3C55", 0.15, 0.3, { emissive: "#1A6E78", emissiveIntensity: 0.12 });
+      g.transparent = true;
+      g.opacity = 0.55;
+      return g;
+    })(),
+    shutter: standard("#2A3A4C", 0.8, 0.2),
     doorCool: basicLight("#7FC6D6"),
     doorWarm: basicLight("#E8B98A"),
     windowDark: standard(palette.windowDark, 0.3, 0.2),
@@ -128,6 +135,8 @@ function createMaterials() {
     headlight: basicLight("#FFF6E0"),
     drl: basicLight("#CFF6FA"),
     tailLight: emissive(palette.red, 0.9),
+    /** Separate instance: the station beacon blinks without touching the car's brake lights. */
+    beaconRed: emissive(palette.red, 0.6),
     grille: standard("#0F141C", 0.6, 0.3),
   };
 }

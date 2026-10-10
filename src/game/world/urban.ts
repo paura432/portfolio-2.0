@@ -45,6 +45,15 @@ export function insideParkingPad(x: number, z: number, margin = 0): boolean {
   return PARKING_PADS.some((p) => Math.abs(x - p.x) < p.width / 2 + margin && Math.abs(z - p.z) < p.depth / 2 + margin);
 }
 
+export function insideAnyFootprint(x: number, z: number, margin = 0): boolean {
+  return districts.some((d) => Math.abs(x - d.position[0]) < d.footprint[0] / 2 + margin && Math.abs(z - d.position[1]) < d.footprint[1] / 2 + margin);
+}
+
+/** A segment end is a corner when another segment ends there too; dead ends get no wrap-around. */
+function isCorner(point: [number, number], self: RoadSegment): boolean {
+  return ROADS.some((o) => o !== self && (Math.hypot(o.from[0] - point[0], o.from[1] - point[1]) < 1 || Math.hypot(o.to[0] - point[0], o.to[1] - point[1]) < 1));
+}
+
 function direction(r: RoadSegment) {
   const dx = r.to[0] - r.from[0];
   const dz = r.to[1] - r.from[1];
@@ -75,11 +84,13 @@ function roadsideRuns(offset: number, step: number, valid: (x: number, z: number
         start = null;
         count = 0;
       };
-      for (let s = -overhang; s <= len + overhang + 1e-6; s += step) {
+      const startS = isCorner(r.from, r) ? -overhang : 0;
+      const endS = isCorner(r.to, r) ? len + overhang : len;
+      for (let s = startS; s <= endS + 1e-6; s += step) {
         const x = r.from[0] + ux * s + nx * offset * side;
         const z = r.from[1] + uz * s + nz * offset * side;
         const k = key(x, z);
-        const ok = valid(x, z) && !occupied.has(k);
+        const ok = valid(x, z) && !occupied.has(k) && !insideAnyFootprint(x, z, 0.1);
         if (ok) {
           occupied.add(k);
           if (start === null) start = s - step / 2;
@@ -88,7 +99,7 @@ function roadsideRuns(offset: number, step: number, valid: (x: number, z: number
           flush(s - step / 2);
         }
       }
-      flush(len + overhang + step / 2);
+      flush(endS + step / 2);
     }
   }
   return runs;
@@ -190,7 +201,7 @@ export interface Forecourt {
 
 export function generateForecourts(): Forecourt[] {
   return districts
-    .filter((d) => d.built && d.kind === "project")
+    .filter((d) => d.built && d.kind !== "hub")
     .map((d) => {
       const [ex, ez] = d.entrance;
       const [bx, bz] = d.position;
@@ -199,14 +210,20 @@ export function generateForecourts(): Forecourt[] {
       const vertical = Math.abs(bx - ex) < 1e-6;
       const dir = vertical ? Math.sign(bz - ez) : Math.sign(bx - ex);
       const clear = CURB_WIDTH + SIDEWALK_WIDTH - 0.01;
+      const facade = vertical ? bz - (dir * depth) / 2 : bx - (dir * w) / 2;
+      const maxT = Math.abs(facade - (vertical ? ez : ex));
+      const probe = (t: number) => distanceToRoad(vertical ? ex : ex + dir * t, vertical ? ez + dir * t : ez);
       let t = 0;
-      while (t < 40 && distanceToRoad(vertical ? ex : ex + dir * t, vertical ? ez + dir * t : ez) < clear) t += 0.25;
+      while (t < maxT && probe(t) < clear) t += 0.25;
+      if (t >= maxT) {
+        // Dead-end spur: the asphalt reaches the plot, so the forecourt starts right at the asphalt edge.
+        t = 0;
+        while (t < maxT && probe(t) <= 0) t += 0.25;
+      }
       if (vertical) {
-        const facade = bz - (dir * depth) / 2;
         const near = ez + dir * t;
         return { id: d.id, x: bx, z: (facade + near) / 2, width: w, depth: Math.abs(facade - near) };
       }
-      const facade = bx - (dir * w) / 2;
       const near = ex + dir * t;
       return { id: d.id, x: (facade + near) / 2, z: bz, width: Math.abs(facade - near), depth };
     });

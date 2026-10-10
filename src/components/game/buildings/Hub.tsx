@@ -8,6 +8,7 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "../materials";
+import { StaticBatch } from "../StaticBatch";
 
 const OCT = 8;
 const BASE_Y = 0.42; // top of the plaza island
@@ -35,6 +36,7 @@ export function Hub() {
 
   return (
     <group position={[d.position[0], BASE_Y, d.position[1]]}>
+      <StaticBatch>
       {/* Plinth with perimeter light strip */}
       <mesh position={[0, 0.25, 0]} material={m.concreteLight} castShadow receiveShadow>
         <cylinderGeometry args={[r + 0.1, r + 0.4, 0.5, OCT]} />
@@ -95,7 +97,7 @@ export function Hub() {
       <mesh position={[0, 10.4, 0]} material={m.glass} castShadow>
         <cylinderGeometry args={[1.25, 1.35, 6.2, OCT]} />
       </mesh>
-      <mesh ref={core} position={[0, 10.4, 0]} material={m.lightCyanSoft}>
+      <mesh ref={core} position={[0, 10.4, 0]} material={m.lightCyanSoft} userData={{ dynamic: true }}>
         <cylinderGeometry args={[0.5, 0.5, 6.0, 8]} />
       </mesh>
       {[9.0, 10.6, 12.2].map((y) => (
@@ -151,6 +153,7 @@ export function Hub() {
         );
       })}
 
+      </StaticBatch>
       {profile.headlight && <pointLight position={[0, 9, 0]} color={palette.cyan} intensity={22} distance={26} decay={2} />}
     </group>
   );

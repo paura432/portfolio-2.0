@@ -15,8 +15,8 @@ describe("content data", () => {
       expect(projects.some((p) => p.slug === d.projectSlug), d.id).toBe(true);
     }
   });
-  it("builds exactly the MVP districts", () => {
-    expect(districts.filter((d) => d.built).map((d) => d.id)).toEqual(["hub", "duplex", "ovi"]);
+  it("builds every district on the map", () => {
+    expect(districts.filter((d) => d.built).map((d) => d.id)).toEqual(["hub", "duplex", "ovi", "broki", "trustos", "fortytwo", "contact"]);
   });
 });
 

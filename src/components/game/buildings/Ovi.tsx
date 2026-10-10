@@ -8,6 +8,7 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "../materials";
+import { StaticBatch } from "../StaticBatch";
 
 const OCT = 8;
 const ROT = Math.PI / 8; // flat octagon faces toward the axes
@@ -61,6 +62,7 @@ export function Ovi() {
 
   return (
     <group position={[x, 0, z]}>
+      <StaticBatch>
       {/* Plinth with radiating data lines and entrance steps */}
       <mesh position={[0, 0.4, 0]} rotation={[0, ROT, 0]} material={m.concreteLight} castShadow receiveShadow>
         <cylinderGeometry args={[6.4, 6.8, 0.8, OCT]} />
@@ -118,10 +120,10 @@ export function Ovi() {
       <mesh position={[0, 14.4, 0]} material={m.metalDark}>
         <cylinderGeometry args={[0.9, 1.3, 1.2, OCT]} />
       </mesh>
-      <mesh ref={orb} position={[0, 16.3, 0]} material={m.lightCyanSoft}>
+      <mesh ref={orb} position={[0, 16.3, 0]} material={m.lightCyanSoft} userData={{ dynamic: true }}>
         <sphereGeometry args={[1.5, 16, 16]} />
       </mesh>
-      <group ref={rings} position={[0, 16.3, 0]}>
+      <group ref={rings} position={[0, 16.3, 0]} userData={{ dynamic: true }}>
         <mesh rotation={[Math.PI / 2, 0, 0]} material={m.metal}>
           <torusGeometry args={[2.5, 0.08, 6, 36]} />
         </mesh>
@@ -146,6 +148,7 @@ export function Ovi() {
         <planeGeometry args={[2.6, 2.6]} />
       </mesh>
 
+      </StaticBatch>
       {profile.headlight && <pointLight position={[0, 15, 0]} color={palette.cyan} intensity={28} distance={30} decay={2} />}
       {profile.headlight && <pointLight position={[0, 3, 8]} color={palette.cyan} intensity={10} distance={16} decay={2} />}
     </group>

@@ -23,6 +23,10 @@ export const SIGN_MOUNTS: Partial<Record<DistrictId, SignMount>> = {
   hub: { position: [0, 3.68, 6.6 + 0.6], rotationY: 0, width: 3.6, height: 0.95 },
   duplex: { position: [-28 + 5.0, 10.2, -17 + 1.1 + 0.08], rotationY: 0, width: 3.2, height: 0.95 },
   ovi: { position: [28, 5.2, -17 + 6.1 + 0.45], rotationY: 0, width: 3.8, height: 1.0 },
+  broki: { position: [28 + 2.25, 5.7, 17 - 6.25], rotationY: Math.PI, width: 4.4, height: 1.15 },
+  trustos: { position: [-28, 3.6, 17 - 7.15], rotationY: Math.PI, width: 3.6, height: 0.95 },
+  fortytwo: { position: [0, 6.0, -57 + 2.65], rotationY: 0, width: 3.4, height: 0.95 },
+  contact: { position: [0, 3.1, 57 - 4.1], rotationY: Math.PI, width: 3.6, height: 0.9 },
 };
 
 export const MIN_SIGN_HEIGHT = 2.6;

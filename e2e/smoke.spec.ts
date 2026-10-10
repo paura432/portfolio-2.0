@@ -48,12 +48,12 @@ test.describe("PAU WORLD smoke", () => {
     const after = await car(page);
     expect(Math.hypot(after.x - before.x, after.z - before.z), "car moves again after closing the panel").toBeGreaterThan(0.5);
 
-    // Projects menu: built and planned groups, every district present, opens an unbuilt one.
+    // Projects menu: every district is on the map (V3), the planned group is gone.
     await page.keyboard.press("KeyM");
     const menu = page.getByTestId("projects-menu");
     await expect(menu).toBeVisible();
-    await expect(page.getByTestId("menu-built").getByRole("listitem")).toHaveCount(3);
-    await expect(page.getByTestId("menu-planned").getByRole("listitem")).toHaveCount(4);
+    await expect(page.getByTestId("menu-built").getByRole("listitem")).toHaveCount(7);
+    await expect(page.getByTestId("menu-planned")).toHaveCount(0);
     for (const name of ["Central Hub", "DUPLEX", "OVI", "BROKI", "TrustOS", "42 Madrid", "Contact Station"]) {
       await expect(menu.getByRole("button", { name: new RegExp(`^${name}`) })).toBeVisible();
     }
