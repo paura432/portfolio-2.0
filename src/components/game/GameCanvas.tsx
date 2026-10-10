@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
-import { Vector2 } from "three";
+import { ACESFilmicToneMapping, Vector2 } from "three";
 import { photoMode, probeState, type PhotoCamera } from "@/game/camera/photoMode";
+import type { LightingPresetId } from "@/game/render/lighting";
+import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
 import { liveCar } from "@/game/vehicle/carState";
 import { useGameStore, type Quality } from "@/stores/gameStore";
 import { Car } from "./Car";
@@ -20,8 +22,7 @@ function QualityController() {
   const quality = useGameStore((s) => s.quality);
   const setDpr = useThree((s) => s.setDpr);
   useEffect(() => {
-    const max = quality === "high" ? 1.5 : 1;
-    setDpr(Math.min(window.devicePixelRatio || 1, max));
+    setDpr(Math.min(window.devicePixelRatio || 1, QUALITY_PROFILES[quality].maxDpr));
   }, [quality, setDpr]);
   return null;
 }
@@ -47,6 +48,9 @@ declare global {
       /** Fixed camera for reproducible screenshots; null restores the follow camera. */
       photo: (camera: PhotoCamera | null) => void;
       setQuality: (q: Quality, lock?: boolean) => void;
+      setLighting: (l: LightingPresetId) => void;
+      /** Average FPS over a sampling window. */
+      fps: (ms?: number) => Promise<number>;
       stats: () => RenderStats;
     };
   }
@@ -69,6 +73,18 @@ function Probe() {
         probeState.lockQuality = lock;
         useGameStore.getState().setQuality(q);
       },
+      setLighting: (l) => useGameStore.getState().setLighting(l),
+      fps: (ms = 2000) =>
+        new Promise<number>((resolve) => {
+          let frames = 0;
+          const start = performance.now();
+          const tick = () => {
+            frames++;
+            if (performance.now() - start < ms) requestAnimationFrame(tick);
+            else resolve((frames * 1000) / (performance.now() - start));
+          };
+          requestAnimationFrame(tick);
+        }),
       stats: () => {
         const size = gl.getSize(new Vector2());
         return {
@@ -100,13 +116,13 @@ export function GameCanvas() {
       shadows="percentage"
       dpr={[1, 1.5]}
       camera={{ fov: 50, near: 0.5, far: 240, position: [0, 8, 40] }}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      gl={{ antialias: true, powerPreference: "high-performance", toneMapping: ACESFilmicToneMapping }}
       aria-hidden
       style={{ position: "absolute", inset: 0 }}
     >
       <PerformanceMonitor
         onDecline={() => {
-          if (!probeState.lockQuality) setQuality("low");
+          if (!probeState.lockQuality) setQuality(lowerQuality(useGameStore.getState().quality));
         }}
         flipflops={2}
       />

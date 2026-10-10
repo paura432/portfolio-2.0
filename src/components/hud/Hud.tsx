@@ -1,6 +1,7 @@
 "use client";
 
 import { getDistrict } from "@/data/districts";
+import { QUALITY_LABEL, nextQuality } from "@/game/render/quality";
 import { resetCar } from "@/game/vehicle/carState";
 import { useGameStore } from "@/stores/gameStore";
 import { Minimap } from "./Minimap";
@@ -29,13 +30,14 @@ export function Hud() {
           <button
             type="button"
             className="btn btn-secondary btn-hud"
-            onClick={() => setQuality(quality === "high" ? "low" : "high")}
-            aria-pressed={quality === "low"}
-            aria-label={`Graphics quality: ${quality === "high" ? "high" : "reduced"}. Toggle`}
-            title="Toggle reduced graphics"
+            onClick={() => setQuality(nextQuality(quality))}
+            aria-label={`Graphics quality: ${QUALITY_LABEL[quality]}. Switch`}
+            title="Cycle graphics quality (High, Medium, Low)"
+            data-testid="quality-toggle"
+            data-quality={quality}
           >
             <span className="hidden sm:inline">Graphics:&nbsp;</span>
-            {quality === "high" ? "High" : "Reduced"}
+            {QUALITY_LABEL[quality]}
           </button>
           <button
             type="button"

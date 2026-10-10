@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import type { DistrictId } from "@/data/districts";
+import { DEFAULT_LIGHTING, type LightingPresetId } from "@/game/render/lighting";
+import type { Quality } from "@/game/render/quality";
 
 export type GamePhase = "intro" | "playing" | "panel" | "menu";
-export type Quality = "high" | "low";
+export type { Quality };
 
 interface GameState {
   phase: GamePhase;
@@ -11,6 +13,8 @@ interface GameState {
   /** True while the WebGL context is lost (GPU reset, tab eviction). */
   contextLost: boolean;
   quality: Quality;
+  /** Lighting preset (art-direction comparison; the default is the chosen one). */
+  lighting: LightingPresetId;
   /** District whose interaction zone the car is currently inside. */
   nearbyDistrict: DistrictId | null;
   /** District whose content panel is open. */
@@ -20,6 +24,7 @@ interface GameState {
   setSceneReady: (ready: boolean) => void;
   setContextLost: (lost: boolean) => void;
   setQuality: (q: Quality) => void;
+  setLighting: (l: LightingPresetId) => void;
   setNearby: (id: DistrictId | null) => void;
   openPanel: (id: DistrictId) => void;
   /** Opens the panel for the nearby district, if any. Returns true if it opened. */
@@ -35,6 +40,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   sceneReady: false,
   contextLost: false,
   quality: "high",
+  lighting: DEFAULT_LIGHTING,
   nearbyDistrict: null,
   openDistrict: null,
 
@@ -42,6 +48,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   setSceneReady: (sceneReady) => set({ sceneReady }),
   setContextLost: (contextLost) => set({ contextLost }),
   setQuality: (quality) => set({ quality }),
+  setLighting: (lighting) => set({ lighting }),
   setNearby: (id) => {
     if (get().nearbyDistrict !== id) set({ nearbyDistrict: id });
   },

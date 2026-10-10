@@ -1,26 +1,54 @@
 "use client";
 
-import { palette } from "@/lib/palette";
+import { useEffect, useRef } from "react";
+import type { DirectionalLight } from "three";
+import { useFrame } from "@react-three/fiber";
+import { LIGHTING_PRESETS } from "@/game/render/lighting";
+import { QUALITY_PROFILES } from "@/game/render/quality";
 import { useGameStore } from "@/stores/gameStore";
 
-/** Night lighting: cool moonlight key, hemisphere fill, fog matching the background. */
+/**
+ * Three-point night lighting driven by a preset: cool key (moon), warm low
+ * fill from the opposite side so volumes separate, a faint cyan rim from the
+ * south, hemisphere + ambient for the base level. Exposure is per preset.
+ */
 export function SceneLighting() {
   const quality = useGameStore((s) => s.quality);
-  const shadows = quality === "high";
+  const presetId = useGameStore((s) => s.lighting);
+  const preset = LIGHTING_PRESETS[presetId];
+  const profile = QUALITY_PROFILES[quality];
+  const gl = useThree((s) => s.gl);
+
+  const key = useRef<DirectionalLight>(null);
+
+  useEffect(() => {
+    gl.toneMappingExposure = preset.exposure;
+  }, [gl, preset.exposure]);
+
+  // three only allocates the shadow map once; a new size needs the old map disposed.
+  useEffect(() => {
+    const light = key.current;
+    if (!light?.shadow.map) return;
+    light.shadow.map.dispose();
+    light.shadow.map = null;
+    light.shadow.needsUpdate = true;
+  }, [profile.shadowMapSize]);
+
   return (
     <>
-      <color attach="background" args={[palette.background]} />
-      <fog attach="fog" args={[palette.background, 70, 170]} />
-      <hemisphereLight args={["#6F93B8", "#152A42", 1.1]} />
-      <ambientLight intensity={0.35} color="#9FB8D6" />
+      <color attach="background" args={[preset.background]} />
+      <fog attach="fog" args={[preset.background, preset.fog.near, preset.fog.far]} />
+      <hemisphereLight args={[preset.hemisphere.sky, preset.hemisphere.ground, preset.hemisphere.intensity]} />
+      <ambientLight intensity={preset.ambient.intensity} color={preset.ambient.color} />
       <directionalLight
-        position={[40, 60, 25]}
-        intensity={2.4}
-        color="#D6E4F5"
-        castShadow={shadows}
-        shadow-mapSize={[2048, 2048]}
-        shadow-bias={-0.0008}
-        shadow-normalBias={0.04}
+        ref={key}
+        position={preset.key.position}
+        intensity={preset.key.intensity}
+        color={preset.key.color}
+        castShadow={profile.shadows}
+        shadow-mapSize={[profile.shadowMapSize, profile.shadowMapSize]}
+        shadow-bias={-0.0006}
+        shadow-normalBias={0.05}
         shadow-camera-left={-80}
         shadow-camera-right={80}
         shadow-camera-top={80}
@@ -28,6 +56,8 @@ export function SceneLighting() {
         shadow-camera-near={10}
         shadow-camera-far={180}
       />
+      <directionalLight position={preset.fill.position} intensity={preset.fill.intensity} color={preset.fill.color} />
+      <directionalLight position={preset.rim.position} intensity={preset.rim.intensity} color={preset.rim.color} />
     </>
   );
 }
