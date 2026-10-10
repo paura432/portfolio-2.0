@@ -50,20 +50,31 @@ export const CAR_SPAWN = {
 
 /**
  * Distance from a point to the closest road surface (0 when on a road).
+ * Each segment is drawn with square end caps of half the road width so
+ * junctions and corners are fully paved; the distance uses the same extent.
  * Used by tests to prove every district entrance is reachable by road.
  */
 export function distanceToRoad(x: number, z: number): number {
   let best = Infinity;
   for (const r of ROADS) {
-    const [ax, az] = r.from;
-    const [bx, bz] = r.to;
-    const dx = bx - ax;
-    const dz = bz - az;
-    const len2 = dx * dx + dz * dz;
-    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / len2));
-    const px = ax + t * dx;
-    const pz = az + t * dz;
-    const d = Math.hypot(x - px, z - pz) - r.width / 2;
+    const half = r.width / 2;
+    const dx = r.to[0] - r.from[0];
+    const dz = r.to[1] - r.from[1];
+    const len = Math.hypot(dx, dz);
+    const ux = len === 0 ? 0 : dx / len;
+    const uz = len === 0 ? 0 : dz / len;
+    const ax = r.from[0] - ux * half;
+    const az = r.from[1] - uz * half;
+    const sx = dx + ux * r.width;
+    const sz = dz + uz * r.width;
+    const len2 = sx * sx + sz * sz;
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((x - ax) * sx + (z - az) * sz) / len2));
+    const px = ax + t * sx;
+    const pz = az + t * sz;
+    // Rectangle distance: along-axis overshoot and lateral offset.
+    const lateral = Math.abs((x - ax) * -uz + (z - az) * ux) - half;
+    const along = Math.hypot(x - px, z - pz) - (lateral > 0 ? 0 : 0);
+    const d = t > 0 && t < 1 ? lateral : Math.max(lateral, along);
     best = Math.min(best, d);
   }
   const radial = Math.hypot(x, z);

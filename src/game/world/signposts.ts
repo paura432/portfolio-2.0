@@ -1,5 +1,6 @@
 import { districts, type District } from "@/data/districts";
-import { PLAZA } from "@/data/world";
+import { PLAZA, ROADS } from "@/data/world";
+import { roadsideExtent } from "./urban";
 
 export type Exit = "north" | "east" | "south" | "west";
 
@@ -18,6 +19,12 @@ export interface Signpost {
   rotationY: number;
   entries: SignpostEntry[];
 }
+
+/** Height of the top panel centre; panels stack downward from here. */
+export const SIGNPOST_TOP_Y = 4.0;
+export const SIGNPOST_PANEL_PITCH = 0.95;
+/** Distance from the plaza centre along the exit road: past the crossing and bollards, before the forecourts. */
+export const SIGNPOST_DISTANCE = PLAZA.outerRadius + 5.5;
 
 const EXIT_DIR: Record<Exit, [number, number]> = {
   north: [0, -1],
@@ -47,11 +54,11 @@ export function sideOf(exit: Exit, d: District): "left" | "right" | "ahead" {
 /** One signpost per plaza exit listing the districts reachable down that road. */
 export function buildSignposts(): Signpost[] {
   const exits: Exit[] = ["west", "east", "north", "south"];
+  // Beyond the sidewalk on the driver's left, so the post never sits in the road or on the pavement.
+  const lateral = roadsideExtent(ROADS[0]!.width) + 0.7;
   return exits
     .map((exit): Signpost => {
       const [fx, fz] = EXIT_DIR[exit];
-      // Stand just outside the plaza on the driver's left so the car never clips it.
-      const dist = PLAZA.outerRadius + 3;
       const lx = fz; // left-hand vector = (fz, 0, −fx)
       const lz = -fx;
       const entries = districts
@@ -59,8 +66,8 @@ export function buildSignposts(): Signpost[] {
         .map((district) => ({ district, side: sideOf(exit, district) }));
       return {
         exit,
-        x: fx * dist + lx * 5.2,
-        z: fz * dist + lz * 5.2,
+        x: fx * SIGNPOST_DISTANCE + lx * lateral,
+        z: fz * SIGNPOST_DISTANCE + lz * lateral,
         rotationY: Math.atan2(-fx, -fz),
         entries,
       };
