@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BoxGeometry, CircleGeometry, Color, InstancedMesh, Object3D, TetrahedronGeometry } from "three";
+import { driveFx } from "@/game/fx/driving";
 import { ParticlePool, particleStats, type EmitSpec } from "@/game/fx/particles";
+import { inputState } from "@/game/controls/input";
+import { liveCar } from "@/game/vehicle/carState";
+import { surfaceAt } from "@/game/world/surface";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { impactBus } from "@/game/world/impactBus";
 import { treeWorld, type TreeEvent } from "@/game/world/treeWorld";
@@ -13,7 +17,7 @@ import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "./materials";
 
 const TINTS = [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue];
-const DUST_TINT = new Color("#6E8099");
+const DUST_TINT = new Color("#93A9C4");
 
 interface Pools {
   splinters: ParticlePool;
@@ -48,7 +52,7 @@ export function ImpactParticles() {
   const geos = useMemo(() => ({ splinter: new BoxGeometry(0.07, 0.07, 0.36), leaf: new TetrahedronGeometry(0.2, 0), dust: new CircleGeometry(1, 10) }), []);
   useEffect(() => () => Object.values(geos).forEach((g) => g.dispose()), [geos]);
   const meshes = useRef<{ splinters: InstancedMesh | null; leaves: InstancedMesh | null; dust: InstancedMesh | null }>({ splinters: null, leaves: null, dust: null });
-  const scratch = useRef({ o: new Object3D(), c: new Color(), spec: {} as EmitSpec });
+  const scratch = useRef({ o: new Object3D(), c: new Color(), spec: {} as EmitSpec, dustAcc: 0, prevSpeed: 0 });
 
   const emitFor = (e: TreeEvent, p: Pools) => {
     const def = treeWorld.defs[e.id];
@@ -107,6 +111,34 @@ export function ImpactParticles() {
     }
     const dt = Math.min(delta, 0.1);
     for (const e of impactBus.events) emitFor(e, pools);
+    // Driving dust: only off the hard surfaces and only while moving (see driveFx).
+    const car = liveCar.state;
+    const sc = scratch.current;
+    const accel = dt > 0 ? (car.speed - sc.prevSpeed) / dt : 0;
+    sc.prevSpeed = car.speed;
+    const fx = driveFx({ surface: surfaceAt(car.x, car.z), speed: car.speed, steer: inputState.drive.steer, brake: inputState.drive.brake, accel });
+    sc.dustAcc += fx.dustRate * budget * dt;
+    if (sc.dustAcc >= 1) {
+      const n = Math.floor(sc.dustAcc);
+      sc.dustAcc -= n;
+      const fx0 = Math.sin(car.heading);
+      const fz0 = Math.cos(car.heading);
+      const back = car.speed >= 0 ? -1 : 1;
+      const spec = sc.spec;
+      spec.x = car.x + fx0 * back * 1.4;
+      spec.y = 0.15;
+      spec.z = car.z + fz0 * back * 1.4;
+      spec.spread = 0.9;
+      spec.vx = fx0 * back * 1.2;
+      spec.vz = fz0 * back * 1.2;
+      spec.vy = 0.9;
+      spec.speed = 0.6;
+      spec.life = 1.0;
+      spec.sizeMin = 0.7;
+      spec.sizeMax = 1.3;
+      spec.tint = 0;
+      pools.dust.emit(n, spec);
+    }
     const { o, c } = scratch.current;
     let active = 0;
     const write = (pool: ParticlePool, mesh: InstancedMesh | null, kind: "splinters" | "leaves" | "dust") => {

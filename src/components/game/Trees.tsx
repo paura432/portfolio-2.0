@@ -11,7 +11,7 @@ import { TREE_CONFIG, treeWorld, type TreeEvent, type TreeState } from "@/game/w
 import { treeDefs, visibleTreeCount, type TreeDef } from "@/game/world/trees";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
-import { getMaterials } from "./materials";
+import { canopyUniforms, getMaterials } from "./materials";
 
 const CANOPY_TINTS = [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue];
 /** Spare trunk instances for the upper halves of snapped trunks (one per fallen broken tree). */
@@ -288,9 +288,13 @@ export function Trees() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout, pool]);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const dt = Math.min(delta, 0.1);
     const { x, z } = liveCar.state;
+    // Ambient canopy sway (shader): one clock + the car position, no per-instance work.
+    canopyUniforms.uTime.value = clock.elapsedTime;
+    canopyUniforms.uSway.value = profile.worldFx && !treeWorld.reducedMotion ? 1 : 0;
+    canopyUniforms.uCar.value.set(x, 0, z);
     treeWorld.update(dt, x, z);
     const ids = treeWorld.takeDirty(scratch.current.ids);
     for (const id of ids) apply(id);

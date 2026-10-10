@@ -1,4 +1,4 @@
-import { AdditiveBlending, Color, MeshBasicMaterial, MeshStandardMaterial, type Texture } from "three";
+import { AdditiveBlending, Color, MeshBasicMaterial, MeshStandardMaterial, Vector3, type Texture } from "three";
 import { makeGlowTexture } from "@/lib/glowTexture";
 import { palette } from "@/lib/palette";
 import { makeSurfaceTexture } from "@/lib/surfaceTexture";
@@ -38,6 +38,47 @@ function basicLight(color: string) {
   return m;
 }
 
+/**
+ * Canopy sway uniforms (V4): one shared clock and the car position, driven once
+ * per frame by the Trees system. The instanced canopy material displaces its
+ * vertices in the shader, so 140 trees sway in a single draw call and no
+ * instance matrix is ever rewritten for ambient motion.
+ */
+export const canopyUniforms = {
+  uTime: { value: 0 },
+  /** 0 disables the sway (low tier / reduced motion). */
+  uSway: { value: 1 },
+  uCar: { value: new Vector3(0, 0, 0) },
+};
+
+const CANOPY_SWAY_GLSL = `
+#ifdef USE_INSTANCING
+  {
+    vec3 iPos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+    float h = clamp((position.y + 1.5) / 3.0, 0.0, 1.0);
+    h *= h;
+    float phase = iPos.x * 0.37 + iPos.z * 0.53;
+    float near = 1.0 - smoothstep(2.5, 6.0, distance(iPos.xz, uCar.xz));
+    float amp = uSway * (0.08 + near * 0.16) * h;
+    transformed.x += (sin(uTime * 1.1 + phase) * 0.6 + sin(uTime * 2.3 + phase * 1.7) * 0.4 + sin(uTime * 9.0 + phase) * near) * amp;
+    transformed.z += (cos(uTime * 0.9 + phase * 1.3) * 0.7 + cos(uTime * 7.0 + phase) * near) * amp * 0.8;
+  }
+#endif
+`;
+
+function withCanopySway(m: MeshStandardMaterial): MeshStandardMaterial {
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = canopyUniforms.uTime;
+    shader.uniforms.uSway = canopyUniforms.uSway;
+    shader.uniforms.uCar = canopyUniforms.uCar;
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nuniform float uTime;\nuniform float uSway;\nuniform vec3 uCar;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>" + CANOPY_SWAY_GLSL);
+  };
+  m.customProgramCacheKey = () => "canopy-sway";
+  return m;
+}
+
 function createMaterials() {
   const groundMap: Texture = makeSurfaceTexture({
     base: palette.ground,
@@ -67,7 +108,7 @@ function createMaterials() {
   cyanPool.toneMapped = false;
   const shadowBlob = new MeshBasicMaterial({ map: glow, color: "#000000", transparent: true, opacity: 0.55, depthWrite: false });
   /** Dust puffs: additive so per-instance colour doubles as the fade. */
-  const dust = new MeshBasicMaterial({ map: glow, color: "#ffffff", transparent: true, opacity: 0.28, depthWrite: false, blending: AdditiveBlending });
+  const dust = new MeshBasicMaterial({ map: glow, color: "#ffffff", transparent: true, opacity: 0.42, depthWrite: false, blending: AdditiveBlending });
   dust.toneMapped = false;
 
   return {
@@ -78,6 +119,10 @@ function createMaterials() {
     /** White flat material tinted per instance (leaf particles). */
     leaf: standard("#ffffff", 0.9, 0, { flatShading: true }),
     splinter: standard("#4A3B33", 1),
+    skid: (() => {
+      const k = new MeshBasicMaterial({ color: "#04070D", transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      return k;
+    })(),
     // Ground & urbanism
     ground: standard("#ffffff", 0.95, 0, { map: groundMap }),
     groundDeep: standard(palette.groundDeep, 1),
@@ -127,7 +172,7 @@ function createMaterials() {
 
     // Vegetation
     trunk: standard(palette.trunk, 1),
-    canopy: standard("#ffffff", 0.9, 0, { flatShading: true }),
+    canopy: withCanopySway(standard("#ffffff", 0.9, 0, { flatShading: true })),
     /** Pre-tinted canopies for the pooled dynamic trees (instanced canopies tint per instance). */
     canopyTints: [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue].map((c) => standard(c, 0.9, 0, { flatShading: true })),
     bush: standard(palette.treeTeal, 0.95, 0, { flatShading: true }),

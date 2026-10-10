@@ -14,6 +14,7 @@ import { type TreeDef } from "@/game/world/trees";
 import { useGameStore, type Quality } from "@/stores/gameStore";
 import { Car } from "./Car";
 import { ImpactParticles } from "./ImpactParticles";
+import { SkidMarks } from "./SkidMarks";
 import { FollowCamera } from "./FollowCamera";
 import { ProximitySensor } from "./ProximitySensor";
 import { SceneLighting } from "./SceneLighting";
@@ -179,6 +180,7 @@ export function GameCanvas() {
       <Signposts />
       <Car />
       <ImpactParticles />
+      <SkidMarks />
       <ProximitySensor />
       <FollowCamera />
     </Canvas>
