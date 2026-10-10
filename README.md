@@ -40,3 +40,14 @@ Set `NEXT_PUBLIC_SITE_URL` to the public origin to enable canonical URLs, Open G
 
 ## Status
 MVP phase: Central Hub, DUPLEX and OVI are built. BROKI, TrustOS, 42 Madrid and Contact Station are defined as data (menu, routes, reserved plots) for the next phase.
+
+## V3 art direction
+
+The world was rebuilt visually in `feat/world-art-direction-v3` (vehicle, Engineering Nexus, six district buildings, urbanism, props, Blue Hour lighting, quality tiers, mobile framing). Documentation and evidence:
+
+- `docs/art-direction/v3-visual-audit.md` — baseline defects, phase log, acceptance matrix
+- `docs/art-direction/v3-materials-lighting.md` — palette, material library, presets, tiers
+- `docs/art-direction/v3-architecture.md` — buildings, urbanism rules, signage rules, camera
+- `docs/qa/v3-visual-comparison.md` — before/after shots, tests, performance, risks
+- `docs/screenshots/v3/{before,after,lighting,lighting-presets}/`
+- `scripts/visual-qa/` — reproducible capture and measurement scripts (see its README)

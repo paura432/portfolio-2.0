@@ -39,3 +39,45 @@ Extra findings:
 | 16-quality-low | 88 | 14 908 |
 
 Textures: 12 (canvas-rendered signs). Programs: 15–21.
+
+---
+
+# After (Phases 1–7)
+
+Head of `feat/world-art-direction-v3`. Full comparison with evidence: `docs/qa/v3-visual-comparison.md`. Architecture: `docs/art-direction/v3-architecture.md`. Materials & lighting: `docs/art-direction/v3-materials-lighting.md`.
+
+## Phase log
+
+| Phase | Commit | Scope |
+|---|---|---|
+| 0 | `a9c38ea` | photo-mode probe, 18-shot capture script, baseline captures and this audit |
+| 1 | `b9d2d9f` (+ `fix` commit) | palette, material library, procedural surfaces, three lighting presets, quality tiers high/medium/low |
+| 2 | `cfd6c0e` | vehicle V3 + visual animation layer |
+| 3 | `1b2e6cf` | urbanism, props library, Hub / DUPLEX / OVI, signage rules |
+| 4 | see git log | BROKI, TrustOS, 42 Madrid, Contact Station; every district built; static batching |
+| 5 | see git log | aspect-aware camera, mobile HUD layout |
+| 6–7 | see git log | performance measurement, final captures, preview, docs |
+
+## Acceptance criteria (section 18)
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Car recognisable and proportioned | MET | after/05–08, 07b |
+| Central Hub distinctive silhouette | MET | after/09, 12b |
+| DUPLEX and OVI distinguishable without signs | MET | after/10, 11 |
+| Road clearly different from terrain | MET | after/13, 12 |
+| Lighting reads every main volume | MET | after/09–11, 17–20, lighting/ |
+| Trees not exact copies | MET | after/12, 13; `props.test.ts` |
+| No mirrored signs | MET | after/09, 14, 15; `signage.test.ts` |
+| No signage blocking camera or driving | MET | after/07, 14; `signage.test.ts` |
+| Car correct on mobile | MET (emulated Pixel 7) | after/04 |
+| HUD does not cover important information | MET | after/04 |
+| LOW tier coherent | MET | after/16-quality-low |
+| No regressions in driving, collisions, interactions | MET in tests (physics untouched, Playwright 10/10); real hardware NOT VERIFIED | `pnpm test`, `pnpm test:e2e` |
+| Build and tests pass | MET | lint 0/0, typecheck, Vitest 61/61, build, Playwright 10/10 |
+| Authentic comparative captures | MET | before/ and after/, identical cameras |
+| Metrics and limitations documented | MET | v3-visual-comparison.md (SwiftShader only; GPU NOT VERIFIED) |
+
+## Vertical slice status
+
+Approved after three polish passes (glass emissive, metals, door glows, signpost distance, BROKI gable). The slice (Nexus, main road, roundabout intersection, DUPLEX, nearby vegetation, signage) is what the rest of the city was built to match.

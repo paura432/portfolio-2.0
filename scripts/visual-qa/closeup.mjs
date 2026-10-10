@@ -1,0 +1,14 @@
+import { chromium } from "@playwright/test";
+const [out, base = "http://127.0.0.1:3101"] = process.argv.slice(2);
+const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await page.goto(base + "/");
+await page.getByRole("button", { name: /explore/i }).click();
+await page.waitForFunction(() => typeof window.__pauWorld === "object");
+await page.waitForSelector("[data-testid=loading]", { state: "hidden", timeout: 30000 });
+await page.evaluate(() => window.__pauWorld.setQuality("high", true));
+await page.addStyleTag({ content: ".pointer-events-none, [role=status] { display: none !important; }" });
+await page.evaluate((c) => window.__pauWorld.photo(c), { position: [30, 6, 2], target: [30.25, 5.5, 10.75], fov: 40 });
+await page.waitForTimeout(600);
+await page.screenshot({ path: `${out}/broki-sign.png` });
+await browser.close();
