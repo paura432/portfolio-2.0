@@ -11,12 +11,13 @@ const quality = opt("--quality", "high");
 const video = args.includes("--video");
 // Software rendering runs at 1–4 fps: slow the tree clock so the fall spans several frames (capture only).
 const slow = Number(opt("--slow", "1"));
+const mobile = args.includes("--mobile");
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 const context = await browser.newContext({
-  viewport: { width: 1120, height: 700 },
+  ...(mobile ? { viewport: { width: 412, height: 915 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { viewport: { width: 1120, height: 700 } }),
   reducedMotion: args.includes("--reduced") ? "reduce" : "no-preference",
-  ...(video ? { recordVideo: { dir: outDir, size: { width: 1120, height: 700 } } } : {}),
+  ...(video ? { recordVideo: { dir: outDir, size: mobile ? { width: 412, height: 915 } : { width: 1120, height: 700 } } } : {}),
 });
 const page = await context.newPage();
 await page.goto(base + "/");
@@ -36,14 +37,17 @@ const heading = Math.atan2(u[0], u[1]);
 await page.evaluate(([x, z, h]) => window.__pauWorld.teleport(x, z, h), [start[0], start[1], heading]);
 // Side camera perpendicular to the approach, slightly behind the trunk, looking at it.
 const side = [u[1], -u[0]];
-await page.evaluate(
-  ([x, z, tx, tz]) => window.__pauWorld.photo({ position: [x, 3.6, z], target: [tx, 1.7, tz], fov: 44 }),
-  [tree.x + side[0] * 8.5 - u[0] * 2.5, tree.z + side[1] * 8.5 - u[1] * 2.5, tree.x + u[0] * 1.2, tree.z + u[1] * 1.2],
-);
+// On a phone keep the follow camera (portrait composition is part of what is being checked).
+if (!mobile)
+  await page.evaluate(
+    ([x, z, tx, tz]) => window.__pauWorld.photo({ position: [x, 3.6, z], target: [tx, 1.7, tz], fov: 44 }),
+    [tree.x + side[0] * 8.5 - u[0] * 2.5, tree.z + side[1] * 8.5 - u[1] * 2.5, tree.x + u[0] * 1.2, tree.z + u[1] * 1.2],
+  );
 await page.evaluate((k) => window.__pauWorld.trees.timeScale(k), slow);
 await page.waitForTimeout(600);
 let n = 0;
-const shot = async (label) => page.screenshot({ path: `${outDir}/${mode}-${String(n++).padStart(2, "0")}-${label}.jpg`, type: "jpeg", quality: 82 });
+const prefix = `${mobile ? "mobile-" : ""}${quality !== "high" ? quality + "-" : ""}${args.includes("--reduced") ? "reduced-" : ""}${mode}`;
+const shot = async (label) => page.screenshot({ path: `${outDir}/${prefix}-${String(n++).padStart(2, "0")}-${label}.jpg`, type: "jpeg", quality: 82 });
 const state = () => page.evaluate((id) => ({ ...window.__pauWorld.trees.state(id), car: window.__pauWorld.car() }), tree.id);
 const timeline = [];
 const log = (t, s, note = "") => timeline.push({ t: +t.toFixed(2), phase: s.phase, angle: +s.angle.toFixed(2), tilt: undefined, broken: s.broken, impact: +s.impact.toFixed(1), speed: +s.car.speed.toFixed(1), note });

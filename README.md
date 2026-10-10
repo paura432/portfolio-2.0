@@ -41,6 +41,10 @@ Set `NEXT_PUBLIC_SITE_URL` to the public origin to enable canonical URLs, Open G
 ## Status
 MVP phase: Central Hub, DUPLEX and OVI are built. BROKI, TrustOS, 42 Madrid and Contact Station are defined as data (menu, routes, reserved plots) for the next phase.
 
+## V4 destructible & reactive world
+
+Branch `feat/v4-destructible-reactive-world`. The car can now knock trees down: soft hits shake them, faster hits topple them away from the car, fast hits snap the trunk; fallen trees stay down and regrow by time + distance or with the HUD "Reset world" button. The forest stays instanced (standing and fallen trees are instances; only animating trees borrow one of eight pooled mesh sets), canopies sway in the vertex shader, the car kicks up dust on turf and leaves skid marks on asphalt. Docs: `docs/gameplay/v4-tree-destruction.md`, `docs/art-direction/v4-reactive-world.md`, `docs/qa/v4-regression-report.md`; captures in `docs/screenshots/v4/`.
+
 ## V3 art direction
 
 The world was rebuilt visually in `feat/world-art-direction-v3` (vehicle, Engineering Nexus, six district buildings, urbanism, props, Blue Hour lighting, quality tiers, mobile framing). Documentation and evidence:

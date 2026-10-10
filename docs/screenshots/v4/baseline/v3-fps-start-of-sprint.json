@@ -1,0 +1,44 @@
+{
+  "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "introMs": 171,
+  "firstFrameMs": 1442,
+  "tiers": {
+    "high": {
+      "fps": 1.2,
+      "frameMs": 838.1,
+      "calls": 279,
+      "triangles": 49014,
+      "geometries": 200,
+      "textures": 18,
+      "programs": 20,
+      "dpr": 1,
+      "width": 1280,
+      "height": 800
+    },
+    "medium": {
+      "fps": 1.2,
+      "frameMs": 816.3,
+      "calls": 279,
+      "triangles": 46408,
+      "geometries": 200,
+      "textures": 18,
+      "programs": 20,
+      "dpr": 1,
+      "width": 1280,
+      "height": 800
+    },
+    "low": {
+      "fps": 3.9,
+      "frameMs": 258.5,
+      "calls": 162,
+      "triangles": 22558,
+      "geometries": 200,
+      "textures": 16,
+      "programs": 31,
+      "dpr": 1,
+      "width": 1280,
+      "height": 800
+    }
+  }
+}
