@@ -66,11 +66,18 @@ function createMaterials() {
   const cyanPool = new MeshBasicMaterial({ map: glow, color: "#4DD5DE", transparent: true, opacity: 0.35, depthWrite: false, blending: AdditiveBlending });
   cyanPool.toneMapped = false;
   const shadowBlob = new MeshBasicMaterial({ map: glow, color: "#000000", transparent: true, opacity: 0.55, depthWrite: false });
+  /** Dust puffs: additive so per-instance colour doubles as the fade. */
+  const dust = new MeshBasicMaterial({ map: glow, color: "#ffffff", transparent: true, opacity: 0.28, depthWrite: false, blending: AdditiveBlending });
+  dust.toneMapped = false;
 
   return {
     lampPool,
     cyanPool,
     shadowBlob,
+    dust,
+    /** White flat material tinted per instance (leaf particles). */
+    leaf: standard("#ffffff", 0.9, 0, { flatShading: true }),
+    splinter: standard("#4A3B33", 1),
     // Ground & urbanism
     ground: standard("#ffffff", 0.95, 0, { map: groundMap }),
     groundDeep: standard(palette.groundDeep, 1),

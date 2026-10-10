@@ -6,13 +6,15 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { configForAspect, damp, desiredCamera } from "@/game/camera/followCamera";
 import { photoMode } from "@/game/camera/photoMode";
 import { liveCar } from "@/game/vehicle/carState";
+import { impactBus } from "@/game/world/impactBus";
+import { treeWorld } from "@/game/world/treeWorld";
 
 /** Smooth third-person camera; damping is exponential so it is frame-rate independent. */
 export function FollowCamera() {
   const target = useRef(new Vector3());
   const seenGeneration = useRef(-1);
 
-  useFrame(({ camera, size }, delta) => {
+  useFrame(({ camera, size, clock }, delta) => {
     const photo = photoMode.camera;
     const persp = camera instanceof PerspectiveCamera ? camera : null;
     if (photo) {
@@ -55,6 +57,13 @@ export function FollowCamera() {
       }
     }
     camera.lookAt(target.current);
+    // Tiny nudge on impacts (never a full shake); off under reduced motion.
+    const j = treeWorld.reducedMotion ? 0 : impactBus.jolt.strength;
+    if (j > 0) {
+      const t = clock.elapsedTime;
+      camera.position.y += j * 0.12 * Math.sin(t * 37);
+      camera.position.x += j * 0.06 * Math.sin(t * 29);
+    }
   }, -1);
 
   return null;

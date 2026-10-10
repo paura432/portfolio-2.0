@@ -7,11 +7,13 @@ import { ACESFilmicToneMapping, Vector2 } from "three";
 import { photoMode, probeState, type PhotoCamera } from "@/game/camera/photoMode";
 import type { LightingPresetId } from "@/game/render/lighting";
 import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
+import { particleStats } from "@/game/fx/particles";
 import { liveCar } from "@/game/vehicle/carState";
 import { treeWorld, type TreeState } from "@/game/world/treeWorld";
 import { type TreeDef } from "@/game/world/trees";
 import { useGameStore, type Quality } from "@/stores/gameStore";
 import { Car } from "./Car";
+import { ImpactParticles } from "./ImpactParticles";
 import { FollowCamera } from "./FollowCamera";
 import { ProximitySensor } from "./ProximitySensor";
 import { SceneLighting } from "./SceneLighting";
@@ -38,6 +40,10 @@ export interface RenderStats {
   dpr: number;
   width: number;
   height: number;
+  /** V4: trees currently animating / lying down, live particles. */
+  dynamicTrees: number;
+  fallenTrees: number;
+  particles: number;
 }
 
 declare global {
@@ -131,6 +137,9 @@ function Probe() {
           dpr: gl.getPixelRatio(),
           width: size.x,
           height: size.y,
+          dynamicTrees: treeWorld.dynamicCount(),
+          fallenTrees: treeWorld.fallenCount(),
+          particles: particleStats.active,
         };
       },
     };
@@ -169,6 +178,7 @@ export function GameCanvas() {
       <World />
       <Signposts />
       <Car />
+      <ImpactParticles />
       <ProximitySensor />
       <FollowCamera />
     </Canvas>

@@ -9,6 +9,8 @@ const opt = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const mode = opt("--mode", "strong");
 const quality = opt("--quality", "high");
 const video = args.includes("--video");
+// Software rendering runs at 1–4 fps: slow the tree clock so the fall spans several frames (capture only).
+const slow = Number(opt("--slow", "1"));
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 const context = await browser.newContext({
@@ -38,6 +40,7 @@ await page.evaluate(
   ([x, z, tx, tz]) => window.__pauWorld.photo({ position: [x, 3.6, z], target: [tx, 1.7, tz], fov: 44 }),
   [tree.x + side[0] * 8.5 - u[0] * 2.5, tree.z + side[1] * 8.5 - u[1] * 2.5, tree.x + u[0] * 1.2, tree.z + u[1] * 1.2],
 );
+await page.evaluate((k) => window.__pauWorld.trees.timeScale(k), slow);
 await page.waitForTimeout(600);
 let n = 0;
 const shot = async (label) => page.screenshot({ path: `${outDir}/${mode}-${String(n++).padStart(2, "0")}-${label}.jpg`, type: "jpeg", quality: 82 });
@@ -50,7 +53,7 @@ await page.keyboard.down("KeyW");
 let lastPhase = "standing";
 let lastAngle = 0;
 let released = false;
-while (Date.now() - t0 < 7000) {
+while (Date.now() - t0 < 14000) {
   const s = await state();
   const t = (Date.now() - t0) / 1000;
   if (!released && s.phase !== "standing") {
@@ -68,13 +71,15 @@ while (Date.now() - t0 < 7000) {
   if (s.phase === "fallen" || (mode === "soft" && released && s.phase === "standing")) break;
   await page.waitForTimeout(60);
 }
+await page.evaluate(() => window.__pauWorld.trees.timeScale(1));
 if (!released) await page.keyboard.up("KeyW");
 await page.waitForTimeout(400);
 let s = await state();
 log((Date.now() - t0) / 1000, s, "rest");
 await shot(s.phase === "fallen" ? "fallen-rest" : s.phase);
 if (s.phase === "fallen") {
-  // Manual reset: the car is next to the tree but not on it, so it regrows now.
+  // Manual reset after driving away (a tree never regrows under the car).
+  await page.evaluate(() => window.__pauWorld.teleport(0, 27, Math.PI));
   await page.evaluate(() => window.__pauWorld.trees.reset());
   for (let i = 0; i < 20; i++) {
     await page.waitForTimeout(120);

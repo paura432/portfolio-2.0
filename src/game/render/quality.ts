@@ -13,12 +13,16 @@ export interface QualityProfile {
   vegetation: number;
   /** Ambient animation (core pulse, ring rotation). */
   ambientMotion: boolean;
+  /** Impact/driving particle budget as a fraction of the high-tier pools (0 = none). */
+  particles: number;
+  /** Canopy sway and skid marks. */
+  worldFx: boolean;
 }
 
 export const QUALITY_PROFILES: Record<Quality, QualityProfile> = {
-  high: { maxDpr: 1.5, shadows: true, shadowMapSize: 2048, headlight: true, lampPools: true, vegetation: 1, ambientMotion: true },
-  medium: { maxDpr: 1.25, shadows: true, shadowMapSize: 1024, headlight: true, lampPools: true, vegetation: 0.8, ambientMotion: true },
-  low: { maxDpr: 1, shadows: false, shadowMapSize: 512, headlight: false, lampPools: false, vegetation: 0.55, ambientMotion: false },
+  high: { maxDpr: 1.5, shadows: true, shadowMapSize: 2048, headlight: true, lampPools: true, vegetation: 1, ambientMotion: true, particles: 1, worldFx: true },
+  medium: { maxDpr: 1.25, shadows: true, shadowMapSize: 1024, headlight: true, lampPools: true, vegetation: 0.8, ambientMotion: true, particles: 0.5, worldFx: true },
+  low: { maxDpr: 1, shadows: false, shadowMapSize: 512, headlight: false, lampPools: false, vegetation: 0.55, ambientMotion: false, particles: 0, worldFx: false },
 };
 
 export const QUALITY_ORDER: Quality[] = ["high", "medium", "low"];

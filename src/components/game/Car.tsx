@@ -8,7 +8,9 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { stepCar } from "@/game/vehicle/carPhysics";
 import { liveCar } from "@/game/vehicle/carState";
 import { dampTo, isBraking, targetPitch, targetRoll, VISUAL_CONFIG } from "@/game/vehicle/carVisual";
+import { impactBus } from "@/game/world/impactBus";
 import { constrainCar } from "@/game/world/obstacles";
+import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
 import { getMaterials } from "./materials";
 import { StaticBatch } from "./StaticBatch";
@@ -95,7 +97,7 @@ export function Car() {
   const bodyGeometry = useMemo(() => extrude(profile(BODY_PROFILE), BODY_WIDTH, 0.06), []);
   const cabinGeometry = useMemo(() => extrude(profile(CABIN_PROFILE), CABIN_WIDTH, 0.04), []);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     const driving = useGameStore.getState().phase === "playing";
     const dt = Math.min(delta, 0.1);
 
@@ -123,8 +125,12 @@ export function Car() {
     pose.current.roll = dampTo(pose.current.roll, targetRoll(next), VISUAL_CONFIG.rollLambda, dt);
     pose.current.pitch = dampTo(pose.current.pitch, targetPitch(accelSmooth.current), VISUAL_CONFIG.pitchLambda, dt);
     if (body.current) {
-      body.current.rotation.z = pose.current.roll;
-      body.current.rotation.x = pose.current.pitch;
+      // Impact jolt (cosmetic): a short shudder from the bus, decaying; off under reduced motion.
+      const j = treeWorld.reducedMotion ? 0 : impactBus.jolt.strength;
+      const t = clock.elapsedTime;
+      body.current.rotation.z = pose.current.roll + j * 0.09 * Math.sin(t * 46);
+      body.current.rotation.x = pose.current.pitch + j * 0.05 * (1 + Math.sin(t * 31));
+      body.current.position.y = j * 0.03 * Math.abs(Math.sin(t * 40));
     }
     const braking = driving && isBraking(next, accelSmooth.current, inputState.drive.brake);
     if (tail.current) (tail.current.material as MeshStandardMaterial).emissiveIntensity = braking ? 2.4 : 0.9;
