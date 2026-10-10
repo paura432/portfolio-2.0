@@ -38,7 +38,11 @@ function HoldButton({ action, label, title }: { action: Action; label: string; t
   );
 }
 
-/** On-screen driving controls for touch devices. They write the same input state as the keyboard. */
+/**
+ * On-screen driving controls for touch devices. Steering sits under the left
+ * thumb, throttle under the right thumb, both at the bottom corners so the
+ * road and the prompt stay visible. They write the same input state as the keyboard.
+ */
 export function TouchControls({ enabled }: { enabled: boolean }) {
   const coarse = useIsCoarsePointer();
   useEffect(() => {
@@ -46,12 +50,12 @@ export function TouchControls({ enabled }: { enabled: boolean }) {
   }, [enabled]);
   if (!coarse) return null;
   return (
-    <div className={`pointer-events-auto flex items-end gap-5 ${enabled ? "" : "opacity-40"}`} data-testid="touch-controls">
-      <div className="flex gap-2">
+    <div className={`pointer-events-none absolute inset-x-3 bottom-3 flex items-end justify-between ${enabled ? "" : "opacity-40"}`} data-testid="touch-controls">
+      <div className="pointer-events-auto flex gap-2">
         <HoldButton action="left" label="◀" title="Steer left" />
         <HoldButton action="right" label="▶" title="Steer right" />
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="pointer-events-auto flex flex-col gap-2">
         <HoldButton action="forward" label="▲" title="Accelerate" />
         <HoldButton action="backward" label="▼" title="Reverse" />
       </div>

@@ -17,3 +17,18 @@ describe("follow camera", () => {
     expect(a).toBeGreaterThan(9.5);
   });
 });
+
+describe("aspect-aware framing", () => {
+  it("is landscape on desktop, portrait on phones, and continuous in between", async () => {
+    const { configForAspect, FOLLOW_CONFIG, FOLLOW_PORTRAIT } = await import("./followCamera");
+    expect(configForAspect(1.6)).toEqual(FOLLOW_CONFIG);
+    expect(configForAspect(0.46)).toEqual(FOLLOW_PORTRAIT);
+    const mid = configForAspect(0.925);
+    expect(mid.distance).toBeGreaterThan(FOLLOW_CONFIG.distance);
+    expect(mid.distance).toBeLessThan(FOLLOW_PORTRAIT.distance);
+    // Small aspect changes move the camera a little, never a jump.
+    const a = configForAspect(1.0);
+    const b = configForAspect(0.98);
+    expect(Math.abs(a.distance - b.distance)).toBeLessThan(0.3);
+  });
+});

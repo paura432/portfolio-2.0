@@ -84,6 +84,7 @@ body {
 .btn-secondary { border: 1px solid rgba(155, 175, 194, 0.35); color: var(--text); background: rgba(12, 22, 38, 0.85); }
 .btn-secondary:hover { border-color: var(--cyan); }
 .btn-hud { min-height: 2.75rem; padding: 0 0.9rem; font-size: 0.85rem; backdrop-filter: blur(10px); }
+.hud-compact .btn-hud { min-height: 2.25rem; padding: 0 0.65rem; font-size: 0.74rem; border-radius: 0.5rem; }
 .btn-ghost { color: var(--muted); }
 .btn-ghost:hover { color: var(--text); }
 
@@ -220,7 +221,7 @@ body {
   background: rgba(8, 15, 29, 0.78);
   backdrop-filter: blur(10px);
 }
-@media (max-width: 639px) { .minimap { width: 6rem; height: 6rem; } }
+@media (max-width: 639px) { .minimap { width: 5.25rem; height: 5.25rem; } }
 
 .touch-btn {
   width: 3.6rem;
