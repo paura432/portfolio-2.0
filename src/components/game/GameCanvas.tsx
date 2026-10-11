@@ -26,6 +26,8 @@ import { SceneLighting } from "./SceneLighting";
 import { World } from "./World";
 import { Signposts } from "./Signposts";
 import { Harbor } from "./Harbor";
+import { Boat } from "./Boat";
+import { Ocean } from "./Ocean";
 import { VehicleController } from "./VehicleController";
 import { ContextLossHandler, FirstFrameSignal } from "./SceneSignals";
 
@@ -199,11 +201,13 @@ export function GameCanvas() {
       <FirstFrameSignal />
       <ContextLossHandler />
       <SceneLighting />
+      <Ocean />
       <World />
       <Harbor />
       <Signposts />
       <VehicleController />
       <Car />
+      <Boat />
       <ImpactParticles />
       <SkidMarks />
       <ProximitySensor />
