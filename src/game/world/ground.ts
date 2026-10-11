@@ -25,7 +25,12 @@ export interface GroundSample {
   slope: number;
   terrain: TerrainClass;
   ramp: RampDefinition | null;
+  /** Beach whose footprint this is (HUD, minimap, recovery points); the transformation rules do not need it. */
   beach: BeachDefinition | null;
+  /** V9: on a shore (ground sloping between the built land and the sea floor), whatever the beach list says. */
+  shore: boolean;
+  /** V9: unit direction toward deeper water (downhill), or null where the ground is flat. */
+  seaward: [number, number] | null;
 }
 
 /** Depth bands on a beach (water above the sand). */
@@ -78,6 +83,33 @@ export function terrainClassAt(x: number, z: number): TerrainClass {
   return s === "asphalt" ? "road" : s === "pavement" ? "pavement" : "grass";
 }
 
+/**
+ * Shore (V9): ground that lies between the built land (y = 0) and the sea
+ * floor, i.e. a slope that meets the water. Derived from the height field
+ * alone, so every beach stretch, present or future, is a shore without being
+ * listed anywhere; ramps (above the land) and the flat platform never are.
+ */
+export function isShoreAt(x: number, z: number): boolean {
+  const y = groundHeightAt(x, z);
+  return y < -0.02 && y > SEA_FLOOR_Y + 0.02;
+}
+
+/** Unit direction toward deeper water: minus the ground gradient (central differences over 1.2 u). Null on flat ground. */
+export function seawardDirectionAt(x: number, z: number): [number, number] | null {
+  const e = 0.6;
+  const gx = groundHeightAt(x + e, z) - groundHeightAt(x - e, z);
+  const gz = groundHeightAt(x, z + e) - groundHeightAt(x, z - e);
+  const len = Math.hypot(gx, gz);
+  if (len < 1e-4) return null;
+  return [-gx / len, -gz / len];
+}
+
+/** Velocity component toward deeper water (u/s; negative = toward the land); 0 on flat ground. */
+export function seawardSpeedAt(x: number, z: number, vx: number, vz: number): number {
+  const d = seawardDirectionAt(x, z);
+  return d ? vx * d[0] + vz * d[1] : 0;
+}
+
 export function sampleGround(x: number, z: number, heading: number): GroundSample {
   const fx = Math.sin(heading);
   const fz = Math.cos(heading);
@@ -94,6 +126,8 @@ export function sampleGround(x: number, z: number, heading: number): GroundSampl
     terrain: terrainClassAt(x, z),
     ramp: ru?.ramp ?? null,
     beach: beachAt(x, z),
+    shore: isShoreAt(x, z),
+    seaward: seawardDirectionAt(x, z),
   };
 }
 

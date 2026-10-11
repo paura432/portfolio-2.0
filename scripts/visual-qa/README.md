@@ -1,4 +1,4 @@
-# Visual QA scripts (V3 → V8)
+# Visual QA scripts (V3 → V9)
 
 All scripts drive a production build with Playwright's Chromium + SwiftShader and the in-page probe `window.__pauWorld` (photo mode, teleport, quality lock, renderer stats, fps sampler). Start the build first:
 
@@ -29,6 +29,8 @@ pnpm build && pnpm exec next start -p 3101
 | `v8probe.mjs <outDir> [base]` | V8: drives the West City Ramp (deploy, lip launch, flight, descent) and South Beach (car → hull → sail → turn → wheels down) with real keys and logs every state change |
 | `v8shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V8: ramp structure and approach, wings deploying on the slope, lip launch, climb, bank, city from the air, approach, touchdown, roll-out, beach structure, car on the sand, hull deploying, afloat, wake, hull side/rear, wheels down at East Beach, back on land, East Beach aerial + `*-stats.json` |
 | `v8perf.mjs [base] [--label name]` | V8: city driving (3 tiers, comparable with the V4–V7 "city" scenario), the ramp from its entry, the hull off South Beach, flight over the city (3 tiers each), a real ramp → flight → splashdown → beach-exit loop with counters, quality cycles afloat |
+| `v9shots.mjs <outDir> [base] [--quality q] [--only a,b]` | V9: street lamp intact / rattled / knocked over / down / restored, planter intact / shoved / tipping / down, bench intact / flipped / down (all from real driving), the collider debug overlay over the plaza and the open-front hangar, the car inside the hangar + `*-stats.json` |
+| `v9perf.mjs [base] [--label name]` | V9: city driving (3 tiers, comparable with V4–V8), the plaza at rest (3 tiers), a real furniture knock loop (8 objects) with counters before / during / settled / after reset, the collider overlay's cost |
 | `cityab.mjs <base> [label]` | the "city" scenario alone against any served build (same-machine A/B between branches) |
 
 SwiftShader numbers are software rendering: use them for relative comparisons only, never as hardware performance.

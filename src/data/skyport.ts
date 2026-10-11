@@ -49,11 +49,27 @@ export const SKYPORT_DRIVE_RECTS = [
   { minX: 106, maxX: 200, minZ: -33, maxZ: 33 }, // island slab
 ];
 
-/** Buildings the car (and the aircraft on the ground) must not drive through. */
+/** Wall thickness of the hangar's shell (its front toward the runway is open). */
+export const HANGAR_WALL = 0.6;
+
+/**
+ * Buildings the car (and the aircraft on the ground) must not drive through.
+ * V9: the colliders follow the drawn geometry. The hangar is a compound of its
+ * three walls, so the car can drive into the open front instead of hitting an
+ * invisible facade; the tower collides as its shaft (the cab overhangs far
+ * above the car).
+ */
 export const SKYPORT_OBSTACLES: { id: string; position: Point; footprint: [number, number] }[] = [
-  { id: "skyport-hangar", position: [SKYPORT.hangar.x, SKYPORT.hangar.z], footprint: [SKYPORT.hangar.w, SKYPORT.hangar.d] },
-  { id: "skyport-tower", position: [SKYPORT.tower.x, SKYPORT.tower.z], footprint: [SKYPORT.tower.w, SKYPORT.tower.d] },
+  { id: "skyport-hangar-back", position: [SKYPORT.hangar.x, SKYPORT.hangar.z + SKYPORT.hangar.d / 2 - HANGAR_WALL / 2], footprint: [SKYPORT.hangar.w, HANGAR_WALL] },
+  { id: "skyport-hangar-left", position: [SKYPORT.hangar.x - SKYPORT.hangar.w / 2 + HANGAR_WALL / 2, SKYPORT.hangar.z], footprint: [HANGAR_WALL, SKYPORT.hangar.d] },
+  { id: "skyport-hangar-right", position: [SKYPORT.hangar.x + SKYPORT.hangar.w / 2 - HANGAR_WALL / 2, SKYPORT.hangar.z], footprint: [HANGAR_WALL, SKYPORT.hangar.d] },
+  { id: "skyport-tower", position: [SKYPORT.tower.x, SKYPORT.tower.z], footprint: [SKYPORT.tower.w - 1.2, SKYPORT.tower.d - 1.2] },
   { id: "skyport-terminal", position: [SKYPORT.terminal.x, SKYPORT.terminal.z], footprint: [SKYPORT.terminal.w, SKYPORT.terminal.d] },
+];
+
+/** Roofed footprints the aircraft may never land on even where the car can drive in (the hangar's whole floor). */
+export const SKYPORT_ROOFS: { id: string; position: Point; footprint: [number, number] }[] = [
+  { id: "skyport-hangar", position: [SKYPORT.hangar.x, SKYPORT.hangar.z], footprint: [SKYPORT.hangar.w + 0.8, SKYPORT.hangar.d + 0.8] },
 ];
 
 /** Island coastline: a rounded rectangle around the slab (boat collider and skirt), straight on the causeway side. */

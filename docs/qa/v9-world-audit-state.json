@@ -1,0 +1,380 @@
+{
+  "version": "v9",
+  "branch": "feat/v9-world-physics-destruction",
+  "baseSha": "9f93b38",
+  "baseBranch": "integration/v8-editorial-final-qa",
+  "headSha": "pending",
+  "iteration": 1,
+  "maxIterations": 12,
+  "phase": "4-vertical-slice",
+  "status": "IN_PROGRESS",
+  "updatedAt": "2026-10-11",
+  "preflight": {
+    "gitClean": true,
+    "worktrees": [
+      "/home/pau/pau/portfolio-2.0 (this branch)",
+      "/home/pau/pau/portfolio-editorial (editorial/copy-review, untouched)"
+    ],
+    "devServerPort3000": "left running (next dev, pid 26771)",
+    "e2eServerPort3101": "next start on the production build, started by this loop",
+    "baseline": {
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "unitTests": 222,
+      "build": "PASS"
+    }
+  },
+  "inventory": {
+    "beaches": [
+      {
+        "id": "south-beach",
+        "island": "main",
+        "width": 28,
+        "enterDepthAlong": 11.5,
+        "exitDepthAlong": 9.7,
+        "carToBoat": "PASS-unit(3 points)+PASS-e2e(centre)",
+        "boatToCar": "PASS-unit(3 points)",
+        "blockers": 0
+      },
+      {
+        "id": "east-beach",
+        "island": "main",
+        "width": 28,
+        "enterDepthAlong": 11.5,
+        "exitDepthAlong": 9.7,
+        "carToBoat": "PASS-unit(3 points)",
+        "boatToCar": "PASS-unit(3 points)+PASS-e2e",
+        "blockers": 0
+      },
+      {
+        "id": "skyport-beach",
+        "island": "skyport",
+        "width": 26,
+        "enterDepthAlong": 10.2,
+        "exitDepthAlong": 8.7,
+        "carToBoat": "PASS-unit(3 points)",
+        "boatToCar": "PASS-unit(3 points)",
+        "blockers": 0
+      }
+    ],
+    "otherDrivableShores": 0,
+    "ramps": [
+      {
+        "id": "west-ramp",
+        "entry": [
+          -53,
+          10
+        ],
+        "lip": [
+          -53,
+          54
+        ],
+        "lipDeg": 21.8,
+        "corridorClear": true,
+        "unitRun": "PASS",
+        "e2e": "PASS (transformer.spec ramp loop)",
+        "beyondLip": "turf then sea"
+      },
+      {
+        "id": "campus-ramp",
+        "entry": [
+          53,
+          -42
+        ],
+        "lip": [
+          53,
+          -8
+        ],
+        "lipDeg": 21.8,
+        "corridorClear": true,
+        "unitRun": "PASS",
+        "e2e": "NOT VERIFIED",
+        "beyondLip": "pavement, road, turf"
+      },
+      {
+        "id": "skyport-ramp",
+        "entry": [
+          124,
+          -9
+        ],
+        "lip": [
+          194,
+          -9
+        ],
+        "lipDeg": 21.8,
+        "corridorClear": true,
+        "unitRun": "PASS",
+        "e2e": "NOT VERIFIED",
+        "beyondLip": "slab then sea"
+      }
+    ],
+    "objects": {
+      "trees": {
+        "count": 140,
+        "destructible": true,
+        "collider": "circle",
+        "since": "v4"
+      },
+      "lamps": {
+        "count": 75,
+        "reachable": 67,
+        "destructible": true,
+        "collider": "circle r0.24",
+        "since": "v9-it1"
+      },
+      "planters": {
+        "count": 4,
+        "destructible": true,
+        "collider": "obb 1.9x1.9",
+        "since": "v9-it1"
+      },
+      "benches": {
+        "count": 27,
+        "destructible": true,
+        "collider": "obb 1.7x0.6",
+        "since": "v9-it1"
+      },
+      "bollards": {
+        "count": 16,
+        "destructible": false,
+        "collider": "none (catalogued: circle r0.16)",
+        "planned": "it2"
+      },
+      "bushes": {
+        "count": 110,
+        "destructible": false,
+        "collider": "none (catalogued: circle r0.6, flatten)",
+        "planned": "it2"
+      },
+      "signposts": {
+        "count": 4,
+        "panels": 9,
+        "destructible": false,
+        "collider": "none (catalogued)",
+        "planned": "it2"
+      },
+      "masts": {
+        "count": 10,
+        "detail": "4 Skyport pad masts + 6 ramp gate masts",
+        "destructible": false,
+        "collider": "none (catalogued)",
+        "planned": "it2"
+      },
+      "signPosts": {
+        "count": 5,
+        "detail": "3 ramp sign posts, hangar sign post, harbor gate sign post",
+        "destructible": false,
+        "collider": "none",
+        "planned": "it2"
+      },
+      "runwayLights": {
+        "count": 30,
+        "collider": "none",
+        "decision": "P2, rolled over"
+      },
+      "approachLightPiles": {
+        "count": 4,
+        "boatCollider": false,
+        "severity": "P2"
+      },
+      "gardens": 40,
+      "bins": 0,
+      "crates": 0
+    },
+    "colliderCategories": {
+      "circle": [
+        "hub pavilion",
+        "tree trunks",
+        "lamp posts"
+      ],
+      "axisAlignedBox": [
+        "district buildings (+1.0)",
+        "campus labs (+1.0)",
+        "harbor cabin (+0.6)",
+        "hangar walls x3 (+0.8)",
+        "tower shaft (+0.8)",
+        "terminal (+0.8)",
+        "ramp rails x6"
+      ],
+      "orientedBox": [
+        "benches",
+        "planters"
+      ],
+      "compound": [
+        "hangar (back + two side walls; roof is a landing exclusion only)"
+      ],
+      "heightField": [
+        "ramps (profile)",
+        "beaches (sand slope + run-out)"
+      ],
+      "polygon": [
+        "coastlines (boat)",
+        "pier decks and causeway (boat, boxes)"
+      ],
+      "boundary": [
+        "7 drive rectangles (car clamp)",
+        "sea bounds (boat)"
+      ]
+    }
+  },
+  "defects": {
+    "P0": [],
+    "P1": [
+      {
+        "id": "COL-01",
+        "title": "lamps, benches, planters had no collider",
+        "status": "FIXED",
+        "iteration": 1,
+        "evidence": "propWorld + e2e/world.spec.ts"
+      },
+      {
+        "id": "COL-02",
+        "title": "bollards, bushes, signposts have no collider",
+        "status": "OPEN",
+        "plan": "it2: activate catalogue categories"
+      },
+      {
+        "id": "COL-03",
+        "title": "pad masts, ramp masts, ramp/hangar/harbor sign posts have no collider",
+        "status": "OPEN",
+        "plan": "it2: mast/signpost categories with shared positions"
+      },
+      {
+        "id": "COL-04",
+        "title": "hangar collider closed its open front",
+        "status": "FIXED",
+        "iteration": 1,
+        "evidence": "SKYPORT_OBSTACLES walls + SKYPORT_ROOFS; landing.test.ts; captures 14-15"
+      },
+      {
+        "id": "DES-01",
+        "title": "only trees destructible",
+        "status": "PARTIAL",
+        "iteration": 1,
+        "detail": "lamp/planter/bench active; bollard/bush/signpost/mast pending"
+      }
+    ],
+    "P2": [
+      {
+        "id": "COL-05",
+        "title": "tower collider wider than its shaft",
+        "status": "FIXED",
+        "iteration": 1
+      },
+      {
+        "id": "COL-06",
+        "title": "runway lights have no collider (0.28 u fixtures)",
+        "status": "OPEN"
+      },
+      {
+        "id": "COL-07",
+        "title": "approach-light piles not boat colliders",
+        "status": "OPEN"
+      },
+      {
+        "id": "COL-08",
+        "title": "slow hop off the Skyport lip pulled back by the drive clamp",
+        "status": "OPEN"
+      },
+      {
+        "id": "GEO-01",
+        "title": "4 benches overlap a trunk",
+        "status": "OPEN"
+      },
+      {
+        "id": "GEO-03",
+        "title": "2 lamps inside the Skyport runway strip",
+        "status": "OPEN"
+      },
+      {
+        "id": "DES-02",
+        "title": "no particles for furniture impacts",
+        "status": "OPEN",
+        "plan": "it2"
+      },
+      {
+        "id": "V8-P2-01",
+        "title": "stale impact toast after a body change",
+        "status": "OPEN"
+      }
+    ],
+    "P3": [
+      {
+        "id": "GEO-02",
+        "title": "19 bushes within 0.9 u of a trunk (undergrowth)",
+        "status": "ACCEPTED"
+      }
+    ]
+  },
+  "tests": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "unit": {
+      "files": 43,
+      "tests": 270,
+      "new": [
+        "collision.test.ts (obb)",
+        "propWorld.test.ts",
+        "beachRuns.test.ts",
+        "rampRuns.test.ts",
+        "landing.test.ts (roof)"
+      ]
+    },
+    "build": "PASS",
+    "e2e": {
+      "worldSpec": "3/3 PASS",
+      "fullRun1": "20/21 (campus keeps-driving fixed-time check failed under load; 2/2 in isolation)",
+      "fullRun2": "not run in iteration 1"
+    }
+  },
+  "evidence": {
+    "captures": "docs/screenshots/v9/high-01..15 + high-stats.json",
+    "perf": "docs/screenshots/v9/perf/perf-v9.json",
+    "docs": [
+      "docs/qa/v9-world-validation.md",
+      "docs/qa/v9-world-object-inventory.md",
+      "docs/architecture/v9-collision-system.md",
+      "docs/gameplay/v9-destructible-world.md",
+      "docs/gameplay/v9-universal-beaches.md",
+      "docs/gameplay/v9-flight-ramps.md"
+    ]
+  },
+  "metrics": {
+    "renderer": "SwiftShader (relative only)",
+    "cityHigh": {
+      "calls": 424,
+      "triangles": 127616,
+      "geometries": 336,
+      "programs": 28,
+      "v8": {
+        "calls": 424,
+        "triangles": 126610
+      }
+    },
+    "plazaHigh": {
+      "calls": 307,
+      "triangles": 121402
+    },
+    "knockLoop": {
+      "knocked": "6/8 (2 staging misses on trees)",
+      "callsAfterReset": 426
+    },
+    "overlayExtraCalls": 9
+  },
+  "blockers": [],
+  "nextIteration": [
+    "activate bollard, bush, signpost categories (collider + reaction + DynamicProps parts + particles)",
+    "mast and sign-post props from shared positions (ramp gates, pad, hangar sign, harbor gate sign)",
+    "e2e/ramps.spec.ts: Campus Ramp and Skyport Ramp flown for real; Skyport Beach in the browser",
+    "furniture particles (DES-02); GEO-01 bench placement; COL-08 hop clamp",
+    "docs/architecture/v9-collision-system.md, docs/gameplay/v9-*.md"
+  ],
+  "history": [
+    {
+      "iteration": 1,
+      "date": "2026-10-11",
+      "summary": "preflight, branch, inventory, audit, collision primitives (obb, compound), prop simulation + renderer + HUD, shore rule from topography, ramp step extraction, debug overlay, 48 unit tests, world E2E",
+      "commit": "see git log (first V9 commit)"
+    }
+  ]
+}

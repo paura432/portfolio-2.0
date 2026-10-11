@@ -1,0 +1,402 @@
+{
+  "01-lamp-intact": {
+    "calls": 364,
+    "triangles": 127162,
+    "geometries": 370,
+    "textures": 31,
+    "programs": 28,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 0,
+      "phases": {
+        "standing": 232
+      }
+    }
+  },
+  "02-lamp-rattled": {
+    "calls": 363,
+    "triangles": 122010,
+    "geometries": 463,
+    "textures": 35,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 0,
+      "phases": {
+        "standing": 232
+      }
+    }
+  },
+  "03-lamp-knocked-follow": {
+    "calls": 359,
+    "triangles": 121926,
+    "geometries": 466,
+    "textures": 35,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 1,
+      "phases": {
+        "standing": 231,
+        "down": 1
+      }
+    }
+  },
+  "04-lamp-down": {
+    "calls": 366,
+    "triangles": 127186,
+    "geometries": 466,
+    "textures": 35,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 1,
+      "phases": {
+        "standing": 231,
+        "down": 1
+      }
+    }
+  },
+  "05-lamp-restored": {
+    "calls": 364,
+    "triangles": 127162,
+    "geometries": 466,
+    "textures": 35,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 0,
+      "phases": {
+        "standing": 232
+      }
+    }
+  },
+  "06-planter-intact": {
+    "calls": 309,
+    "triangles": 122438,
+    "geometries": 466,
+    "textures": 35,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 0,
+      "phases": {
+        "standing": 232
+      }
+    }
+  },
+  "07-planter-shoved": {
+    "calls": 307,
+    "triangles": 122414,
+    "geometries": 499,
+    "textures": 37,
+    "programs": 29,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 0,
+      "phases": {
+        "standing": 232
+      }
+    }
+  },
+  "08-planter-tipping-follow": {
+    "calls": 420,
+    "triangles": 129532,
+    "geometries": 501,
+    "textures": 37,
+    "programs": 30,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 1,
+      "phases": {
+        "standing": 231,
+        "down": 1
+      }
+    }
+  },
+  "09-planter-down": {
+    "calls": 307,
+    "triangles": 122414,
+    "geometries": 501,
+    "textures": 37,
+    "programs": 30,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 1,
+      "phases": {
+        "standing": 231,
+        "down": 1
+      }
+    }
+  },
+  "10-bench-intact": {
+    "calls": 324,
+    "triangles": 124960,
+    "geometries": 501,
+    "textures": 37,
+    "programs": 30,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 1,
+      "phases": {
+        "standing": 231,
+        "down": 1
+      }
+    }
+  },
+  "11-bench-flipped-follow": {
+    "calls": 379,
+    "triangles": 124306,
+    "geometries": 501,
+    "textures": 37,
+    "programs": 30,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 2,
+      "phases": {
+        "standing": 230,
+        "down": 2
+      }
+    }
+  },
+  "12-bench-down": {
+    "calls": 324,
+    "triangles": 124960,
+    "geometries": 501,
+    "textures": 37,
+    "programs": 30,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 2,
+      "phases": {
+        "standing": 230,
+        "down": 2
+      }
+    }
+  },
+  "13-colliders-plaza": {
+    "calls": 495,
+    "triangles": 132124,
+    "geometries": 512,
+    "textures": 37,
+    "programs": 33,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 2,
+      "phases": {
+        "standing": 230,
+        "down": 2
+      }
+    }
+  },
+  "14-colliders-hangar-open-front": {
+    "calls": 243,
+    "triangles": 112176,
+    "geometries": 520,
+    "textures": 37,
+    "programs": 33,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 2,
+      "phases": {
+        "standing": 230,
+        "down": 2
+      }
+    }
+  },
+  "15-car-inside-hangar": {
+    "calls": 281,
+    "triangles": 116720,
+    "geometries": 521,
+    "textures": 37,
+    "programs": 33,
+    "dpr": 1,
+    "width": 1280,
+    "height": 800,
+    "dynamicTrees": 0,
+    "fallenTrees": 0,
+    "particles": 0,
+    "props": {
+      "count": 232,
+      "active": [
+        "lamp",
+        "planter",
+        "bench"
+      ],
+      "dynamic": 0,
+      "down": 2,
+      "phases": {
+        "standing": 230,
+        "down": 2
+      }
+    }
+  }
+}

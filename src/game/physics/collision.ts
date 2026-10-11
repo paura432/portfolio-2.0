@@ -1,6 +1,11 @@
 /**
- * Minimal collision resolution: the car is a circle on the XZ plane, buildings
- * are axis-aligned boxes and the platform is a square boundary.
+ * Collision resolution on the XZ plane (V9). The car is a circle; the world
+ * offers axis-aligned boxes (buildings, decks, rails), round obstacles (the
+ * hub pavilion, trunks, posts) and oriented boxes (rotated furniture: benches,
+ * planters). A compound collider is simply several obstacles sharing one id
+ * (the hangar's three walls). Every resolver pushes the circle out along the
+ * shortest axis and reports what was touched; nothing here looks at a
+ * triangle.
  */
 export interface Box {
   id: string;
@@ -23,7 +28,19 @@ export interface RoundObstacle {
   r: number;
 }
 
-export type Obstacle = ({ kind: "box" } & Box) | ({ kind: "round" } & RoundObstacle);
+/** Oriented box: centre, yaw (rotation around Y, same convention as the props) and half extents in its local frame. */
+export interface OrientedBox {
+  id: string;
+  x: number;
+  z: number;
+  rotation: number;
+  /** Half extent along the local X axis (width / 2). */
+  hx: number;
+  /** Half extent along the local Z axis (depth / 2). */
+  hz: number;
+}
+
+export type Obstacle = ({ kind: "box" } & Box) | ({ kind: "round" } & RoundObstacle) | ({ kind: "obb" } & OrientedBox);
 
 export interface CollisionResult {
   x: number;
@@ -91,6 +108,29 @@ export function resolveCircleRound(c: Circle, o: RoundObstacle): { x: number; z:
   return { x: o.x + dx * k, z: o.z + dz * k };
 }
 
+/**
+ * Push a circle out of an oriented box: the circle is taken into the box's
+ * local frame (where the box is axis-aligned), resolved there, and the result
+ * is rotated back. Exact for any yaw, so a rotated bench collides where it is drawn.
+ */
+export function resolveCircleObb(c: Circle, o: OrientedBox): { x: number; z: number } | null {
+  const cos = Math.cos(o.rotation);
+  const sin = Math.sin(o.rotation);
+  const dx = c.x - o.x;
+  const dz = c.z - o.z;
+  // World → local: inverse of the Y rotation (local X = (cos, -sin) in world, local Z = (sin, cos)).
+  const lx = dx * cos - dz * sin;
+  const lz = dx * sin + dz * cos;
+  const out = resolveCircleBox({ x: lx, z: lz, r: c.r }, { id: o.id, minX: -o.hx, maxX: o.hx, minZ: -o.hz, maxZ: o.hz });
+  if (!out) return null;
+  return { x: o.x + out.x * cos + out.z * sin, z: o.z - out.x * sin + out.z * cos };
+}
+
+/** The resolver for any obstacle kind. */
+export function resolveCircleObstacle(c: Circle, o: Obstacle): { x: number; z: number } | null {
+  return o.kind === "box" ? resolveCircleBox(c, o) : o.kind === "round" ? resolveCircleRound(c, o) : resolveCircleObb(c, o);
+}
+
 export function resolveCollisions(
   circle: Circle,
   obstacles: readonly Obstacle[],
@@ -100,10 +140,7 @@ export function resolveCollisions(
   const hits: string[] = [];
 
   for (const o of obstacles) {
-    const out =
-      o.kind === "box"
-        ? resolveCircleBox({ x, z, r: circle.r }, o)
-        : resolveCircleRound({ x, z, r: circle.r }, o);
+    const out = resolveCircleObstacle({ x, z, r: circle.r }, o);
     if (out) {
       x = out.x;
       z = out.z;

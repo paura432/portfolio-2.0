@@ -1,5 +1,6 @@
 import { WATER_LEVEL } from "@/data/archipelago";
-import { resolveCollisions } from "../physics/collision";
+import { SKYPORT_ROOFS } from "@/data/skyport";
+import { boxFromFootprint, resolveCollisions, type Obstacle } from "../physics/collision";
 import { groundHeightAt, rampUnder } from "../world/ground";
 import { CAR_RADIUS, clampToDriveArea, obstacles } from "../world/obstacles";
 import type { TerrainQuery } from "./planePhysics";
@@ -18,10 +19,14 @@ export const LANDING_CLEARANCE = 2.4;
 /** Altitude floor over ground the aircraft may not land on, above the local ground. */
 export const LANDING_FLOOR = 12;
 
+/** Roofs over otherwise open ground (the hangar floor the car may enter): the aircraft keeps its floor above them. */
+const roofs: Obstacle[] = SKYPORT_ROOFS.map((r) => ({ kind: "box", ...boxFromFootprint(r.id, r.position, r.footprint) }));
+
 export function landableAt(x: number, z: number): boolean {
   if (clampToDriveArea(x, z, CAR_RADIUS).boundary) return false;
   if (rampUnder(x, z)) return false;
   if (resolveCollisions({ x, z, r: LANDING_CLEARANCE }, obstacles, Infinity).hits.length > 0) return false;
+  if (resolveCollisions({ x, z, r: LANDING_CLEARANCE }, roofs, Infinity).hits.length > 0) return false;
   return WATER_LEVEL - groundHeightAt(x, z) <= 0;
 }
 

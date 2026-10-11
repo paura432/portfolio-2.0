@@ -152,26 +152,28 @@ export interface ShoreContext {
   state: VehicleState;
   /** Water above the ground under the hull (u). */
   depth: number;
-  /** Velocity component toward the sea along the beach's seaward direction (u/s; negative = toward the land). */
+  /** Velocity component toward deeper water, along the ground's downhill direction (u/s; negative = toward the land). */
   seawardSpeed: number;
-  /** On a beach footprint. */
-  onBeach: boolean;
+  /** On a shore: ground sloping between the land and the sea floor (V9: derived from the height field, not from a beach list). */
+  onShore: boolean;
   sinceLast: number;
 }
 
 export type ShoreDecision = "to-boat" | "to-car" | null;
 
 /**
- * Beach rule with hysteresis: a car (or a car-form in any ground state)
+ * Shore rule with hysteresis: a car (or a car-form in any ground state)
  * heading into water deeper than `BOAT_ENTER_DEPTH` becomes a boat; a boat
  * heading toward the land into water shallower than `BOAT_EXIT_DEPTH`
  * becomes a car. Between the two depths nothing changes, so a hull rocking
  * at the waterline or a car on wet sand keeps its form. A sequence in
  * progress may only be reversed when the depth crosses the *other*
- * threshold (the beach demanded it), never re-started.
+ * threshold (the shore demanded it), never re-started. The rule knows
+ * nothing about named beaches: depth, slope direction and the vehicle's
+ * velocity decide (V9), so every stretch of shore behaves the same.
  */
 export function shoreDecision(c: ShoreContext): ShoreDecision {
-  if (!c.onBeach) return null;
+  if (!c.onShore) return null;
   const { state } = c;
   const groundForm = state === "car" || state === "preparing-flight" || state === "transforming-to-car" || state === "landing";
   if (groundForm) {

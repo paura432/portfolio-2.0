@@ -6,6 +6,7 @@ import { SKYPORT_DRIVE_RECTS, SKYPORT_OBSTACLES } from "@/data/skyport";
 import { PLATFORM } from "@/data/world";
 import { boxFromFootprint, resolveCollisions, type Obstacle } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
+import { propWorld } from "./propWorld";
 import { treeWorld } from "./treeWorld";
 
 /** Collision shapes derived from district data: one source of truth for visuals and physics. */
@@ -85,15 +86,44 @@ export function clampToDriveArea(x: number, z: number, r: number, areas: readonl
   return { x: bestX, z: bestZ, boundary: bestD > 1e-12 };
 }
 
+/** Last contacts of the car's constraint (V9 debug overlay and the probe; a short ring buffer, never read by gameplay). */
+export interface Contact {
+  x: number;
+  z: number;
+  /** What was touched: an obstacle id, "boundary", "tree" or "prop". */
+  what: string;
+  /** Monotonic counter so the overlay can fade old contacts. */
+  n: number;
+}
+export const contactLog: { enabled: boolean; items: Contact[]; n: number; push: (x: number, z: number, what: string) => void } = {
+  enabled: false,
+  items: [],
+  n: 0,
+  push(x, z, what) {
+    this.n++;
+    this.items.push({ x, z, what, n: this.n });
+    if (this.items.length > 24) this.items.shift();
+  },
+};
+
 /**
  * Constraint used by the vehicle each sub-step: buildings (rigid), the drive
- * area boundary (rigid), then the trees (rigid when standing, yielding when hit fast enough).
+ * area boundary (rigid), then the trees and the street furniture (rigid when
+ * standing, yielding when hit fast enough; V9 props may also be shoved).
  */
 export const constrainCar: Constrain = (x, z, step) => {
   const r = resolveCollisions({ x, z, r: CAR_RADIUS }, obstacles, Infinity);
   const b = clampToDriveArea(r.x, r.z, CAR_RADIUS);
   const rigid = r.hits.length > 0 || b.boundary;
   const t = treeWorld.constrain(b.x, b.z, step);
-  if (rigid || t.blocked) return { x: t.x, z: t.z, blocked: true };
-  return t;
+  const p = propWorld.constrain(t.x, t.z, step && t.speed !== undefined ? { ...step, speed: t.speed } : step);
+  if (contactLog.enabled) {
+    for (const h of r.hits) contactLog.push(x, z, h);
+    if (b.boundary) contactLog.push(x, z, "boundary");
+    if (t.blocked) contactLog.push(x, z, "tree");
+    if (p.blocked) contactLog.push(x, z, "prop");
+  }
+  if (rigid || t.blocked || p.blocked) return { x: p.x, z: p.z, blocked: true };
+  const speed = p.speed ?? t.speed;
+  return speed !== undefined ? { x: p.x, z: p.z, blocked: false, speed } : { x: p.x, z: p.z, blocked: false };
 };

@@ -4,7 +4,6 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { ExtrudeGeometry, Object3D, Shape, type Group, type Mesh, type MeshStandardMaterial } from "three";
 import { WATER_LEVEL } from "@/data/archipelago";
-import { getRamp, rampAt, rampLocal, rampSlopeAt } from "@/data/ramps";
 import { inputState } from "@/game/controls/input";
 import { heightAt, oceanClock, shoreDamp } from "@/game/ocean/waves";
 import { boatWake, wakeStrength } from "@/game/ocean/wake";
@@ -18,6 +17,7 @@ import { dampTo, isBraking, targetPitch, targetRoll, VISUAL_CONFIG } from "@/gam
 import { liveVehicle } from "@/game/vehicle/liveVehicle";
 import { stepPlane } from "@/game/vehicle/planePhysics";
 import { terrainAt } from "@/game/vehicle/landing";
+import { rampStep } from "@/game/vehicle/rampRun";
 import { livePlane } from "@/game/vehicle/planeState";
 import { transformStages } from "@/game/vehicle/transform";
 import {
@@ -29,14 +29,12 @@ import {
   LANDING_ROLL_SPEED,
   launchPose,
   partsProgress,
-  RAMP_ALIGN,
-  rampDecision,
   shoreDecision,
   stepHop,
   TAKEOFF_SPEED,
 } from "@/game/vehicle/transformer";
 import { canControl } from "@/game/vehicle/vehicleManager";
-import { rampUnder, sampleGround, shoreDistanceAt } from "@/game/world/ground";
+import { sampleGround, seawardSpeedAt, shoreDistanceAt } from "@/game/world/ground";
 import { impactBus } from "@/game/world/impactBus";
 import { constrainCar } from "@/game/world/obstacles";
 import { constrainRampBodies } from "@/game/world/rampColliders";
@@ -130,7 +128,6 @@ function wingGeometry(mirror: boolean): ExtrudeGeometry {
 /** How far the car body sinks when it floats (the wheels tuck, the floats take the waterline). */
 const BOAT_SINK = 0.5;
 const IDLE = { throttle: 0, steer: 0, brake: false } as const;
-const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /** Car constraint: buildings, drive areas, trees, plus the bodies of the ramps that are not being climbed. */
 const constrainVehicle: Constrain = (x, z, step) => {
@@ -233,20 +230,11 @@ export function Vehicle() {
           : { ...liveCar.state, speed: 0, steerAngle: 0 };
       liveCar.state = next;
       const gs = sampleGround(next.x, next.z, next.heading);
-      const ru = rampUnder(next.x, next.z);
-      const wasOnRamp = liveVehicle.onRamp;
-      let pastLip = false;
-      let lipSlope = 0;
-      if (ru) liveVehicle.onRamp = ru.ramp.id;
-      else if (wasOnRamp) {
-        const r = getRamp(wasOnRamp);
-        const l = rampLocal(r, next.x, next.z);
-        if (l.s > r.length && Math.abs(l.lateral) <= r.width / 2 + 1) {
-          pastLip = true;
-          lipSlope = rampSlopeAt(r, r.length);
-        }
-        liveVehicle.onRamp = null;
-      }
+      // Ramp logic (shared with the per-ramp unit tests): slope under the car, lip crossing, the ramp rule.
+      const parts = partsProgress(state, liveVehicle.clock.t, liveVehicle.clock.duration);
+      const rs = rampStep({ x: next.x, z: next.z, heading: next.heading, speed: next.speed, state, onRamp: liveVehicle.onRamp, wings: parts.wings, sinceLast: liveVehicle.sinceTransform });
+      liveVehicle.onRamp = rs.onRamp;
+      const { pastLip, lipSlope, corridor } = rs;
       // Vertical model: follow the ground; when it drops away (a lip, an edge) the body is airborne until it lands.
       if (!liveVehicle.airborne) {
         if (pastLip || liveVehicle.y > gs.y + 0.6) {
@@ -269,10 +257,7 @@ export function Vehicle() {
       }
 
       // Ramp rule.
-      const corridor = rampAt(next.x, next.z);
-      const aligned = corridor ? Math.abs(wrap(next.heading - corridor.heading)) < RAMP_ALIGN && next.speed > 0 : false;
-      const parts = partsProgress(state, liveVehicle.clock.t, liveVehicle.clock.duration);
-      const decision = store.phase === "playing" ? rampDecision({ state, inCorridor: corridor !== null, aligned, speed: next.speed, pastLip, deployed: parts.wings >= 0.999, sinceLast: liveVehicle.sinceTransform }) : null;
+      const decision = store.phase === "playing" ? rs.decision : null;
       if (decision === "prepare") store.setVehicleState("preparing-flight");
       else if (decision === "clear") store.setVehicleState("car");
       else if (decision === "deploy") store.setVehicleState("transforming-to-plane");
@@ -295,10 +280,10 @@ export function Vehicle() {
         if (Math.abs(next.speed) < LANDING_ROLL_SPEED || landingT.current > 1.4) store.setVehicleState("transforming-to-car");
       } else landingT.current = 0;
 
-      // Shore rule: a car driving into the sea off a beach becomes a boat.
+      // Shore rule (V9: from the slope under the car, not from a beach list): a car driving into the sea becomes a boat.
       const beach = gs.beach;
-      const seawardSpeed = beach ? (Math.sin(next.heading) * beach.seaward[0] + Math.cos(next.heading) * beach.seaward[1]) * next.speed : 0;
-      const sd = store.phase === "playing" && !liveVehicle.airborne ? shoreDecision({ state, depth: gs.depth, seawardSpeed, onBeach: beach !== null, sinceLast: liveVehicle.sinceTransform }) : null;
+      const seawardSpeed = gs.shore ? seawardSpeedAt(next.x, next.z, Math.sin(next.heading) * next.speed, Math.cos(next.heading) * next.speed) : 0;
+      const sd = store.phase === "playing" && !liveVehicle.airborne ? shoreDecision({ state, depth: gs.depth, seawardSpeed, onShore: gs.shore, sinceLast: liveVehicle.sinceTransform }) : null;
       if (sd === "to-boat") {
         liveBoat.state = { ...createBoatState(next.x, next.z, next.heading), ...boatVelocityFromCar(next.speed, next.heading), throttle: Math.max(0, input.throttle) };
         liveBoat.visual.y = liveVehicle.y - WATER_LEVEL + BOAT_SINK;
@@ -358,11 +343,11 @@ export function Vehicle() {
       const sz = next.z - Math.cos(next.heading) * 2.4;
       boatWake.record(sx, sz, t, (driving || store.transition) && parts.floats > 0.4 ? wakeStrength(vf, next.throttle, BOAT_CONFIG.maxSpeed) : 0);
 
-      // Shore rule: sailing up a beach brings the wheels down.
+      // Shore rule: sailing up any shore brings the wheels down.
       const gs = sampleGround(next.x, next.z, next.heading);
       const beach = gs.beach;
-      const seawardSpeed = beach ? next.vx * beach.seaward[0] + next.vz * beach.seaward[1] : 0;
-      const sd = store.phase === "playing" && !store.mooredAt && !store.transition ? shoreDecision({ state, depth: gs.depth, seawardSpeed, onBeach: beach !== null, sinceLast: liveVehicle.sinceTransform }) : null;
+      const seawardSpeed = gs.shore ? seawardSpeedAt(next.x, next.z, next.vx, next.vz) : 0;
+      const sd = store.phase === "playing" && !store.mooredAt && !store.transition ? shoreDecision({ state, depth: gs.depth, seawardSpeed, onShore: gs.shore, sinceLast: liveVehicle.sinceTransform }) : null;
       const waterY = WATER_LEVEL + v.y - BOAT_SINK;
       if (sd === "to-car") {
         liveCar.state = { ...createCarState(next.x, next.z, next.heading), speed: carSpeedFromBoat(next.vx, next.vz, next.heading) };

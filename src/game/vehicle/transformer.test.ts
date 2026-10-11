@@ -80,12 +80,12 @@ describe("ramp rule", () => {
 });
 
 describe("shore rule with hysteresis", () => {
-  const base = { onBeach: true, sinceLast: 10 };
+  const base = { onShore: true, sinceLast: 10 };
   it("a car entering the sea becomes a boat past the enter depth, not before, and only heading seaward", () => {
     expect(shoreDecision({ ...base, state: "car", depth: BOAT_ENTER_DEPTH - 0.05, seawardSpeed: 3 })).toBe(null);
     expect(shoreDecision({ ...base, state: "car", depth: BOAT_ENTER_DEPTH, seawardSpeed: 3 })).toBe("to-boat");
     expect(shoreDecision({ ...base, state: "car", depth: BOAT_ENTER_DEPTH + 1, seawardSpeed: -3 })).toBe(null);
-    expect(shoreDecision({ ...base, state: "car", depth: 2, seawardSpeed: 3, onBeach: false })).toBe(null);
+    expect(shoreDecision({ ...base, state: "car", depth: 2, seawardSpeed: 3, onShore: false })).toBe(null);
   });
   it("a boat leaving the sea becomes a car under the exit depth heading landward; between the depths nothing changes", () => {
     expect(shoreDecision({ ...base, state: "floating", depth: BOAT_EXIT_DEPTH, seawardSpeed: -2 })).toBe("to-car");

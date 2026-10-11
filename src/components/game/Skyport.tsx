@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { InstancedMesh, Object3D } from "three";
 import { getHarbor, getIsland, pierBox } from "@/data/archipelago";
-import { runwayLights, SKYPORT } from "@/data/skyport";
+import { HANGAR_WALL, runwayLights, SKYPORT } from "@/data/skyport";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { coastRocks } from "@/game/world/islandTerrain";
 import { beaches, insideBeach } from "@/data/beaches";
@@ -185,12 +185,12 @@ export function Skyport() {
           );
         })}
         {/* Hangar: open front toward the runway, orange door band, cyan roof strip */}
-        <mesh material={m.facade} position={[hangar.x, hangar.h / 2, hangar.z + hangar.d / 2 - 0.3]} castShadow receiveShadow>
-          <boxGeometry args={[hangar.w, hangar.h, 0.6]} />
+        <mesh material={m.facade} position={[hangar.x, hangar.h / 2, hangar.z + hangar.d / 2 - HANGAR_WALL / 2]} castShadow receiveShadow>
+          <boxGeometry args={[hangar.w, hangar.h, HANGAR_WALL]} />
         </mesh>
         {[-1, 1].map((s) => (
-          <mesh key={s} material={m.facade} position={[hangar.x + s * (hangar.w / 2 - 0.3), hangar.h / 2, hangar.z]} castShadow receiveShadow>
-            <boxGeometry args={[0.6, hangar.h, hangar.d]} />
+          <mesh key={s} material={m.facade} position={[hangar.x + s * (hangar.w / 2 - HANGAR_WALL / 2), hangar.h / 2, hangar.z]} castShadow receiveShadow>
+            <boxGeometry args={[HANGAR_WALL, hangar.h, hangar.d]} />
           </mesh>
         ))}
         <mesh material={m.roof} position={[hangar.x, hangar.h + 0.2, hangar.z]} castShadow>

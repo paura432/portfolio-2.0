@@ -1,0 +1,374 @@
+{
+  "label": "v9",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstFrameMs": 1299,
+  "introMs": 573,
+  "scenarios": {
+    "city": {
+      "high": {
+        "fps": 2,
+        "frameMs": 497.2,
+        "calls": 424,
+        "triangles": 127616,
+        "geometries": 336,
+        "textures": 27,
+        "programs": 28,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      },
+      "medium": {
+        "fps": 3.4,
+        "frameMs": 291.9,
+        "calls": 413,
+        "triangles": 97776,
+        "geometries": 336,
+        "textures": 27,
+        "programs": 28,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      },
+      "low": {
+        "fps": 3.5,
+        "frameMs": 282.8,
+        "calls": 260,
+        "triangles": 45550,
+        "geometries": 332,
+        "textures": 25,
+        "programs": 43,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      }
+    },
+    "plaza": {
+      "high": {
+        "fps": 6.8,
+        "frameMs": 147,
+        "calls": 307,
+        "triangles": 121402,
+        "geometries": 373,
+        "textures": 28,
+        "programs": 48,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      },
+      "medium": {
+        "fps": 4.7,
+        "frameMs": 212.7,
+        "calls": 307,
+        "triangles": 91838,
+        "geometries": 373,
+        "textures": 28,
+        "programs": 48,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      },
+      "low": {
+        "fps": 4.4,
+        "frameMs": 227.5,
+        "calls": 151,
+        "triangles": 39470,
+        "geometries": 369,
+        "textures": 26,
+        "programs": 49,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      }
+    },
+    "knockLoop": {
+      "before": {
+        "fps": 5.4,
+        "frameMs": 186.8,
+        "calls": 307,
+        "triangles": 121402,
+        "geometries": 372,
+        "textures": 28,
+        "programs": 49,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      },
+      "hits": [
+        {
+          "id": 50,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 1367
+        },
+        {
+          "id": 51,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 3448
+        },
+        {
+          "id": 48,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 2418
+        },
+        {
+          "id": 49,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 2623
+        },
+        {
+          "id": 75,
+          "category": "planter",
+          "knocked": true,
+          "ms": 2176
+        },
+        {
+          "id": 102,
+          "category": "bench",
+          "knocked": false,
+          "ms": 12214
+        },
+        {
+          "id": 83,
+          "category": "bench",
+          "knocked": true,
+          "ms": 2201
+        },
+        {
+          "id": 76,
+          "category": "planter",
+          "knocked": false,
+          "ms": 12009
+        }
+      ],
+      "during": {
+        "fps": 4.3,
+        "frameMs": 235.2,
+        "calls": 440,
+        "triangles": 128568,
+        "geometries": 535,
+        "textures": 38,
+        "programs": 50,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 6,
+          "phases": {
+            "standing": 226,
+            "down": 6
+          }
+        }
+      },
+      "afterSettle": {
+        "fps": 3.2,
+        "frameMs": 308.5,
+        "calls": 441,
+        "triangles": 128580,
+        "geometries": 535,
+        "textures": 38,
+        "programs": 50,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 6,
+          "phases": {
+            "standing": 226,
+            "down": 6
+          }
+        }
+      },
+      "afterReset": {
+        "fps": 3.7,
+        "frameMs": 267.2,
+        "calls": 426,
+        "triangles": 127834,
+        "geometries": 535,
+        "textures": 38,
+        "programs": 50,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 232,
+          "active": [
+            "lamp",
+            "planter",
+            "bench"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 232
+          }
+        }
+      }
+    },
+    "overlayOn": {
+      "fps": 4.5,
+      "frameMs": 223,
+      "calls": 433,
+      "triangles": 127822,
+      "geometries": 540,
+      "textures": 38,
+      "programs": 53,
+      "dpr": 1,
+      "width": 1280,
+      "height": 800,
+      "dynamicTrees": 0,
+      "fallenTrees": 0,
+      "particles": 0,
+      "props": {
+        "count": 232,
+        "active": [
+          "lamp",
+          "planter",
+          "bench"
+        ],
+        "dynamic": 0,
+        "down": 0,
+        "phases": {
+          "standing": 232
+        }
+      }
+    }
+  }
+}

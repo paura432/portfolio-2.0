@@ -3,11 +3,12 @@
 import { useCallback, useMemo } from "react";
 import { Color, InstancedMesh, Object3D } from "three";
 import { QUALITY_PROFILES } from "@/game/render/quality";
-import { generateFurniture, generateLamps, type Placed, type TreeInstance } from "@/game/world/props";
+import { generateFurniture, type Placed, type TreeInstance } from "@/game/world/props";
 import { treeDefs, visibleTreeCount } from "@/game/world/trees";
 import { districts } from "@/data/districts";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
+import { DynamicProps } from "./DynamicProps";
 import { getMaterials } from "./materials";
 import { Trees } from "./Trees";
 
@@ -50,8 +51,8 @@ export function Props() {
   const profile = QUALITY_PROFILES[quality];
 
   // Trees come from the shared deterministic list (stable ids; see Trees.tsx for rendering).
+  // Lamps, planters and benches are destructible (V9) and rendered by DynamicProps from the same placements.
   const furniture = useMemo(() => generateFurniture(treeDefs()), []);
-  const lamps = useMemo(() => generateLamps(), []);
 
   const bush: Placer = useCallback((o, b) => {
     const s = b.scale ?? 1;
@@ -71,23 +72,8 @@ export function Props() {
     o.translateZ(dz);
     o.translateX(dx);
   };
-  const benchSeat = useMemo(() => at(0.46), []);
-  const benchBack = useMemo(() => at(0.72, -0.22), []);
-  const benchLegs = useMemo(() => at(0.2), []);
-  const planterBox = useMemo(() => at(0.28), []);
-  const planterBush = useMemo(() => at(0.95), []);
   const bollardPost = useMemo(() => at(0.4), []);
   const bollardCap = useMemo(() => at(0.82), []);
-  const lampPost = useMemo(() => at(1.95), []);
-  const lampArm = useMemo(() => at(3.86, 0.5), []);
-  const lampHead = useMemo(() => at(3.82, 1.0), []);
-  const lampPool: Placer = useCallback((o, p) => {
-    o.position.set(p.x, 0.03, p.z);
-    o.rotation.y = p.rotation;
-    o.translateZ(1.2);
-    o.rotation.x = -Math.PI / 2;
-    o.scale.set(3.4, 3.4, 1);
-  }, []);
 
   const gardensAsPlaced = useMemo(() => furniture.gardens.map((g) => ({ ...g, rotation: 0 })), [furniture.gardens]);
   // V4 depth: soft contact blobs under the rendered trees and warm pools at every district entrance.
@@ -108,17 +94,8 @@ export function Props() {
 
   const refBushes = useInstances(furniture.bushes, bush, tintOf);
   const refGardens = useInstances(gardensAsPlaced, garden);
-  const refBenchSeat = useInstances(furniture.benches, benchSeat);
-  const refBenchBack = useInstances(furniture.benches, benchBack);
-  const refBenchLegs = useInstances(furniture.benches, benchLegs);
-  const refPlanterBox = useInstances(furniture.planters, planterBox);
-  const refPlanterBush = useInstances(furniture.planters, planterBush);
   const refBollardPost = useInstances(furniture.bollards, bollardPost);
   const refBollardCap = useInstances(furniture.bollards, bollardCap);
-  const refLampPost = useInstances(lamps, lampPost);
-  const refLampArm = useInstances(lamps, lampArm);
-  const refLampHead = useInstances(lamps, lampHead);
-  const refLampPool = useInstances(lamps, lampPool);
 
   return (
     <group>
@@ -140,27 +117,13 @@ export function Props() {
       {/* Trees: instanced forest + pooled dynamic trees (destructible, see Trees.tsx) */}
       <Trees />
 
-      {/* Bushes and planters */}
+      {/* Bushes */}
       <instancedMesh ref={refBushes} args={[undefined, undefined, Math.max(1, furniture.bushes.length)]} material={m.canopy} castShadow>
         <dodecahedronGeometry args={[0.7, 0]} />
       </instancedMesh>
-      <instancedMesh ref={refPlanterBox} args={[undefined, undefined, furniture.planters.length]} material={m.planter} castShadow receiveShadow>
-        <boxGeometry args={[1.9, 0.56, 1.9]} />
-      </instancedMesh>
-      <instancedMesh ref={refPlanterBush} args={[undefined, undefined, furniture.planters.length]} material={m.bush} castShadow>
-        <dodecahedronGeometry args={[0.85, 0]} />
-      </instancedMesh>
 
-      {/* Benches */}
-      <instancedMesh ref={refBenchSeat} args={[undefined, undefined, furniture.benches.length]} material={m.metal} castShadow>
-        <boxGeometry args={[1.7, 0.08, 0.5]} />
-      </instancedMesh>
-      <instancedMesh ref={refBenchBack} args={[undefined, undefined, furniture.benches.length]} material={m.metal} castShadow>
-        <boxGeometry args={[1.7, 0.42, 0.06]} />
-      </instancedMesh>
-      <instancedMesh ref={refBenchLegs} args={[undefined, undefined, furniture.benches.length]} material={m.metalDark}>
-        <boxGeometry args={[1.4, 0.4, 0.36]} />
-      </instancedMesh>
+      {/* Destructible furniture (V9): lamps, planters, benches */}
+      <DynamicProps />
 
       {/* Bollards with a cyan cap */}
       <instancedMesh ref={refBollardPost} args={[undefined, undefined, furniture.bollards.length]} material={m.metalDark} castShadow>
@@ -170,21 +133,6 @@ export function Props() {
         <cylinderGeometry args={[0.1, 0.1, 0.05, 8]} />
       </instancedMesh>
 
-      {/* Street lamps: post, arm toward the road, emissive head, light pool on the ground */}
-      <instancedMesh ref={refLampPost} args={[undefined, undefined, lamps.length]} material={m.metalDark} castShadow>
-        <boxGeometry args={[0.14, 3.9, 0.14]} />
-      </instancedMesh>
-      <instancedMesh ref={refLampArm} args={[undefined, undefined, lamps.length]} material={m.metalDark}>
-        <boxGeometry args={[0.08, 0.08, 1.1]} />
-      </instancedMesh>
-      <instancedMesh ref={refLampHead} args={[undefined, undefined, lamps.length]} material={m.lightAmberSoft}>
-        <boxGeometry args={[0.46, 0.12, 0.3]} />
-      </instancedMesh>
-      {profile.lampPools && (
-        <instancedMesh ref={refLampPool} args={[undefined, undefined, lamps.length]} material={m.lampPool}>
-          <circleGeometry args={[1, 16]} />
-        </instancedMesh>
-      )}
     </group>
   );
 }

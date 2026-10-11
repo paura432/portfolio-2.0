@@ -19,6 +19,9 @@ import { heightAt, oceanClock } from "@/game/ocean/waves";
 import type { HarborId } from "@/data/archipelago";
 import type { BeachId } from "@/data/beaches";
 import type { RampId } from "@/data/ramps";
+import { contactLog, obstacles } from "@/game/world/obstacles";
+import type { PropCategory } from "@/game/world/propCatalog";
+import { propWorld, type PropDef, type PropState } from "@/game/world/propWorld";
 import { treeWorld, type TreeState } from "@/game/world/treeWorld";
 import { type TreeDef } from "@/game/world/trees";
 import { useGameStore, type Quality } from "@/stores/gameStore";
@@ -37,6 +40,7 @@ import { Islands } from "./Islands";
 import { Ocean } from "./Ocean";
 import { VehicleController } from "./VehicleController";
 import { ContextLossHandler, FirstFrameSignal } from "./SceneSignals";
+import { DebugColliders } from "./DebugColliders";
 
 /** Applies the quality tier to the renderer without remounting the canvas. */
 function QualityController() {
@@ -98,6 +102,26 @@ declare global {
         reset: () => void;
         /** Capture tooling: slow-motion factor for the tree simulation. */
         timeScale: (k: number) => void;
+      };
+      /** V9: destructible street furniture (read-only except `reset`, which is the HUD action). */
+      props: {
+        def: (id: number) => PropDef | undefined;
+        state: (id: number) => PropState;
+        /** Where the prop stands now (shoves included). */
+        position: (id: number) => { x: number; z: number };
+        /** Closest simulated prop to a point, optionally of one category. */
+        nearest: (x: number, z: number, category?: PropCategory) => (PropDef & { dist: number }) | null;
+        /** Its live collider, or null while it is down. */
+        collider: (id: number) => { kind: string; x: number; z: number; r?: number; hx?: number; hz?: number; rotation?: number } | null;
+        summary: () => { count: number; active: string[]; dynamic: number; down: number; phases: Record<string, number> };
+        reset: () => void;
+        timeScale: (k: number) => void;
+      };
+      /** V9 debug tooling: the collider overlay and the static collider list. Never part of the product UI. */
+      debug: {
+        colliders: (on: boolean) => void;
+        obstacles: () => { kind: string; id: string }[];
+        contacts: () => { x: number; z: number; what: string }[];
       };
     };
   }
@@ -186,6 +210,40 @@ function Probe() {
           treeWorld.timeScale = k;
         },
       },
+      props: {
+        def: (id) => propWorld.defs[id],
+        state: (id) => ({ ...propWorld.state(id) }),
+        position: (id) => propWorld.positionOf(id),
+        nearest: (x, z, category) => {
+          let best: (PropDef & { dist: number }) | null = null;
+          for (const d of propWorld.defs) {
+            if (!propWorld.active.has(d.category)) continue;
+            if (category && d.category !== category) continue;
+            const dist = Math.hypot(d.x - x, d.z - z);
+            if (!best || dist < best.dist) best = { ...d, dist };
+          }
+          return best;
+        },
+        collider: (id) => {
+          if (!propWorld.isObstacle(id)) return null;
+          const o = propWorld.obstacleOf(id);
+          return o.kind === "round" ? { kind: o.kind, x: o.x, z: o.z, r: o.r } : o.kind === "obb" ? { kind: o.kind, x: o.x, z: o.z, hx: o.hx, hz: o.hz, rotation: o.rotation } : { kind: o.kind, x: (o.minX + o.maxX) / 2, z: (o.minZ + o.maxZ) / 2 };
+        },
+        summary: () => {
+          const phases: Record<string, number> = {};
+          for (const s of propWorld.states) phases[s.phase] = (phases[s.phase] ?? 0) + 1;
+          return { count: propWorld.defs.length, active: [...propWorld.active], dynamic: propWorld.dynamicCount(), down: propWorld.downCount(), phases };
+        },
+        reset: () => propWorld.resetWorld(liveCar.state.x, liveCar.state.z),
+        timeScale: (k) => {
+          propWorld.timeScale = k;
+        },
+      },
+      debug: {
+        colliders: (on) => useGameStore.getState().setDebugColliders(on),
+        obstacles: () => obstacles.map((o) => ({ kind: o.kind, id: o.id })),
+        contacts: () => contactLog.items.map((c) => ({ x: c.x, z: c.z, what: c.what })),
+      },
       stats: () => {
         const size = gl.getSize(new Vector2());
         return {
@@ -203,10 +261,15 @@ function Probe() {
         };
       },
     };
+    // Development builds only: `?debug=colliders` switches the overlay on without the probe.
+    if (process.env.NODE_ENV !== "production" && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "colliders") {
+      useGameStore.getState().setDebugColliders(true);
+    }
     return () => {
       delete window.__pauWorld;
       photoMode.camera = null;
       probeState.lockQuality = false;
+      useGameStore.getState().setDebugColliders(false);
     };
   }, [gl]);
   return null;
@@ -247,6 +310,7 @@ export function GameCanvas() {
       <ImpactParticles />
       <SkidMarks />
       <ProximitySensor />
+      <DebugColliders />
       <FollowCamera />
     </Canvas>
   );

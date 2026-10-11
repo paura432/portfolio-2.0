@@ -11,6 +11,7 @@ import { resetActiveVehicle } from "@/game/vehicle/resetVehicle";
 import { bodyModeOf, DEPLOY_SPEED, isTransforming, TAKEOFF_SPEED, type VehicleState } from "@/game/vehicle/transformer";
 import { poseOf, resolveVehicleMode } from "@/game/vehicle/vehicleManager";
 import { groundHeightAt } from "@/game/world/ground";
+import { propWorld } from "@/game/world/propWorld";
 import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
 import { Minimap } from "./Minimap";
@@ -76,6 +77,8 @@ export function Hud() {
   const nearbyLab = useGameStore((s) => s.nearbyLab);
   const quality = useGameStore((s) => s.quality);
   const treesDown = useGameStore((s) => s.treesDown);
+  const propsDown = useGameStore((s) => s.propsDown);
+  const worldDown = treesDown + propsDown;
   const lastImpact = useGameStore((s) => s.lastImpact);
   const interact = useGameStore((s) => s.interact);
   const castOff = useGameStore((s) => s.castOff);
@@ -161,15 +164,19 @@ export function Hud() {
             <button
               type="button"
               className="btn btn-secondary btn-hud"
-              onClick={() => treeWorld.resetWorld(liveCar.state.x, liveCar.state.z)}
-              disabled={!playing || treesDown === 0}
-              title="Regrow every knocked-down tree (the car stays where it is)"
+              onClick={() => {
+                treeWorld.resetWorld(liveCar.state.x, liveCar.state.z);
+                propWorld.resetWorld(liveCar.state.x, liveCar.state.z);
+              }}
+              disabled={!playing || worldDown === 0}
+              title="Regrow every knocked-down tree and put the street furniture back (the car stays where it is)"
               data-testid="reset-world"
               data-trees-down={treesDown}
+              data-props-down={propsDown}
             >
               <span className="sm:hidden">World</span>
               <span className="hidden sm:inline">Reset world</span>
-              {treesDown > 0 && <span className="ml-1 text-cyan">{treesDown}</span>}
+              {worldDown > 0 && <span className="ml-1 text-cyan">{worldDown}</span>}
             </button>
           )}
           <button type="button" className="btn btn-secondary btn-hud" onClick={openMenu} disabled={!playing} data-testid="open-menu">
@@ -198,7 +205,7 @@ export function Hud() {
         <div className={`pointer-events-auto flex flex-1 flex-col items-center justify-end gap-2 ${coarse ? "self-end pb-1" : ""}`} aria-live="polite">
           {playing && body === "car" && lastImpact && (
             <span key={lastImpact.at} className="impact-toast text-[0.72rem] tracking-[0.2em] text-muted uppercase" data-testid="impact-toast" data-kind={lastImpact.kind}>
-              {lastImpact.kind === "break" ? "Trunk snapped" : lastImpact.kind === "topple" ? "Tree knocked down" : "Tree shaken"}
+              {lastImpact.label}
             </span>
           )}
           {playing && vehicleNotice && (

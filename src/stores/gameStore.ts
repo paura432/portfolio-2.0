@@ -11,6 +11,9 @@ import { canTransition, type VehicleState } from "@/game/vehicle/transformer";
 import { applyTransition, canDock, makeTransition, poseOf, type VehicleSnapshot, type VehicleTransition } from "@/game/vehicle/vehicleManager";
 
 export type GamePhase = "intro" | "playing" | "panel" | "menu";
+/** Tree impacts (V4) and street-furniture impacts (V9). */
+export type ImpactKind = "shake" | "topple" | "break" | "wobble" | "shove" | "knock" | "flatten";
+export const IMPACT_LABEL: Record<ImpactKind, string> = { shake: "Tree shaken", topple: "Tree knocked down", break: "Trunk snapped", wobble: "", shove: "", knock: "", flatten: "" };
 export type { Quality };
 
 interface GameState extends VehicleSnapshot {
@@ -34,8 +37,10 @@ interface GameState extends VehicleSnapshot {
   openPoi: PoiId | null;
   /** Trees currently knocked down or falling (drives the "Reset world" action). */
   treesDown: number;
-  /** Last tree impact for the HUD toast; `at` is performance.now(). */
-  lastImpact: { kind: "shake" | "topple" | "break"; at: number } | null;
+  /** V9: street furniture currently knocked down or falling. */
+  propsDown: number;
+  /** Last impact for the HUD toast (a tree or, V9, a prop); `at` is performance.now(). */
+  lastImpact: { kind: ImpactKind; label: string; at: number } | null;
   /** V8: ramp whose corridor the car is in. */
   nearbyRamp: RampId | null;
   /** V8: beach whose footprint the vehicle is on. */
@@ -44,6 +49,8 @@ interface GameState extends VehicleSnapshot {
   landingZone: boolean;
   /** Short HUD notice about the vehicle (why a takeoff failed, the altitude floor, the sea change, ...). */
   vehicleNotice: { text: string; at: number } | null;
+  /** V9 debug overlay (colliders, drive areas, contacts). Only the probe and development builds switch it on; never shown to visitors. */
+  debugColliders: boolean;
 
   startGame: () => void;
   setSceneReady: (ready: boolean) => void;
@@ -51,7 +58,9 @@ interface GameState extends VehicleSnapshot {
   setQuality: (q: Quality) => void;
   setLighting: (l: LightingPresetId) => void;
   setTreesDown: (n: number) => void;
-  noteImpact: (kind: "shake" | "topple" | "break") => void;
+  setPropsDown: (n: number) => void;
+  /** Record an impact for the HUD toast; `label` defaults to the tree wording. */
+  noteImpact: (kind: ImpactKind, label?: string) => void;
   setNearby: (id: DistrictId | null) => void;
   setNearbyLab: (id: LabZoneId | null) => void;
   setNearbyDock: (id: HarborId | null) => void;
@@ -59,6 +68,7 @@ interface GameState extends VehicleSnapshot {
   setNearbyBeach: (id: BeachId | null) => void;
   setLandingZone: (on: boolean) => void;
   noteVehicle: (text: string) => void;
+  setDebugColliders: (on: boolean) => void;
   /**
    * Move the vehicle state machine along one of its edges (the physics
    * controller is the only caller). Returns false and changes nothing when
@@ -102,6 +112,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   openLab: null,
   openPoi: null,
   treesDown: 0,
+  propsDown: 0,
   lastImpact: null,
   vehicleState: "car",
   transition: null,
@@ -111,6 +122,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   nearbyBeach: null,
   landingZone: false,
   vehicleNotice: null,
+  debugColliders: false,
 
   startGame: () => set({ phase: "playing" }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
@@ -120,7 +132,10 @@ export const useGameStore = create<GameState>()((set, get) => ({
   setTreesDown: (treesDown) => {
     if (get().treesDown !== treesDown) set({ treesDown });
   },
-  noteImpact: (kind) => set({ lastImpact: { kind, at: performance.now() } }),
+  setPropsDown: (propsDown) => {
+    if (get().propsDown !== propsDown) set({ propsDown });
+  },
+  noteImpact: (kind, label) => set({ lastImpact: { kind, label: label ?? IMPACT_LABEL[kind], at: performance.now() } }),
   setNearby: (id) => {
     if (get().nearbyDistrict !== id) set({ nearbyDistrict: id });
   },
@@ -140,6 +155,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
     if (get().landingZone !== on) set({ landingZone: on });
   },
   noteVehicle: (text) => set({ vehicleNotice: { text, at: performance.now() } }),
+  setDebugColliders: (debugColliders) => set({ debugColliders }),
   setVehicleState: (next) => {
     const s = get();
     if (s.vehicleState === next) return true;
