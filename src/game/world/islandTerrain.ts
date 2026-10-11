@@ -1,5 +1,6 @@
 import { PLATFORM } from "@/data/world";
 import { QUAY, WATER_LEVEL, type Point } from "@/data/archipelago";
+import { beachLocal, beachHeightAlong, BEACH_RUNOUT, insideBeach, beaches, type BeachDefinition } from "@/data/beaches";
 import { seededRandom } from "@/lib/seededRandom";
 
 /**
@@ -192,6 +193,8 @@ export function buildCoastSkirt(
   seed: number,
   /** Projects a coast vertex onto the built edge the skirt starts from (default: the city's square platform). */
   clampInner: (x: number, z: number) => [number, number] = (x, z) => [Math.max(-PLATFORM.halfSize, Math.min(PLATFORM.halfSize, x)), Math.max(-PLATFORM.halfSize, Math.min(PLATFORM.halfSize, z))],
+  /** Faces to leave out besides the quay face (default: the beach bands, covered by `buildBeachTerrain`). */
+  skipFace: (a: Point, b: Point) => boolean = (a, b) => beaches.some((bc) => insideBeach(bc, a[0], a[1], 0.3) && insideBeach(bc, b[0], b[1], 0.3)),
 ): TerrainMesh {
   const rand = seededRandom(seed);
   const n = coast.length;
@@ -229,7 +232,7 @@ export function buildCoastSkirt(
   };
   for (let r = 0; r < rings.length - 1; r++) {
     for (let i = 0; i < n; i++) {
-      if (isQuayFace(i)) continue;
+      if (isQuayFace(i) || skipFace(coast[i]!, coast[(i + 1) % n]!)) continue;
       const a = r * n + i;
       const b = r * n + ((i + 1) % n);
       const c = (r + 1) * n + i;
@@ -269,4 +272,60 @@ export function coastRocks(coast: readonly Point[], seed: number, options: { ski
     }
   }
   return rocks;
+}
+
+/**
+ * Beach strip (V8): a grid over the beach footprint whose heights come from
+ * `beachHeightAlong`, the same function the car's ground height field uses,
+ * coloured by depth: dry sand, wet sand at the waterline, sea floor under
+ * the water. Replaces the coast skirt faces inside the beach band.
+ */
+export const BEACH_COLORS = { dry: "#5E5744", wet: "#45453C", shallow: "#2C3A46" } as const;
+
+export function buildBeachTerrain(b: BeachDefinition, seed: number): TerrainMesh {
+  const rand = seededRandom(seed);
+  const width = beachLocal(b, b.edge.to[0], b.edge.to[1]).across;
+  const along0 = -5;
+  const along1 = b.length + BEACH_RUNOUT + 2;
+  const nAcross = 8;
+  const nAlong = 26;
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  const ex = (b.edge.to[0] - b.edge.from[0]) / width;
+  const ez = (b.edge.to[1] - b.edge.from[1]) / width;
+  for (let j = 0; j <= nAlong; j++) {
+    const along = along0 + ((along1 - along0) * j) / nAlong;
+    for (let i = 0; i <= nAcross; i++) {
+      const across = -1 + ((width + 2) * i) / nAcross;
+      const x = b.edge.from[0] + ex * across + b.seaward[0] * along;
+      const z = b.edge.from[1] + ez * across + b.seaward[1] * along;
+      const edge = i === 0 || i === nAcross;
+      const noise = along > 1 && !edge ? (rand() * 2 - 1) * 0.05 : 0;
+      const y = beachHeightAlong(b, along) + noise - (along <= 0 ? 0.02 : 0);
+      positions.push(x, y, z);
+      const depth = WATER_LEVEL - y;
+      const c = depth <= -0.55 ? hex(BEACH_COLORS.dry) : depth <= 0 ? lerp3(hex(BEACH_COLORS.dry), hex(BEACH_COLORS.wet), (depth + 0.55) / 0.55) : depth <= 1.2 ? lerp3(hex(BEACH_COLORS.wet), hex(BEACH_COLORS.shallow), depth / 1.2) : lerp3(hex(BEACH_COLORS.shallow), hex(TERRAIN_COLORS.seaFloor), Math.min(1, (depth - 1.2) / 2));
+      colors.push(...c);
+    }
+  }
+  const stride = nAcross + 1;
+  for (let j = 0; j < nAlong; j++) {
+    for (let i = 0; i < nAcross; i++) {
+      const a = j * stride + i;
+      const bb = a + 1;
+      const c = a + stride;
+      const d = c + 1;
+      // Winding: faces up for a seaward axis that is (0,1) or (1,0) with the across axis to its left.
+      const cross = ex * b.seaward[1] - ez * b.seaward[0];
+      if (cross < 0) {
+        pushTri(indices, a, bb, c);
+        pushTri(indices, bb, d, c);
+      } else {
+        pushTri(indices, a, c, bb);
+        pushTri(indices, bb, c, d);
+      }
+    }
+  }
+  return { positions: new Float32Array(positions), colors: new Float32Array(colors), indices: new Uint32Array(indices) };
 }

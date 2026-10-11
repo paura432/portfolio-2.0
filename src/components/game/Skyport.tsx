@@ -6,6 +6,8 @@ import { getHarbor, getIsland, pierBox } from "@/data/archipelago";
 import { runwayLights, SKYPORT } from "@/data/skyport";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { coastRocks } from "@/game/world/islandTerrain";
+import { beaches, insideBeach } from "@/data/beaches";
+import { Beach } from "./Islands";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { SignPanel } from "./DistrictSigns";
@@ -35,7 +37,7 @@ export function Skyport() {
     () =>
       coastRocks(island.coastline, 7071, {
         density: 1.0,
-        skip: (x, z) => (x < slab.minX + 2 && Math.abs(z) < causeway.width) || (z > slab.maxZ && x > pier.minX - 6 && x < pier.maxX + 6) || (x > runway.maxX - 4 && z > runway.minZ - 6 && z < runway.maxZ + 6),
+        skip: (x, z) => (x < slab.minX + 2 && Math.abs(z) < causeway.width) || (z > slab.maxZ && x > pier.minX - 6 && x < pier.maxX + 6) || (x > runway.maxX - 4 && z > runway.minZ - 6 && z < runway.maxZ + 6) || beaches.some((b) => b.island === "skyport" && insideBeach(b, x, z, 3)),
       }),
     [island.coastline, slab, causeway.width, pier, runway],
   );
@@ -91,6 +93,7 @@ export function Skyport() {
   return (
     <group>
       <mesh geometry={skirt} material={m.terrain} receiveShadow />
+      {beaches.filter((b) => b.island === "skyport").map((b) => <Beach key={b.id} id={b.id} seed={7075} />)}
       <instancedMesh ref={refRocks} args={[undefined, undefined, Math.max(1, rocks.length)]} material={m.rock} castShadow receiveShadow>
         <dodecahedronGeometry args={[1, 0]} />
       </instancedMesh>

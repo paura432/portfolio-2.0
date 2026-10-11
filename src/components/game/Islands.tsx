@@ -12,6 +12,8 @@ import { SignPanel } from "./DistrictSigns";
 import { getMaterials } from "./materials";
 import { Skyport } from "./Skyport";
 import { StaticBatch } from "./StaticBatch";
+import { beaches, insideBeach } from "@/data/beaches";
+import { buildBeachTerrain } from "@/game/world/islandTerrain";
 
 export function useTerrainGeometry(build: () => { positions: Float32Array; colors: Float32Array; indices: Uint32Array }) {
   const geometry = useMemo(() => {
@@ -48,6 +50,14 @@ export function useRocks(rocks: RockInstance[]) {
 }
 
 /** The main island's shore: a low-poly skirt from the platform edge into the sea, with rocks along the waterline. */
+/** One beach strip mesh (V8). */
+export function Beach({ id, seed }: { id: (typeof beaches)[number]["id"]; seed: number }) {
+  const m = getMaterials();
+  const beach = beaches.find((b) => b.id === id)!;
+  const geometry = useTerrainGeometry(() => buildBeachTerrain(beach, seed));
+  return <mesh geometry={geometry} material={m.terrain} receiveShadow />;
+}
+
 export function MainCoast() {
   const m = getMaterials();
   const island = getIsland("main");
@@ -56,8 +66,8 @@ export function MainCoast() {
   const rocks = useMemo(
     () =>
       coastRocks(island.coastline, MAIN_COAST.seed + 2, {
-        // Keep the quay face and the pier channel clear so the boat can leave.
-        skip: (x, z) => (x < QUAY.x1 + 1 && z > QUAY.z0 - 6 && z < QUAY.z1 + 6) || (x > pier.minX - 6 && x < pier.maxX + 2 && z > pier.minZ - 10 && z < pier.maxZ + 10),
+        // Keep the quay face, the pier channel and the beaches clear so the hull can leave and land.
+        skip: (x, z) => (x < QUAY.x1 + 1 && z > QUAY.z0 - 6 && z < QUAY.z1 + 6) || (x > pier.minX - 6 && x < pier.maxX + 2 && z > pier.minZ - 10 && z < pier.maxZ + 10) || beaches.some((b) => b.island === "main" && insideBeachMargin(b, x, z)),
       }),
     [island.coastline, pier],
   );
@@ -68,9 +78,12 @@ export function MainCoast() {
       <instancedMesh ref={refRocks} args={[undefined, undefined, Math.max(1, rocks.length)]} material={m.rock} castShadow receiveShadow>
         <dodecahedronGeometry args={[1, 0]} />
       </instancedMesh>
+      {beaches.filter((b) => b.island === "main").map((b, i) => <Beach key={b.id} id={b.id} seed={MAIN_COAST.seed + 10 + i} />)}
     </group>
   );
 }
+
+const insideBeachMargin = (b: (typeof beaches)[number], x: number, z: number) => insideBeach(b, x, z, 3);
 
 interface TreeSpot {
   x: number;
