@@ -9,7 +9,7 @@ import type { LightingPresetId } from "@/game/render/lighting";
 import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
 import { particleStats } from "@/game/fx/particles";
 import { liveBoat, placeBoat } from "@/game/vehicle/boatState";
-import { bumpGeneration, liveVehicle } from "@/game/vehicle/liveVehicle";
+import { bumpGeneration, liveVehicle, logVehicleState } from "@/game/vehicle/liveVehicle";
 import { authorityOf, bodyModeOf, type VehicleState } from "@/game/vehicle/transformer";
 import { boatSpeed } from "@/game/vehicle/boatPhysics";
 import { liveCar } from "@/game/vehicle/carState";
@@ -80,6 +80,8 @@ declare global {
       teleportBoat: (x: number, z: number, heading: number) => void;
       /** V8: the one vehicle's state machine view and its authoritative pose. */
       vehicle: () => { state: VehicleState; authority: "car" | "boat" | "plane"; body: "car" | "boat" | "plane"; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyDock: HarborId | null; nearbyRamp: RampId | null; nearbyBeach: BeachId | null; landingZone: boolean; x: number; y: number; z: number; heading: number; speed: number; progress: number };
+      /** V9: every state the machine went through since the last teleport / reset (no sampling race). */
+      vehicleStates: () => VehicleState[];
       /** V7: the aircraft state while the car is in flight form. */
       plane: () => { x: number; y: number; z: number; heading: number; pitch: number; roll: number; speed: number; onGround: boolean; stalled: boolean; throttle: number };
       /** Stage the aircraft (test/capture tooling): on the ground in plane form, or airborne at cruise speed. */
@@ -115,6 +117,8 @@ declare global {
         /** Its live collider, or null while it is down. */
         collider: (id: number) => { kind: string; x: number; z: number; r?: number; hx?: number; hz?: number; rotation?: number } | null;
         summary: () => { count: number; active: string[]; dynamic: number; down: number; phases: Record<string, number> };
+        /** Recent simulation events (knock, shove, wobble, flatten, settle, restore), newest last. */
+        events: () => { type: string; id: number; category: string; impact: number }[];
         reset: () => void;
         timeScale: (k: number) => void;
       };
@@ -146,9 +150,11 @@ function Probe() {
         liveVehicle.airborne = false;
         liveVehicle.onRamp = null;
         liveVehicle.sinceTransform = 10;
+        logVehicleState("car", true);
         useGameStore.setState({ vehicleState: "car", transition: null, mooredAt: null, landingZone: false });
         bumpGeneration();
       },
+      vehicleStates: () => [...liveVehicle.stateLog],
       boat: () => {
         const b = liveBoat.state;
         return { x: b.x, z: b.z, y: liveBoat.visual.y, speed: boatSpeed(b), heading: b.heading, pitch: liveBoat.visual.pitch, roll: liveBoat.visual.roll, throttle: b.throttle };
@@ -156,6 +162,7 @@ function Probe() {
       teleportBoat: (x, z, heading) => {
         placeBoat(x, z, heading);
         liveVehicle.sinceTransform = 10;
+        logVehicleState("floating", true);
         useGameStore.setState({ vehicleState: "floating", transition: null, mooredAt: null, landingZone: false });
         bumpGeneration();
       },
@@ -171,6 +178,7 @@ function Probe() {
       teleportPlane: (x, y, z, heading) => {
         placePlane(x, y, z, heading, true);
         liveVehicle.sinceTransform = 10;
+        logVehicleState("flying", true);
         useGameStore.setState({ vehicleState: "flying", transition: null, mooredAt: null, landingZone: false });
         bumpGeneration();
       },
@@ -240,6 +248,7 @@ function Probe() {
           for (const s of propWorld.states) phases[s.phase] = (phases[s.phase] ?? 0) + 1;
           return { count: propWorld.defs.length, active: [...propWorld.active], dynamic: propWorld.dynamicCount(), down: propWorld.downCount(), phases };
         },
+        events: () => propWorld.history.map((e) => ({ type: e.type, id: e.id, category: e.category, impact: e.impact })),
         reset: () => propWorld.resetWorld(liveCar.state.x, liveCar.state.z),
         timeScale: (k) => {
           propWorld.timeScale = k;

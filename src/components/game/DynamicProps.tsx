@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BoxGeometry, CircleGeometry, DodecahedronGeometry, InstancedMesh, Matrix4, type BufferGeometry, type Material } from "three";
+import { BoxGeometry, CircleGeometry, Color, CylinderGeometry, DodecahedronGeometry, InstancedMesh, Matrix4, type BufferGeometry, type Material } from "three";
+import { palette } from "@/lib/palette";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { liveCar } from "@/game/vehicle/carState";
 import { impactBus } from "@/game/world/impactBus";
@@ -33,6 +34,12 @@ function partGeometry(category: PropCategory, part: PropPart): BufferGeometry {
       return new BoxGeometry(1.7, 0.42, 0.06);
     case "bench.legs":
       return new BoxGeometry(1.4, 0.4, 0.36);
+    case "bollard.post":
+      return new CylinderGeometry(0.1, 0.12, 0.8, 8);
+    case "bollard.cap":
+      return new CylinderGeometry(0.1, 0.1, 0.05, 8);
+    case "bush.foliage":
+      return new DodecahedronGeometry(0.7, 0);
     default:
       return new BoxGeometry(0.2, 0.2, 0.2);
   }
@@ -51,10 +58,16 @@ function partMaterial(m: Materials, category: PropCategory, part: PropPart): Mat
     case "bench.seat":
     case "bench.back":
       return m.metal;
+    case "bollard.cap":
+      return m.lightCyan;
+    case "bush.foliage":
+      return m.canopy;
     default:
       return m.metalDark;
   }
 }
+
+const CANOPY_TINTS = [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue];
 
 /** HUD wording per event and weight class. */
 export function impactLabel(e: PropEvent): { kind: ImpactKind; label: string } | null {
@@ -170,6 +183,17 @@ export function DynamicProps() {
       if (!mesh) continue;
       for (let i = 0; i < mesh.count; i++) mesh.setMatrixAt(i, HIDDEN_MATRIX);
     }
+    // Bush tints (instance colours), as the V3 static bushes had.
+    const color = new Color();
+    slots.forEach((sl, i) => {
+      const mesh = meshes.current[i];
+      if (!mesh || sl.category !== "bush") return;
+      for (const d of defs) {
+        if (d.category !== "bush") continue;
+        mesh.setColorAt(layout.slotOf[d.id]!, color.set(CANOPY_TINTS[d.tint] ?? palette.tree));
+      }
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    });
     for (const d of defs) apply(d.id);
     for (const mesh of meshes.current) {
       if (!mesh) continue;

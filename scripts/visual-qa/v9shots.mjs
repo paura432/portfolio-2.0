@@ -111,6 +111,59 @@ try {
   await shot("12-bench-down", 600);
   await follow();
 
+  // ---- Bollard, bush, signpost (iteration 4)
+  const bollard = await nearest(4.4, 17.7, "bollard");
+  await teleport(0, 27, Math.PI);
+  await propCam(bollard, 0.9);
+  await shot("16-bollard-intact", 800);
+  await follow();
+  await aim(bollard, [bollard.x - 8, bollard.z], 1.46, 2.5);
+  await holdUntil("KeyW", async () => ["falling", "down"].includes(await phase(bollard.id)));
+  await teleport(0, 27, Math.PI);
+  await propCam(bollard, 0.9);
+  await page.waitForFunction((id) => window.__pauWorld.props.state(id).phase === "down", bollard.id, { timeout: 15000 });
+  await shot("17-bollard-down", 600);
+  await follow();
+  const bush = await nearest(-24, 28, "bush");
+  await teleport(0, 27, Math.PI);
+  await propCam(bush, 1.0);
+  await shot("18-bush-intact", 800);
+  await follow();
+  await aim(bush, [bush.x + 6, bush.z], 1.9, 2.0);
+  await holdUntil("KeyW", async () => (await phase(bush.id)) === "down");
+  await teleport(0, 27, Math.PI);
+  await propCam(bush, 1.0);
+  await shot("19-bush-flattened", 600);
+  await follow();
+  const sign = await nearest(6.7, 20, "signpost");
+  await teleport(0, 27, Math.PI);
+  await propCam(sign, 3.0);
+  await shot("20-signpost-intact", 800);
+  await follow();
+  await aim(sign, [sign.x, sign.z + 9], 1.5, 3.5);
+  await holdUntil("KeyW", async () => ["falling", "down"].includes(await phase(sign.id)));
+  await shot("21-signpost-falling-follow", 0);
+  await teleport(0, 27, Math.PI);
+  await propCam(sign, 3.0);
+  await page.waitForFunction((id) => window.__pauWorld.props.state(id).phase === "down", sign.id, { timeout: 15000 });
+  await shot("22-signpost-down", 600);
+  await follow();
+  // Ramp gate mast at the West City Ramp entry.
+  const mast = await nearest(-57.4, 10, "mast");
+  await teleport(0, 27, Math.PI);
+  await propCam(mast, 3.0);
+  await shot("23-ramp-mast-intact", 800);
+  await follow();
+  await aim(mast, [mast.x, mast.z - 9], 1.52, 3.5);
+  await holdUntil("KeyW", async () => ["falling", "down"].includes(await phase(mast.id)));
+  await teleport(0, 27, Math.PI);
+  await propCam(mast, 3.0);
+  await page.waitForFunction((id) => window.__pauWorld.props.state(id).phase === "down", mast.id, { timeout: 15000 });
+  await shot("24-ramp-mast-down", 600);
+  await follow();
+  await page.getByTestId("reset-world").click();
+  await page.waitForTimeout(1500);
+
   // ---- Collider overlay (debug tooling): plaza with the down props, then the open-front hangar.
   await page.evaluate(() => window.__pauWorld.debug.colliders(true));
   await photo([30, 34, 44], [4, 0, 8], 50);
@@ -125,7 +178,7 @@ try {
   await shot("15-car-inside-hangar", 600);
   await page.evaluate(() => window.__pauWorld.debug.colliders(false));
   await follow();
-  await page.getByTestId("reset-world").click();
+  if (await page.getByTestId("reset-world").isEnabled()) await page.getByTestId("reset-world").click();
 } finally {
   writeFileSync(`${out}/${prefix}-stats.json`, JSON.stringify(stats, null, 2));
   await browser.close();

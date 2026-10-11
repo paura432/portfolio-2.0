@@ -7,6 +7,7 @@ import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { SignPanel } from "./DistrictSigns";
+import { DynamicFixture } from "./DynamicFixture";
 import { getMaterials } from "./materials";
 import { StaticBatch } from "./StaticBatch";
 
@@ -57,7 +58,6 @@ function Ramp({ r }: { r: RampDefinition }) {
   }, [r]);
   const lipSlope = rampSlopeAt(r, r.length);
   const [lipX, lipZ] = rampPoint(r, r.length, 0);
-  const [signX, signZ] = rampPoint(r, -r.approach + 1, r.width / 2 + 2.2);
   const [entryX, entryZ] = rampPoint(r, -r.approach, 0);
   const strips = useMemo(() => {
     const out: { x: number; y: number; z: number; len: number; tilt: number; lat: number }[] = [];
@@ -117,25 +117,27 @@ function Ramp({ r }: { r: RampDefinition }) {
             <boxGeometry args={[2.2, 0.36, 0.02]} />
           </mesh>
         ))}
-        {/* Entry gate: two masts with amber heads */}
-        {[-1, 1].map((side) => {
-          const [x, z] = rampPoint(r, -r.approach, side * (r.width / 2 + 0.9));
-          return (
-            <group key={`g${side}`}>
-              <mesh material={m.metalDark} position={[x, 2.2, z]} castShadow>
-                <boxGeometry args={[0.16, 4.4, 0.16]} />
-              </mesh>
-              <mesh material={m.lightAmberSoft} position={[x, 4.5, z]}>
-                <boxGeometry args={[0.36, 0.2, 0.36]} />
-              </mesh>
-            </group>
-          );
-        })}
-        {/* Sign post */}
-        <mesh material={m.metalDark} position={[signX, 1.7, signZ]} castShadow>
+      </StaticBatch>
+      {/* Entry gate: two masts with amber heads; destructible fixtures (V9), drawn in local coordinates */}
+      {[-1, 1].map((side) => (
+        <DynamicFixture key={`g${side}`} fixtureKey={`ramp:${r.id}:mast:${side < 0 ? "l" : "r"}`}>
+          <mesh material={m.metalDark} position={[0, 2.2, 0]} castShadow>
+            <boxGeometry args={[0.16, 4.4, 0.16]} />
+          </mesh>
+          <mesh material={m.lightAmberSoft} position={[0, 4.5, 0]}>
+            <boxGeometry args={[0.36, 0.2, 0.36]} />
+          </mesh>
+        </DynamicFixture>
+      ))}
+      {/* Sign post with its panel; destructible fixture */}
+      <DynamicFixture fixtureKey={`ramp:${r.id}:sign`}>
+        <mesh material={m.metalDark} position={[0, 1.7, 0]} castShadow>
           <boxGeometry args={[0.12, 3.4, 0.12]} />
         </mesh>
-      </StaticBatch>
+        <group position={[0, 3.3, 0]}>
+          <SignPanel title={r.name.toUpperCase()} subtitle={`Takeoff · ≥ ${Math.round(DEPLOY_SPEED * 3.6)} km/h`} accent={palette.amber} width={3.4} height={1.0} compact />
+        </group>
+      </DynamicFixture>
       {/* Cyan edge strips (emissive, separate so the batch does not share their material) */}
       {strips.map((s, i) => (
         <mesh key={i} material={m.lightCyanSoft} position={[s.x, s.y, s.z]} rotation={[-s.tilt, r.heading, 0]}>
@@ -146,9 +148,6 @@ function Ramp({ r }: { r: RampDefinition }) {
       <mesh material={m.lightAmber} position={[lipX, rampHeightAt(r, r.length) + 0.16, lipZ]} rotation={[-lipSlope, r.heading, 0]}>
         <boxGeometry args={[r.width - 0.4, 0.06, 0.14]} />
       </mesh>
-      <group position={[signX, 3.3, signZ]} rotation={[0, r.heading + Math.PI, 0]}>
-        <SignPanel title={r.name.toUpperCase()} subtitle={`Takeoff · ≥ ${Math.round(DEPLOY_SPEED * 3.6)} km/h`} accent={palette.amber} width={3.4} height={1.0} compact />
-      </group>
       {profile.lampPools && (
         <mesh material={m.lampPool} position={[entryX, 0.05, entryZ]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[3.2, 16]} />

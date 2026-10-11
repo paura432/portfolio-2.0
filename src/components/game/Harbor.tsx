@@ -7,6 +7,7 @@ import { HARBOR_CABIN } from "@/game/world/obstacles";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { SignPanel } from "./DistrictSigns";
+import { DynamicFixture } from "./DynamicFixture";
 import { getMaterials } from "./materials";
 import { StaticBatch } from "./StaticBatch";
 
@@ -260,14 +261,16 @@ function Quay() {
             </mesh>
           </group>
         ))}
-        {/* Harbor gate sign post, read by the car arriving from the east */}
-        <mesh material={m.metalDark} position={[QUAY.x1 + 1.6, 1.9, -5.6]} castShadow>
+      </StaticBatch>
+      {/* Harbor gate sign post, read by the car arriving from the east; destructible fixture (V9) */}
+      <DynamicFixture fixtureKey="harbor:gate-sign">
+        <mesh material={m.metalDark} position={[0, 1.9, 0]} castShadow>
           <boxGeometry args={[0.14, 3.8, 0.14]} />
         </mesh>
-      </StaticBatch>
-      <group position={[QUAY.x1 + 1.6, 3.2, -5.6]} rotation={[0, Math.PI / 2, 0]}>
-        <SignPanel title="PAU HARBOR" subtitle={main.tagline} accent={palette.amber} width={4.2} height={1.2} />
-      </group>
+        <group position={[0, 3.2, 0]}>
+          <SignPanel title="PAU HARBOR" subtitle={main.tagline} accent={palette.amber} width={4.2} height={1.2} />
+        </group>
+      </DynamicFixture>
       {profile.lampPools &&
         lampZ.map((z) => (
           <mesh key={z} material={m.lampPool} position={[QUAY.x0 + 2.6, 0.03, z]} rotation={[-Math.PI / 2, 0, 0]}>

@@ -3,8 +3,8 @@
   "branch": "feat/v9-world-physics-destruction",
   "baseSha": "9f93b38",
   "v9Iteration1Sha": "7123491",
-  "lastValidatedSha": "f645922",
-  "iteration": 2,
+  "lastValidatedSha": "e4d954a",
+  "iteration": 3,
   "maxIterations": 12,
   "phase": "V9.1 gameplay foundation",
   "status": "IN_PROGRESS",
@@ -193,17 +193,17 @@
       {
         "id": "COL-02",
         "title": "bollards, bushes, signposts have no collider",
-        "status": "OPEN"
+        "status": "FIXED (v9 it4)"
       },
       {
         "id": "COL-03",
         "title": "pad masts, ramp masts, sign posts have no collider",
-        "status": "OPEN"
+        "status": "FIXED (v9 it4)"
       },
       {
         "id": "DES-01",
         "title": "bollard/bush/signpost/mast not destructible",
-        "status": "OPEN"
+        "status": "FIXED (v9 it4)"
       },
       {
         "id": "CAM-01",
@@ -250,7 +250,7 @@
       {
         "id": "DES-02",
         "title": "no furniture particles",
-        "status": "OPEN"
+        "status": "FIXED (v9 it4)"
       },
       {
         "id": "V8-P2-01",
@@ -280,10 +280,26 @@
     {
       "id": "NAV-01",
       "iteration": "polish-it1"
+    },
+    {
+      "id": "COL-02",
+      "iteration": "v9-it4"
+    },
+    {
+      "id": "COL-03",
+      "iteration": "v9-it4"
+    },
+    {
+      "id": "DES-01",
+      "iteration": "v9-it4"
+    },
+    {
+      "id": "DES-02",
+      "iteration": "v9-it4"
     }
   ],
   "tests": {
-    "unit": 281,
+    "unit": 288,
     "e2eSpecs": [
       "smoke",
       "campus",
@@ -308,7 +324,6 @@
   "blockers": [],
   "nextIteration": [
     "CAM-01 camera obstacle avoidance",
-    "COL-02/03",
     "circulation map",
     "ramps/beach browser coverage"
   ],
@@ -327,6 +342,11 @@
       "iteration": 2,
       "date": "2026-10-11",
       "summary": "P0 hardening per the third brief: telemetry, iterative contact resolution, contacts tests, navigation E2E extended; camera-inside-building evidence recorded as CAM-01"
+    },
+    {
+      "iteration": 3,
+      "date": "2026-10-11",
+      "summary": "remaining prop categories and fixtures destructible; furniture particles"
     }
   ]
 }

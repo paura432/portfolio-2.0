@@ -57,6 +57,7 @@ export interface Reaction {
 export interface PropCategoryDef {
   category: PropCategory;
   label: string;
+  /** Instanced parts (rendered by DynamicProps). Empty for categories a component draws itself (signposts, masts). */
   parts: PartLocal[];
   collider: PropColliderShape;
   reaction: Reaction;
@@ -118,15 +119,19 @@ export const PROP_CATALOG: Record<PropCategory, PropCategoryDef> = {
   bush: {
     category: "bush",
     label: "Bush",
+    // Dodecahedron r 0.7 at 0.45 · scale, squashed to 0.8 (the V3 placer); the prop's own scale is the bush size.
     parts: [{ part: "foliage", pos: [0, 0.45, 0], scale: [1, 0.8, 1] }],
     collider: { kind: "circle", r: 0.6 },
-    reaction: { wobble: 0.3, shove: Infinity, knock: 3, retain: 0.88, down: "flatten", restAngle: 0, slidePerSpeed: 0, maxSlide: 0, gravity: 0, weight: "light" },
+    // Foliage never holds a car: any forward motion into it flattens it (a parked car touching it does nothing).
+    // A threshold above zero would trap a car pressed against a bush at rest: every blocked sub-step zeroes its speed.
+    reaction: { wobble: 0.01, shove: Infinity, knock: 0.05, retain: 0.9, down: "flatten", restAngle: 0, slidePerSpeed: 0, maxSlide: 0, gravity: 0, weight: "light" },
     downDuration: 20,
   },
   signpost: {
     category: "signpost",
     label: "Signpost",
-    parts: [{ part: "post", pos: [0, 2.5, -0.1] }],
+    // Drawn by Signposts / Ramps / Skyport / Harbor through DynamicFixture.
+    parts: [],
     collider: { kind: "circle", r: 0.2 },
     reaction: { wobble: 0.6, shove: Infinity, knock: 8, retain: 0.7, down: "topple", restAngle: 1.45, slidePerSpeed: 0, maxSlide: 0, gravity: 4.5, weight: "heavy" },
     downDuration: 30,
@@ -134,18 +139,16 @@ export const PROP_CATALOG: Record<PropCategory, PropCategoryDef> = {
   mast: {
     category: "mast",
     label: "Light mast",
-    parts: [
-      { part: "post", pos: [0, 2.2, 0] },
-      { part: "head", pos: [0, 4.5, 0], light: true },
-    ],
+    // Drawn by Ramps / Skyport through DynamicFixture.
+    parts: [],
     collider: { kind: "circle", r: 0.22 },
     reaction: { wobble: 0.6, shove: Infinity, knock: 7, retain: 0.72, down: "topple", restAngle: 1.5, slidePerSpeed: 0, maxSlide: 0, gravity: 5, weight: "medium" },
     downDuration: 25,
   },
 };
 
-/** Categories wired into the simulation so far (the vertical slice grows per iteration; see docs/qa/v9-world-audit-state.json). */
-export const ACTIVE_CATEGORIES: readonly PropCategory[] = ["lamp", "planter", "bench"];
+/** Categories wired into the simulation (iteration 1: lamp, planter, bench; iteration 4: the rest). */
+export const ACTIVE_CATEGORIES: readonly PropCategory[] = ["lamp", "planter", "bench", "bollard", "bush", "signpost", "mast"];
 
 /** The world-space collider of a prop in its current place (standing or shoved). */
 export function propObstacle(id: string, category: PropCategory, x: number, z: number, rotation: number, scale = 1): Obstacle {

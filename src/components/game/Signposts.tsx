@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { buildSignposts, SIGNPOST_PANEL_PITCH, SIGNPOST_TOP_Y, type SignpostEntry } from "@/game/world/signposts";
 import { accentHex, palette } from "@/lib/palette";
 import { SignPanel } from "./DistrictSigns";
+import { DynamicFixture } from "./DynamicFixture";
 import { getMaterials } from "./materials";
 
 const ARROW = { left: "←", right: "→", ahead: "↑" } as const;
@@ -26,14 +27,15 @@ export function Signposts() {
   return (
     <>
       {posts.map((p) => (
-        <group key={p.exit} position={[p.x, 0, p.z]} rotation={[0, p.rotationY, 0]}>
+        // Destructible (V9): the group is placed and tilted by the prop simulation (`plaza:<exit>`).
+        <DynamicFixture key={p.exit} fixtureKey={`plaza:${p.exit}`}>
           <mesh position={[0, SIGNPOST_TOP_Y / 2 + 0.25, -0.1]} material={m.metalDark} castShadow>
             <boxGeometry args={[0.14, SIGNPOST_TOP_Y + 0.5, 0.14]} />
           </mesh>
           {p.entries.map((e, i) => (
             <Panel key={e.destination.id} entry={e} y={SIGNPOST_TOP_Y - i * SIGNPOST_PANEL_PITCH} />
           ))}
-        </group>
+        </DynamicFixture>
       ))}
     </>
   );

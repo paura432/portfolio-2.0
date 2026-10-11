@@ -65,6 +65,10 @@ test.describe("PAU TRANSFORMER-X", () => {
 
     // 1. Stage the car before the West City Ramp's corridor, facing it; drive with W only.
     await page.evaluate(() => window.__pauWorld!.teleport(-53, 2, 0));
+    await page.evaluate(() => {
+      window.__pauWorld!.debug.telemetry(true);
+      window.__pauWorld!.debug.clearLog();
+    });
     const states: string[] = [];
     const flying = await holdKeyUntil(
       page,
@@ -76,9 +80,15 @@ test.describe("PAU TRANSFORMER-X", () => {
       },
       30_000,
     );
-    expect(flying, `took off; states seen: ${states.join(" → ")}`).toBe(true);
-    // The sequence happened in order, on the move: corridor → wings → lip.
-    expect(states).toEqual(["car", "preparing-flight", "transforming-to-plane", "flying"]);
+    if (!flying) {
+      // Diagnostics on failure only: the run's speed / position / input / blocked samples and the contacts.
+      const samples = await page.evaluate(() => window.__pauWorld!.debug.samples(600));
+      const contacts = await page.evaluate(() => window.__pauWorld!.debug.contactLog(50));
+      const line = samples.map((v) => `${v.t.toFixed(2)} ${v.state.slice(0, 6)} z=${v.z.toFixed(1)} v=${v.speed.toFixed(1)} th=${v.throttle} ${v.driving ? "" : "NODRIVE "}${v.blocked ? "BLK" : ""}`).join("\n");
+      throw new Error(`took off: no. states: ${states.join(" → ")}\ncontacts: ${JSON.stringify(contacts)}\nsamples:\n${line}`);
+    }
+    // The sequence happened in order, on the move: corridor → wings → lip (the machine's own log, not a sample).
+    expect(await page.evaluate(() => window.__pauWorld!.vehicleStates())).toEqual(["car", "preparing-flight", "transforming-to-plane", "flying"]);
     const p0 = await vehicle(page);
     expect(p0.authority).toBe("plane");
     expect(p0.y).toBeGreaterThan(4);
@@ -128,7 +138,7 @@ test.describe("PAU TRANSFORMER-X", () => {
       30_000,
     );
     expect(afloat, `floated; states: ${states.join(" → ")}`).toBe(true);
-    expect(states).toEqual(["car", "transforming-to-boat", "floating"]);
+    expect(await page.evaluate(() => window.__pauWorld!.vehicleStates())).toEqual(["car", "transforming-to-boat", "floating"]);
     const b0 = await vehicle(page);
     expect(b0.authority).toBe("boat");
     expect(b0.z).toBeGreaterThan(70);
@@ -152,7 +162,7 @@ test.describe("PAU TRANSFORMER-X", () => {
       "KeyW",
     );
     expect(ashore, `came ashore; states: ${states2.join(" → ")}`).toBe(true);
-    expect(states2).toEqual(["floating", "exiting-water", "car"]);
+    expect((await page.evaluate(() => window.__pauWorld!.vehicleStates())).slice(-3)).toEqual(["floating", "exiting-water", "car"]);
     const c = await vehicle(page);
     expect(c.x).toBeLessThan(70);
     expect(c.z).toBeGreaterThan(12);

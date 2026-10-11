@@ -7,6 +7,7 @@ import type { RampId } from "@/data/ramps";
 import type { LabZoneId } from "@/game/interaction/zones";
 import { DEFAULT_LIGHTING, type LightingPresetId } from "@/game/render/lighting";
 import type { Quality } from "@/game/render/quality";
+import { logVehicleState } from "@/game/vehicle/liveVehicle";
 import { canTransition, type VehicleState } from "@/game/vehicle/transformer";
 import { applyTransition, canDock, makeTransition, poseOf, type VehicleSnapshot, type VehicleTransition } from "@/game/vehicle/vehicleManager";
 
@@ -160,10 +161,14 @@ export const useGameStore = create<GameState>()((set, get) => ({
     const s = get();
     if (s.vehicleState === next) return true;
     if (!canTransition(s.vehicleState, next)) return false;
+    logVehicleState(next);
     set({ vehicleState: next, landingZone: next === "flying" ? s.landingZone : false });
     return true;
   },
-  resetVehicle: () => set({ vehicleState: "car", transition: null, mooredAt: null, nearbyDock: null, landingZone: false, vehicleNotice: null }),
+  resetVehicle: () => {
+    logVehicleState("car", true);
+    set({ vehicleState: "car", transition: null, mooredAt: null, nearbyDock: null, landingZone: false, vehicleNotice: null });
+  },
   openPanel: (id, lab = null) => set({ phase: "panel", openDistrict: id, openLab: lab, openPoi: null }),
   openPoiPanel: (id) => set({ phase: "panel", openPoi: id, openDistrict: null, openLab: null }),
   selectLab: (openLab) => set({ openLab }),

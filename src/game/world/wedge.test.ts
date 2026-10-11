@@ -14,7 +14,9 @@ describe("V9 navigation: no wedge points", () => {
       [13, 26.5],
     ] as const) {
       for (let k = 0; k < 8; k++) {
-        const r = escapes(createCarState(x, z, (k * Math.PI) / 4));
+        // Same two-stage criterion as the sweep: 2.5 u in 3 s, or (a slow crawl between bushes and trunks) 4 u in 6 s.
+        const quick = escapes(createCarState(x, z, (k * Math.PI) / 4));
+        const r = quick.ok ? quick : escapes(createCarState(x, z, (k * Math.PI) / 4), 6, 4);
         expect(r.ok, `(${x}, ${z}) heading ${k}/8: best ${r.best.toFixed(2)}`).toBe(true);
       }
     }

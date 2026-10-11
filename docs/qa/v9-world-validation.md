@@ -24,7 +24,7 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | B2 | Each has a working physical slope (the car climbs real terrain) | PASS (3/3) | `rampRuns` "driven from its entry": the ground height under the car reaches ≥ 90 % of the lip height before the launch; `ground.test.ts` (V8) |
 | B3 | Wings deploy visibly on the approach / slope before the lip | PASS (3/3 unit, 1/3 browser) | `rampRuns`: states `car → preparing-flight → transforming-to-plane` in order for every ramp; `e2e/transformer.spec.ts` ramp loop (West City Ramp) and the V8 capture `04-wings-deploying` |
 | B4 | Launch at the lip when the conditions hold, with the car's own speed, no teleport | PASS (3/3 unit, 1/3 browser) | `rampRuns`: `launch` decision at the lip with speed ≥ 14 u/s and pitch > 0.12 for every ramp, using the same `rampStep` the vehicle runs; E2E West City Ramp flight |
-| B5 | Wrong entries are controlled (too slow → hop, side entry blocked, no fake flight) | PASS | `transformer.test.ts`, `rampColliders.test.ts`, E2E guards (slow lip hop) |
+| B5 | Wrong entries are controlled (too slow → hop, side entry blocked, no fake flight); a car leaving the lip forward is never bumped by the end face | PASS | `transformer.test.ts`, `rampColliders.test.ts` (lip phase sweep at 8–20 u/s, iteration 4), E2E guards (slow lip hop), ramp E2E 4/4 under CPU load |
 | B6 | Flight, landing and recovery of the car | PASS (browser, West City Ramp) | E2E ramp loop: flight, touchdown on the south turf, roll-out, fold |
 | B7 | What lies beyond every lip is water or landable ground; a slow hop lands on solid ground | PASS (3/3) | `rampRuns` "beyond the lip" |
 | B8 | Campus Ramp and Skyport Ramp flown in the browser | NOT VERIFIED | planned iteration 2 (`e2e/ramps.spec.ts`) |
@@ -33,10 +33,10 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| C1 | Every relevant class of physical object has a coherent collider | PARTIAL | buildings, labs, hangar (3 walls), tower (shaft), terminal, cabin, ramp rails and bodies, trees, lamps, planters, benches: yes. Open: bollards, bushes, signposts, masts and sign posts (COL-02, COL-03) |
+| C1 | Every relevant class of physical object has a coherent collider | PASS (iteration 4) | buildings, labs, hangar (3 walls), tower (shaft), terminal, cabin, ramp rails and bodies, trees, lamps, planters, benches, bollards, bushes, signposts (plaza, ramps, hangar, harbor gate), light masts (ramp gates, pad). Remaining P2: runway lights (COL-06), approach piles for the boat (COL-07) |
 | C2 | Collider shapes fit the geometry: circle, oriented box, compound, height field | PASS for the shapes used | circle (hub, trunks, lamp posts), axis-aligned box (buildings, rails), oriented box (benches, planters; `resolveCircleObb`, `collision.test.ts`), compound (hangar), height field (`groundHeightAt` for ramps and beaches) |
 | C3 | No known P0/P1 invisible obstacles | PARTIAL | COL-04 (hangar front) fixed; none other known. The captures `14-colliders-hangar-open-front` / `15-car-inside-hangar` show the car entering |
-| C4 | No passable solids during normal driving | PARTIAL | lamps / planters / benches now solid (E2E: the car is held outside, `collider` not null); bollards, bushes, signposts, masts still passable (P1, open) |
+| C4 | No passable solids during normal driving | PASS (iteration 4) | every catalogued class holds a creeping car (`propWorld.test.ts`, `world.spec.ts`); bushes yield at walking pace by design (foliage) |
 | C5 | No persistent penetration after a collision | PASS for the cases tested | `carCollision.test.ts` (ejection within one step), `propWorld.test.ts` (car held outside a shoved planter), E2E lamp nudge |
 | C6 | Rotated pieces collide in their drawn orientation | PASS | `collision.test.ts` oriented box; `propWorld.test.ts` "collides along its drawn orientation" (bench turned along the road) |
 | C7 | Drivable zones keep their accesses (districts, labs, harbor, Skyport, beaches, ramps) | PASS | `data.test.ts` (entrances by road), `rampRuns` corridors, `beachRuns`, spawns free (audit) |
@@ -51,14 +51,14 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| D1 | Every identified decorative category has a defined impact behaviour | PARTIAL | catalogue (`propCatalog.ts`) defines lamp, planter, bench, bollard, bush, signpost, mast with thresholds, collider and reaction; active in the simulation: lamp, planter, bench (the vertical slice). Trees: V4 |
-| D2 | Applicable instances react by the system's rules | PASS for the active categories (75 lamps, 4 planters, 27 benches) | `propDefs` (stable ids over the V3 placements); E2E `world.spec.ts` drives into one of each |
+| D1 | Every identified decorative category has a defined impact behaviour | PASS (iteration 4) | lamp, planter, bench, bollard, bush, signpost, mast active with per-category thresholds, collider and reaction; trees: V4. Categories absent from the world (bins, crates, decorative fences) recorded as 0 |
+| D2 | Applicable instances react by the system's rules | PASS (251 props: 75 lamps, 4 planters, 27 benches, 16 bollards, 110 bushes, 9 signposts / sign posts, 10 masts) | `propDefs` (stable ids over the V3 placements + `fixtures`); E2E `world.spec.ts` drives into a lamp, a planter, a bench, a bollard, a bush and a signpost |
 | D3 | Light and hard impacts are distinguished | PASS | rattle (< shove), shove (heavy props slide along the push, stay solid, capped at `maxSlide`), knock-over (≥ knock, the car keeps `retain` of its speed); E2E lamp: nudge at ≈ 3 u/s rattles and bounces the car, hit at ≈ 11 u/s knocks it over |
 | D4 | Objects update their collider correctly | PASS | shoved planter: oriented box moves with it (E2E `collider(id).x ≈ position.x`); down props: no collider, the car drives over (E2E lamp step 3; `propWorld.test.ts` bench) |
 | D5 | Destroyed states recover or persist in a controlled way | PASS | down for `downDuration` (20–30 s), never restored within 26 u of the car, early restore of the oldest beyond `maxDown` (40), at most `maxDynamic` (10) animating; `propWorld.test.ts` |
 | D6 | Reset world works (trees and furniture) | PASS | HUD "Reset world" resets both worlds, button counts `treesDown + propsDown`; E2E lamp and planter: back standing, solid, at the original place |
 | D7 | Buildings and infrastructure stay intact | PASS | only trees and props are destructible; buildings, roads, terrain, ramps, piers and the causeway have no destruction path |
-| D8 | Not every object becomes identical fragments | PASS | lamps topple about the base and their light goes out; planters slide then tip; benches flip; bushes (catalogue) flatten; the particles per category are still to do (DES-02) |
+| D8 | Not every object becomes identical fragments | PASS | lamps topple and their light goes out; planters slide then tip and scatter foliage; benches flip; bollards fall; bushes flatten and shed leaves; signposts and masts lean and fall as heavy posts; per-category particles (iteration 4) |
 | D9 | Reuse of the V4 tree architecture | PASS | `PropWorld` mirrors `TreeWorld` (fixed step, dirty set, events, pooled limits, reset) and the prop rig mirrors the tree rig; both feed the same impact bus, HUD toast and reset |
 
 ### E. Intact buildings and essential infrastructure — see D7 (PASS).
@@ -68,11 +68,11 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
 | F1 | One physics authority for the vehicle | PASS | unchanged V8 (`authorityOf`, `poseOf`); `vehicleManager.test.ts` |
-| F2 | Deterministic sub-steps | PASS | car / boat / plane sub-steps (V8); prop simulation at a fixed 1/120 s step with an accumulator |
+| F2 | Deterministic sub-steps; sequences never outrun the body | PASS | car / boat / plane sub-steps (V8); prop simulation at a fixed 1/120 s step; the transformation and glide clocks use the physics clamp (0.1 s per frame, iteration 4) |
 | F3 | Reliable collisions at different speeds | PASS | `carCollision.test.ts`; `propWorld.test.ts` at 2.5, 5, 8, 12, 14, 18 u/s |
 | F4 | Destructible objects with bounded states | PASS | 6 phases, `maxDynamic` 10, `maxDown` 40 |
 | F5 | Instancing where applicable | PASS | one instanced mesh per category part (lamp 4, planter 2, bench 3 → 9 draw calls for 106 props), dirty-only matrix writes |
-| F6 | Pools for animation and particles | PASS / PARTIAL | tree pool and particle pools unchanged; prop impacts do not emit particles yet (DES-02) |
+| F6 | Pools for animation and particles | PASS | tree pool and the three particle pools unchanged; furniture impacts emit into the same pools (iteration 4) |
 | F7 | Recovery without ghost collisions | PASS | a restoring prop is not an obstacle until it is standing again; never restored under the car; `propWorld.test.ts` |
 | F8 | HIGH / MEDIUM / LOW with equivalent function | PASS | the simulation is tier-independent; LOW hides the lamp light pools only (as V3 did); E2E runs at low and high |
 | F9 | No external physics engine | PASS | none added |
@@ -99,7 +99,8 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | `pnpm build` | 18 routes, unchanged |
 | `e2e/world.spec.ts` (new) | 3/3: street lamp (1.7 min), planter (41 s), bench (33 s) |
 | Full E2E, run 1 (desktop + mobile, 21 tests, 10.3 min) | 20/21. The one failure is `campus.spec.ts` "keeps driving" (the V5 fixed-time check: 0.37 u of reverse in 1.2 s wall-clock under SwiftShader while the machine was loaded; the same assertion passed in the isolated re-run of the campus spec, 2/2). Not weakened; recorded as the known load-sensitive check from the V7/V8 reports |
-| Full E2E, run 2 | NOT RUN in iteration 1 (the two consecutive full passes are the exit condition of the loop, not of the vertical slice) |
+| Full E2E, run 2 | NOT RUN in iteration 1 |
+| Iteration 4 full runs (24 tests) | 22/24, 22/24, 23/24, 24/24, 23/24, then **24/24 and 24/24 consecutive** (runs C1 9.0 min, C2 8.0 min). Each failure was reproduced and fixed at the root, none hidden: see `world-polish-report.md` iteration 3 and the state file |
 
 ### The new E2E, step by step (teleports only stage the car; every reaction comes from driving)
 
@@ -127,6 +128,8 @@ Filled from `docs/screenshots/v9/perf/perf-v9.json` (`scripts/visual-qa/v9perf.m
 | After Reset world (at the spawn, comparable with "city") | High | 3.7 | — | 426 | 127 834 | 535 | — |
 | Collider overlay on (debug only) | High | 4.5 | — | 433 | 127 822 | — | — |
 
+Iteration 4 (`perf/perf-v9-it4.json`, all seven categories active, 251 props): city HIGH 2.2 fps / 431 calls / 127 188 tris / 342 geometries / 28 programs; MEDIUM 428 / 97 540; LOW 244 / 44 126. Plaza at rest HIGH 311 calls / 120 946 tris. Knock loop: 8 props down → 427 calls / 127 300 tris; after Reset world 433 / 127 402; overlay on 443. The +7 city draw calls versus iteration 1 are the 19 `DynamicFixture` groups (signposts and masts drawn outside the static batches, one or two meshes each) and the bollard / bush instanced parts; triangles are unchanged within noise.
+
 Reading: the destructible furniture costs the city scene +1 006 triangles and 0 draw calls at HIGH versus V8 (the nine instanced part meshes replace the nine static ones); knocked-over props add no draw calls (instances only). The geometry counter rises as new objects enter the frame for the first time (lazy GPU upload: plaza signs, buildings, pooled dynamic trees) and does not fall after the reset; the V6 leak script remains the tool for leak checks. The overlay adds ≈ 9 draw calls. In the knock loop 6 of 8 staged impacts landed (4 lamps, 1 planter, 1 bench); the two misses (the bench at 112.5° and the planter at 202.5°) are a staging error of the script — both start points coincide with a boulevard tree trunk, which deflects the car — not a simulation fault; to be corrected in the script in iteration 2. SwiftShader figures are relative only.
 
 ## 4. Visual QA
@@ -139,6 +142,7 @@ Reading: the destructible furniture costs the city scene +1 006 triangles and 0 
 | `06-planter-intact` → `07-planter-shoved` → `08-planter-tipping-follow` → `09-planter-down` | the plaza planter at 22.5° in place, slid toward the plaza, tipping, lying | 07: box displaced along the push, bush still on it; 09: box on its side |
 | `10-bench-intact` → `11-bench-flipped-follow` → `12-bench-down` | the plaza bench at 67.5° | 12: bench on its back |
 | `13-colliders-plaza` | the debug overlay over the plaza: building boxes, the hub's cylinder, trunk cylinders, lamp cylinders, bench / planter oriented boxes (grey where down), the car's circle | shapes sit on the drawn objects; no oversized box |
+| `16-bollard-intact` → `17-bollard-down`, `18-bush-intact` → `19-bush-flattened`, `20-signpost-intact` → `21-signpost-falling-follow` → `22-signpost-down`, `23-ramp-mast-intact` → `24-ramp-mast-down` (iteration 4) | the plaza-exit bollard knocked flat, a garden bush flattened under the car, the plaza south signpost falling and lying across the sidewalk with its panels, the West City Ramp gate mast lying on the turf with its amber head | all from real driving; the fixtures' drawn posts follow their collider pose |
 | `14-colliders-hangar-open-front`, `15-car-inside-hangar` | the hangar's three wall colliders and the car parked inside after driving through the open front | the former invisible facade is gone |
 
 Navigation evidence (iteration 3, `scripts/visual-qa/v9nav.mjs`, HIGH, real keys): `nav-01-duplex-corner-overlay` (the former wedge pose on the sidewalk between the Duplex padding box and a boulevard trunk, overlay on), `nav-02-duplex-corner-contact-normals` (reversing into the facade padding: contact dots and normals, log entries `duplex`, depth 0.018 u), `nav-03-duplex-corner-pivot-out` (W + A pivots the nose along the facade; contacts `tree` below topple speed), `nav-04-duplex-sidewalk-corridor` (the car 19 u down the sidewalk after knocking a boulevard tree at 12 u/s, "Tree knocked down"), `nav-05-duplex-corner-follow-camera` (the follow camera's own framing of the pose: the facade fills the frame and the car is hidden — CAM-01 evidence, also `evidence/cam-01-duplex-corner-camera-inside-building.png`), `nav-06/07-plaza-exit-pocket` (the plaza south exit pocket, out with S + A; contacts `prop`). `nav-log.json` keeps the car pose and the last contacts per frame.

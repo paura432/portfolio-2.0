@@ -6,13 +6,10 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { generateFurniture, type Placed, type TreeInstance } from "@/game/world/props";
 import { treeDefs, visibleTreeCount } from "@/game/world/trees";
 import { districts } from "@/data/districts";
-import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { DynamicProps } from "./DynamicProps";
 import { getMaterials } from "./materials";
 import { Trees } from "./Trees";
-
-const CANOPY_TINTS = [palette.tree, palette.treeTeal, palette.treeGreen, palette.treeBlue];
 
 type Placer = (o: Object3D, item: TreeInstance | Placed, i: number) => void;
 
@@ -43,8 +40,6 @@ function useInstances<T extends TreeInstance | Placed>(items: T[], place: Placer
   );
 }
 
-const tintOf = (t: TreeInstance | Placed) => CANOPY_TINTS[(t as TreeInstance).tint ?? 0] ?? palette.tree;
-
 export function Props() {
   const m = getMaterials();
   const quality = useGameStore((s) => s.quality);
@@ -54,26 +49,12 @@ export function Props() {
   // Lamps, planters and benches are destructible (V9) and rendered by DynamicProps from the same placements.
   const furniture = useMemo(() => generateFurniture(treeDefs()), []);
 
-  const bush: Placer = useCallback((o, b) => {
-    const s = b.scale ?? 1;
-    o.position.set(b.x, 0.45 * s, b.z);
-    o.scale.set(s, s * 0.8, s);
-    o.rotation.y = b.rotation;
-  }, []);
   const garden: Placer = useCallback((o, g) => {
     const r = (g as unknown as { radius: number }).radius;
     o.position.set(g.x, 0.02, g.z);
     o.rotation.set(-Math.PI / 2, 0, 0);
     o.scale.set(r, r, 1);
   }, []);
-  const at = (y: number, dz = 0, dx = 0): Placer => (o, p) => {
-    o.position.set(p.x, y, p.z);
-    o.rotation.y = p.rotation;
-    o.translateZ(dz);
-    o.translateX(dx);
-  };
-  const bollardPost = useMemo(() => at(0.4), []);
-  const bollardCap = useMemo(() => at(0.82), []);
 
   const gardensAsPlaced = useMemo(() => furniture.gardens.map((g) => ({ ...g, rotation: 0 })), [furniture.gardens]);
   // V4 depth: soft contact blobs under the rendered trees and warm pools at every district entrance.
@@ -92,10 +73,7 @@ export function Props() {
   const refTreeBlobs = useInstances(treeBlobs, blob);
   const refEntrancePools = useInstances(entrances, entrancePool);
 
-  const refBushes = useInstances(furniture.bushes, bush, tintOf);
   const refGardens = useInstances(gardensAsPlaced, garden);
-  const refBollardPost = useInstances(furniture.bollards, bollardPost);
-  const refBollardCap = useInstances(furniture.bollards, bollardCap);
 
   return (
     <group>
@@ -117,21 +95,9 @@ export function Props() {
       {/* Trees: instanced forest + pooled dynamic trees (destructible, see Trees.tsx) */}
       <Trees />
 
-      {/* Bushes */}
-      <instancedMesh ref={refBushes} args={[undefined, undefined, Math.max(1, furniture.bushes.length)]} material={m.canopy} castShadow>
-        <dodecahedronGeometry args={[0.7, 0]} />
-      </instancedMesh>
-
-      {/* Destructible furniture (V9): lamps, planters, benches */}
+      {/* Destructible furniture (V9): lamps, planters, benches, bollards, bushes */}
       <DynamicProps />
 
-      {/* Bollards with a cyan cap */}
-      <instancedMesh ref={refBollardPost} args={[undefined, undefined, furniture.bollards.length]} material={m.metalDark} castShadow>
-        <cylinderGeometry args={[0.1, 0.12, 0.8, 8]} />
-      </instancedMesh>
-      <instancedMesh ref={refBollardCap} args={[undefined, undefined, furniture.bollards.length]} material={m.lightCyan}>
-        <cylinderGeometry args={[0.1, 0.1, 0.05, 8]} />
-      </instancedMesh>
 
     </group>
   );

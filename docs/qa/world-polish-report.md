@@ -38,6 +38,18 @@ Triggered by the third brief ("P0: vehicle stuck in city"), which asked for inst
 
 **Still not known: the exact spot of the user's screenshot.** The sweep covered the whole city, and the Duplex / TrustOS forecourt corners match the description (building + planter or bench + sidewalk + intersection); the original coordinates would let the exact pose be added to `navigation.spec.ts`. The probe prints them: `window.__pauWorld.car()`.
 
+## Iteration 3 (2026-10-11) · the whole catalogue destructible; sequence clocks aligned with the physics
+
+**Done.** Bollards (16), bushes (110), signposts and sign posts (9) and light masts (10) joined the simulation with their colliders and reactions; the 19 component-drawn posts share their positions with the components through `fixtures.ts` and are placed and tilted by `DynamicFixture` (plaza signposts, ramp gate masts and signs, Skyport pad masts, hangar sign, harbor gate sign). Furniture impacts emit particles. Bushes yield at walking pace (foliage never traps the car) and any prop whose footprint contains the car's centre yields instead of ejecting it (safe recovery from a pre-existing penetration). The wedge sweep probes eight directions now (diagonal pockets in garden clusters) and still finds 0 wedges.
+
+**Defect found by the full run and fixed at the root.** The V8 beach loop failed once under load: the hull came ashore and the wheels-down sequence finished with the car still 6.9 u out (x = 72.9, expected < 70). Cause: `VehicleController` advanced the transformation and pier-glide clocks by up to 0.4 s per frame while every vehicle model integrates at most 0.1 s per frame, so on slow frames the sequence outran the body. Both clocks now use the physics clamp (0.1 s). This is the kind of frame-rate dependence the brief's F criterion forbids; the ramp launch had the same latent exposure.
+
+**Second defect found under load and fixed at the root (NAV-02).** With the clocks aligned, the ramp loop still failed once in six full runs: telemetry (enabled in the spec, printed only on failure) showed the car at 20 u/s reaching the lip, a `blocked` frame 1.8 u past it and the speed at 13.5 ("Too slow to take off"). The ramp body's end-face rule treated the second of two consecutive sub-steps landing in the 0.8 u band past the lip as a car "coming from beyond" and pushed it forward as a bump. A car past the lip and still moving away from it is now exempt; the end face still stops a car rolling back. `rampColliders.test.ts` sweeps the sub-step phase at 8–20 u/s across the lip; the ramp E2E passed 4/4 under three busy-loop processes (1/3 before the fix).
+
+**Third (NAV-03).** The V8 beach staging spot (26, 46) sits between a street lamp and a garden bush that became solid in this iteration; a car pressed against a bush at rest could never reach the 1 u/s flatten threshold because each blocked sub-step zeroes its speed. Foliage now yields to any forward motion (a parked car touching it does nothing); reproduced and verified in node (`stepCar` + the real constraint) and in the browser.
+
+**Also.** Every plaza-exit bollard pair has a street lamp 0.7 u beside its outer bollard (GEO-04, placement note). The probe now records the vehicle's state transitions (`vehicleStates()`) and the prop events (`props.events()`), so the specs assert the machine's own sequence instead of polled samples and HUD toasts that a later contact can overwrite. The new E2E case for bollard, bush and signpost uses the helpers' 40 s condition-based budget like the rest of the suite (its first 12 s budget timed out under load).
+
 ## Critical review checkpoints
 
 Recorded at the end of each phase (level designer, technical artist, gameplay engineer, UX designer), with concrete defects. None yet.

@@ -10,6 +10,7 @@ import { liveCar } from "@/game/vehicle/carState";
 import { surfaceAt } from "@/game/world/surface";
 import { QUALITY_PROFILES } from "@/game/render/quality";
 import { impactBus } from "@/game/world/impactBus";
+import { propWorld, type PropEvent } from "@/game/world/propWorld";
 import { treeWorld, type TreeEvent } from "@/game/world/treeWorld";
 import { treeHeight } from "@/game/world/trees";
 import { palette } from "@/lib/palette";
@@ -103,6 +104,48 @@ export function ImpactParticles() {
     }
   };
 
+  /** Furniture (V9): debris on a knock-over (splinters re-used as fragments), dust on a shove, leaves for a flattened bush. */
+  const emitProp = (e: PropEvent, p: Pools) => {
+    const def = propWorld.defs[e.id];
+    if (!def) return;
+    const spec = scratch.current.spec;
+    const set = (y: number, spread: number, bias: number, vy: number, speed: number, life: number, sizeMin: number, sizeMax: number, tint: number) => {
+      spec.x = e.x;
+      spec.y = y;
+      spec.z = e.z;
+      spec.spread = spread;
+      spec.vx = e.dirX * bias;
+      spec.vz = e.dirZ * bias;
+      spec.vy = vy;
+      spec.speed = speed;
+      spec.life = life;
+      spec.sizeMin = sizeMin;
+      spec.sizeMax = sizeMax;
+      spec.tint = tint;
+      return spec;
+    };
+    const k = budget;
+    switch (e.type) {
+      case "knock":
+        // Fragments: concrete chips for a planter, metal bits for posts, a puff of dust at the base.
+        p.splinters.emit(Math.round((def.category === "planter" ? 10 : 5) * k), set(0.5 * def.scale, 0.3, 1.6, 2.2, 2.6, 1.2, 0.6, 1.2, 0));
+        p.dust.emit(Math.round(3 * k), set(0.25, 0.5, 0.6, 0.5, 0.6, 1.0, 0.9, 1.5, 0));
+        if (def.category === "planter") p.leaves.emit(Math.round(8 * k), set(1.0, 0.6, 1.2, 1.2, 2.0, 1.6, 0.6, 1.2, 1));
+        break;
+      case "flatten":
+        p.leaves.emit(Math.round(10 * k), set(0.5 * def.scale, 0.6 * def.scale, 1.0, 1.4, 1.8, 1.5, 0.6, 1.2, def.tint));
+        break;
+      case "shove":
+        p.dust.emit(Math.round(2 * k), set(0.2, 0.6, 0.5, 0.4, 0.5, 0.9, 0.8, 1.3, 0));
+        break;
+      case "settle":
+        p.dust.emit(Math.round(2 * k), set(0.2, 0.8, 0.2, 0.4, 0.5, 0.9, 0.9, 1.6, 0));
+        break;
+      default:
+        break;
+    }
+  };
+
   useFrame(({ camera }, delta) => {
     const pools = poolsRef.current;
     if (!pools) {
@@ -111,6 +154,7 @@ export function ImpactParticles() {
     }
     const dt = Math.min(delta, 0.1);
     for (const e of impactBus.events) emitFor(e, pools);
+    for (const e of impactBus.propEvents) emitProp(e, pools);
     // Driving dust: only off the hard surfaces and only while moving (see driveFx).
     const car = liveCar.state;
     const sc = scratch.current;

@@ -1,6 +1,7 @@
 import type { ConstrainResult, StepInfo } from "../vehicle/carPhysics";
 import { resolveCircleObstacle, type Obstacle } from "../physics/collision";
 import { ACTIVE_CATEGORIES, PROP_CATALOG, propObstacle, type PropCategory } from "./propCatalog";
+import { fixtures } from "./fixtures";
 import { generateFurniture, generateLamps } from "./props";
 import { treeDefs } from "./trees";
 
@@ -28,6 +29,8 @@ export interface PropDef {
   scale: number;
   /** Renderer hint (bush tint index). */
   tint: number;
+  /** Fixture key for the props a component draws (signposts, masts); undefined for generated furniture. */
+  key?: string;
 }
 
 export interface PropState {
@@ -124,8 +127,16 @@ export function propDefs(): PropDef[] {
   push("bench", furniture.benches);
   push("bollard", furniture.bollards);
   push("bush", furniture.bushes);
+  for (const f of fixtures()) defs.push({ id: defs.length, category: f.category, x: f.x, z: f.z, rotation: f.rotation, scale: 1, tint: 0, key: f.key });
   cache = defs;
   return defs;
+}
+
+/** Id of a fixture prop by its key (signposts, masts). */
+export function propIdOf(key: string): number {
+  const d = propDefs().find((x) => x.key === key);
+  if (!d) throw new Error(`Unknown fixture prop: ${key}`);
+  return d.id;
 }
 
 function freshState(id: number): PropState {
@@ -192,6 +203,8 @@ export class PropWorld {
   private readonly grid: PropGrid;
   private accumulator = 0;
   private readonly events: PropEvent[] = [];
+  /** Recent events kept for the probe (capped), independent of the per-frame drain. */
+  readonly history: PropEvent[] = [];
   private readonly dirty = new Set<number>();
   private readonly scratch: number[] = [];
   private readonly obstacle: Obstacle;
@@ -267,7 +280,10 @@ export class PropWorld {
   private emit(type: PropEventType, s: PropState): void {
     const d = this.defs[s.id]!;
     const p = this.positionOf(s.id);
-    this.events.push({ type, id: s.id, category: d.category, x: p.x, z: p.z, dirX: s.dirX, dirZ: s.dirZ, impact: s.impact });
+    const e: PropEvent = { type, id: s.id, category: d.category, x: p.x, z: p.z, dirX: s.dirX, dirZ: s.dirZ, impact: s.impact };
+    this.events.push(e);
+    this.history.push(e);
+    if (this.history.length > 64) this.history.shift();
     this.dirty.add(s.id);
   }
 
@@ -307,7 +323,10 @@ export class PropWorld {
         nz = fz;
       }
       const approach = speed * (fx * nx + fz * nz);
-      if (approach >= r.knock && this.canAnimate()) {
+      // Safe recovery from a pre-existing penetration: a car whose centre is inside the prop's footprint (after a
+      // respawn or a teleport) is never ejected through it; the prop gives way as soon as the car moves at all.
+      const inside = dist < this.footprintRadius(d.category, d.scale) && Math.abs(speed) > 0.2;
+      if ((approach >= r.knock || inside) && this.canAnimate()) {
         // Off-centre hits send the prop forward and sideways, away from the car's path.
         const rx = fz;
         const rz = -fx;
@@ -330,6 +349,12 @@ export class PropWorld {
       else if (approach >= r.wobble) this.wobble(s, approach, fx, fz);
     }
     return blocked ? { x: px, z: pz, blocked } : { x: px, z: pz, blocked, speed: yielded ? speed : undefined };
+  }
+
+  /** Radius of the prop's footprint around its centre (the circle, or the oriented box's inner circle). */
+  private footprintRadius(category: PropCategory, scale: number): number {
+    const c = PROP_CATALOG[category].collider;
+    return (c.kind === "circle" ? c.r : Math.min(c.hx, c.hz)) * scale;
   }
 
   private wobble(s: PropState, impact: number, dirX: number, dirZ: number): void {

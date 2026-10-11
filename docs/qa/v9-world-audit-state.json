@@ -4,7 +4,7 @@
   "baseSha": "9f93b38",
   "baseBranch": "integration/v8-editorial-final-qa",
   "headSha": "pending",
-  "iteration": 3,
+  "iteration": 4,
   "maxIterations": 12,
   "phase": "5-correction-cycle",
   "status": "IN_PROGRESS",
@@ -136,36 +136,29 @@
       },
       "bollards": {
         "count": 16,
-        "destructible": false,
-        "collider": "none (catalogued: circle r0.16)",
-        "planned": "it2"
+        "destructible": true,
+        "collider": "circle r0.16",
+        "since": "v9-it4"
       },
       "bushes": {
         "count": 110,
-        "destructible": false,
-        "collider": "none (catalogued: circle r0.6, flatten)",
-        "planned": "it2"
+        "destructible": true,
+        "collider": "circle r0.6·scale (yields from walking pace)",
+        "since": "v9-it4"
       },
       "signposts": {
-        "count": 4,
-        "panels": 9,
-        "destructible": false,
-        "collider": "none (catalogued)",
-        "planned": "it2"
+        "count": 9,
+        "detail": "4 plaza + 3 ramp sign posts + hangar sign + harbor gate sign",
+        "destructible": true,
+        "collider": "circle r0.2",
+        "since": "v9-it4"
       },
       "masts": {
         "count": 10,
-        "detail": "4 Skyport pad masts + 6 ramp gate masts",
-        "destructible": false,
-        "collider": "none (catalogued)",
-        "planned": "it2"
-      },
-      "signPosts": {
-        "count": 5,
-        "detail": "3 ramp sign posts, hangar sign post, harbor gate sign post",
-        "destructible": false,
-        "collider": "none",
-        "planned": "it2"
+        "detail": "6 ramp gate masts + 4 Skyport pad masts",
+        "destructible": true,
+        "collider": "circle r0.22",
+        "since": "v9-it4"
       },
       "runwayLights": {
         "count": 30,
@@ -238,14 +231,18 @@
       {
         "id": "COL-02",
         "title": "bollards, bushes, signposts have no collider",
-        "status": "OPEN",
-        "plan": "it2: activate catalogue categories"
+        "status": "FIXED",
+        "plan": "it2: activate catalogue categories",
+        "iteration": 4,
+        "evidence": "propWorld all categories; fixtures.ts + DynamicFixture; propWorld.test.ts, fixtures.test.ts, world.spec.ts case 4"
       },
       {
         "id": "COL-03",
         "title": "pad masts, ramp masts, ramp/hangar/harbor sign posts have no collider",
-        "status": "OPEN",
-        "plan": "it2: mast/signpost categories with shared positions"
+        "status": "FIXED",
+        "plan": "it2: mast/signpost categories with shared positions",
+        "iteration": 4,
+        "evidence": "propWorld all categories; fixtures.ts + DynamicFixture; propWorld.test.ts, fixtures.test.ts, world.spec.ts case 4"
       },
       {
         "id": "COL-04",
@@ -257,9 +254,10 @@
       {
         "id": "DES-01",
         "title": "only trees destructible",
-        "status": "PARTIAL",
-        "iteration": 1,
-        "detail": "lamp/planter/bench active; bollard/bush/signpost/mast pending"
+        "status": "FIXED",
+        "iteration": 4,
+        "detail": "lamp/planter/bench active; bollard/bush/signpost/mast pending",
+        "evidence": "propWorld all categories; fixtures.ts + DynamicFixture; propWorld.test.ts, fixtures.test.ts, world.spec.ts case 4"
       },
       {
         "id": "CAM-01",
@@ -267,6 +265,20 @@
         "status": "OPEN",
         "evidence": "docs/screenshots/v9/evidence/cam-01-duplex-corner-camera-inside-building.png (navigation E2E frame)",
         "plan": "camera obstacle avoidance (brief V9.1 §2.2): ray/sphere test camera↔car against the static colliders, pull in, recover smoothly"
+      },
+      {
+        "id": "NAV-02",
+        "title": "ramp end-face rule bumped a car leaving the lip when two sub-steps landed in the band past it (lip speed 20 → 13.5, 'Too slow to take off')",
+        "status": "FIXED",
+        "iteration": 4,
+        "evidence": "E2E telemetry under CPU load; rampColliders.test.ts phase sweep; 4/4 loaded runs after the fix"
+      },
+      {
+        "id": "PHY-01",
+        "title": "transformation / glide clocks advanced up to 0.4 s per frame while the vehicles integrate at most 0.1 s: sequences outran the body on slow frames",
+        "status": "FIXED",
+        "iteration": 4,
+        "evidence": "VehicleController PHYSICS_FRAME_CLAMP; beach loop 24/24 ×2"
       }
     ],
     "P2": [
@@ -304,8 +316,9 @@
       {
         "id": "DES-02",
         "title": "no particles for furniture impacts",
-        "status": "OPEN",
-        "plan": "it2"
+        "status": "FIXED",
+        "plan": "it2",
+        "iteration": 4
       },
       {
         "id": "V8-P2-01",
@@ -318,6 +331,11 @@
         "id": "GEO-02",
         "title": "19 bushes within 0.9 u of a trunk (undergrowth)",
         "status": "ACCEPTED"
+      },
+      {
+        "id": "GEO-04",
+        "title": "each plaza-exit bollard pair has a street lamp 0.7 u beside its outer bollard",
+        "status": "OPEN (placement note)"
       }
     ]
   },
@@ -325,22 +343,32 @@
     "lint": "PASS",
     "typecheck": "PASS",
     "unit": {
-      "files": 46,
-      "tests": 281,
+      "files": 48,
+      "tests": 290,
       "new": [
-        "contacts.test.ts (8: corner, seam, rotated bench vs building, diagonal corner + reverse, wall scrape, reverse into wall, 30/60/144 fps, double penetration)"
+        "fixtures.test.ts",
+        "propWorld.test.ts iteration-4 categories",
+        "rampColliders.test.ts lip phase sweep",
+        "wedge sweep probes 8 directions"
       ]
     },
     "build": "PASS",
     "e2e": {
-      "worldSpec": "3/3 PASS",
+      "worldSpec": "4/4 PASS (lamp, planter, bench, bollard+bush+signpost)",
       "fullRun1": "20/21 (it1)",
       "fullRun2": "not run in iteration 1",
       "navigationSpec": "2/2 PASS (telemetry-backed escapes; Duplex corridor route)",
       "it2FullRun1": "21/22 (campus fixed-time check as first test of the run; converted to condition-based)",
       "it2FullRun2": "22/22 PASS (desktop + mobile, 7.4 min)",
       "consecutiveGreen": 2,
-      "it3FullRun1": "23/23 PASS (7.6 min)"
+      "it3FullRun1": "23/23 PASS (7.6 min)",
+      "it4FullRun1": "22/24 (bench category list outdated; bollard staged behind a lamp → re-staged)",
+      "it4FullRun2": "22/24 (beach: sequence clock outran the physics → clocks aligned; bush case 12 s budget → suite default)",
+      "it4FullRunA": "23/24 (beach: car staged between a lamp and a now-solid bush → bushes yield to any forward motion)",
+      "it4FullRunB1": "24/24",
+      "it4FullRunB2": "23/24 (ramp: end-face rule bumped a car leaving the lip → leaving cars exempt)",
+      "it4FullRunC1": "24/24 (9.0 min)",
+      "it4FullRunC2": "24/24 (8.0 min)"
     }
   },
   "evidence": {
@@ -379,10 +407,10 @@
   },
   "blockers": [],
   "nextIteration": [
-    "CAM-01 camera obstacle avoidance (P1, evidence captured)",
-    "COL-02/03 remaining prop categories",
-    "ramps/beach browser coverage",
-    "v9shots: Duplex corner with overlay + contact normals"
+    "CAM-01 camera obstacle avoidance (P1)",
+    "browser coverage: Campus Ramp, Skyport Ramp, Skyport Beach (B8, A7)",
+    "COL-06/07/08, GEO-01/03/04 (P2/P3)",
+    "v9shots 16-24 + perf re-measure"
   ],
   "history": [
     {
@@ -402,7 +430,13 @@
       "date": "2026-10-11",
       "summary": "third brief (P0 stuck vehicle) folded in: debugLog telemetry ring buffers + probe hooks + contact normals in the overlay; iterative multi-contact resolution (MAX_PASSES 4, buildings win pockets); scrape friction; contacts.test.ts; navigation E2E with mode/telemetry/corridor checks; CAM-01 evidence captured",
       "commit": "see git log (iteration 3)"
+    },
+    {
+      "iteration": 4,
+      "date": "2026-10-11",
+      "summary": "COL-02, COL-03, DES-01, DES-02 closed: bollards, bushes, signposts and masts destructible with colliders (fixtures.ts shares positions with the components; DynamicFixture tilts the drawn posts); furniture particles; bushes yield at walking pace and props yield to a car centred inside them; sweep probes 8 directions (0 wedges); found and fixed under load: sequence-clock clamp (PHY-01) and the lip end-face bump (NAV-02); bushes yield to any forward motion; probe records vehicle state transitions and prop events so the specs assert sequences, not samples",
+      "commit": "pending"
     }
   ],
-  "lastValidatedSha": "f645922"
+  "lastValidatedSha": "e4d954a"
 }

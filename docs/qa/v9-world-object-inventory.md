@@ -45,10 +45,10 @@ Categories named in the brief that do not exist in this world: litter bins (0), 
 
 | Object | Position(s) | Reachable | Collider before V9 | Status |
 |---|---|---|---|---|
-| Skyport pad masts (4) | (128.7, −4.3) (119.3, −4.3) (119.3, −13.7) (128.7, −13.7) | yes | none | open (COL-03) |
+| Skyport pad masts (4) | (128.7, −4.3) (119.3, −4.3) (119.3, −13.7) (128.7, −13.7) | yes | none | fixed (COL-03, `mast`) |
 | Runway edge lights (20), threshold lights (10) | along the runway edges / ends | yes (20 edge lights) | none | open, P2 (COL-06): 0.28 u high fixtures the car rolls over |
-| Hangar sign post | (152.2, 11) | yes | none | open (COL-03) |
-| Harbor gate sign post | (−64.4, −5.6) | yes | none | open (COL-03) |
+| Hangar sign post | (152.2, 11) | yes | none | fixed (COL-03, `signpost`) |
+| Harbor gate sign post | (−64.4, −5.6) | yes | none | fixed (COL-03, `signpost`) |
 | Windsock | (204, −18) | no (off the slab) | — | n/a |
 | Quay bollards, quay lamps, fenders, harbor cabin | quay face x ≈ −75 | no (drive limit x ≥ −73.5); cabin has a box | — | n/a |
 | Piers (3) and their bollards, railings, lamps, beacons | pier decks | no (car never reaches a deck) | pier boxes for the boat | n/a |
@@ -75,8 +75,8 @@ Static collider set: 1 round + 25 boxes (V9: 23 boxes before the hangar split an
 |---|---|---|---|---|
 | NAV-01 | P0 | The car could get wedged on sidewalks between a building's padding box and a trunk or a bench (295 grid points, incl. Duplex and TrustOS forecourt corners): turn authority ∝ speed and every bump reversed the speed | `wedgeSweep.ts` (iteration 2) | **fixed, iteration 2** (car model: low-speed steering floor, sliding contacts; `wedge.test.ts` 0 wedges; `navigation.spec.ts`) |
 | COL-01 | P1 | 75 lamps, 27 benches and 4 planters had no collider: the car drove through them | audit script (`reachable`, `collider: []`), V8 `obstacles.ts` | **fixed, iteration 1** (`propWorld`, active categories lamp / planter / bench; E2E `world.spec.ts`) |
-| COL-02 | P1 | 16 bollards, 110 bushes, 4 signposts have no collider | same | open → iteration 2 (categories exist in the catalogue; not yet active) |
-| COL-03 | P1 | Skyport pad masts (4), ramp gate masts (6), ramp sign posts (3), hangar sign post, harbor gate sign post have no collider | §4 | open → iteration 2 (`mast` / `signpost` categories; positions to be shared between the components and the simulation) |
+| COL-02 | P1 | 16 bollards, 110 bushes, 4 signposts have no collider | same | **fixed, iteration 4** (all catalogue categories active in `propWorld`; bushes yield at walking pace so foliage never traps the car) |
+| COL-03 | P1 | Skyport pad masts (4), ramp gate masts (6), ramp sign posts (3), hangar sign post, harbor gate sign post have no collider | §4 | **fixed, iteration 4** (`fixtures.ts` shares the 19 positions between the components and the simulation; `DynamicFixture` places and tilts the drawn posts from the prop pose; `fixtures.test.ts`) |
 | COL-04 | P1 | The hangar's box collider closed its 16.8 u open front: an invisible wall | `hangarOpenFront` in the audit, `Skyport.tsx` | **fixed, iteration 1** (three wall colliders; `SKYPORT_ROOFS` keeps the aircraft's floor over it; `landing.test.ts`) |
 | COL-05 | P2 | Tower collider 5 × 5 + 0.8 around a 3.8 × 3.8 shaft | `SKYPORT.tower` | **fixed, iteration 1** (shaft footprint) |
 | COL-06 | P2 | Runway edge / threshold lights (30) have no collider | §4 | open (decision: fixtures 0.28 u high, rolled over; a `fixture` category would be cosmetic) |
@@ -85,6 +85,6 @@ Static collider set: 1 round + 25 boxes (V9: 23 boxes before the hangar split an
 | GEO-01 | P2 | 4 benches overlap a tree trunk: (54.9, 40.0), (−51.4, −19.9), (−49.6, −46.1), (26.8, 52.4) | audit `nearTree` | open |
 | GEO-02 | P3 | 19 bushes within 0.9 u of a trunk | audit | accepted (undergrowth) |
 | GEO-03 | P2 | Two lamps stand inside the Skyport runway strip, beside the pad road: (120, −13.8), (120, −4.2) | `lampsOnSkyport` | open (destructible now, so no longer a passable ghost; placement to review) |
-| DES-01 | P1 | Only trees were destructible | V8 | **partly fixed, iteration 1**: lamps, planters, benches react (rattle / shove / knock-over, per-category thresholds and retained speed); bollards, bushes, signposts, masts open |
-| DES-02 | P2 | No particles for furniture impacts (the particle system only drains tree events) | `ImpactParticles.tsx` | open → iteration 2 |
+| DES-01 | P1 | Only trees were destructible | V8 | **fixed, iteration 4**: lamps, planters, benches (iteration 1), bollards, bushes (flattened), signposts, light masts (iteration 4) all react per category |
+| DES-02 | P2 | No particles for furniture impacts | `ImpactParticles.tsx` | **fixed, iteration 4** (fragments + dust on a knock-over, planter foliage scatter, leaves for a flattened bush, dust on a shove / settle; same pooled meshes) |
 | V8-P2-01 | P2 | A stale impact toast can reappear after a body change | V8 report | open (unchanged) |

@@ -185,3 +185,51 @@ describe("prop world: limits and determinism", () => {
     expect(car.z).toBeGreaterThan(13.5);
   });
 });
+
+describe("prop world: iteration 4 categories", () => {
+  const def = (category: "bollard" | "bush" | "signpost" | "mast", scale = 1): PropDef => ({ id: 0, category, x: 0, z: 10, rotation: 0, scale, tint: 0 });
+  it("the full list now carries the fixtures: 9 signposts / sign posts and 10 masts, all active", () => {
+    const defs = propDefs();
+    expect(defs.filter((d) => d.category === "signpost").length).toBe(9);
+    expect(defs.filter((d) => d.category === "mast").length).toBe(10);
+    expect(defs.length).toBe(75 + 4 + 27 + 16 + 110 + 9 + 10);
+    expect(new PropWorld(defs).active.size).toBe(7);
+    for (const key of ["plaza:west", "ramp:west-ramp:mast:l", "ramp:campus-ramp:sign", "skyport:pad:3", "skyport:hangar-sign", "harbor:gate-sign"]) expect(defs.find((d) => d.key === key), key).toBeDefined();
+  });
+  it("bollard: a nudge wobbles it and holds the car; a hit ≥ 4 u/s knocks it flat and the car passes", () => {
+    const w = new PropWorld([def("bollard")]);
+    expect(drive(w, [0, 8], 2, 12).car.z + 1.3).toBeLessThanOrEqual(10 - 0.16 + 1e-6);
+    expect(w.state(0).phase).toBe("wobbling");
+    const w2 = new PropWorld([def("bollard")]);
+    const { car } = drive(w2, [0, 5], 8, 14);
+    expect(["falling", "down"]).toContain(w2.state(0).phase);
+    expect(car.z).toBeGreaterThan(12);
+  });
+  it("bush: any forward motion into it flattens it (a car pressed against it at rest is never held), the car keeps moving and it stops colliding", () => {
+    // Pressed against the bush at rest, throttle held: it gives way within a second.
+    const w = new PropWorld([def("bush", 0.9)]);
+    const pressed = drive(w, [0, 10 - 1.3 - 0.54 + 0.05], 0.5, 12, 120); // creeping at 0.5 u/s against it
+    expect(w.state(0).phase).toBe("down");
+    expect(pressed.car.z).toBeGreaterThan(9);
+    const w2 = new PropWorld([def("bush", 0.9)]);
+    const { car, path } = drive(w2, [0, 6], 6, 14);
+    expect(w2.state(0).phase).toBe("down");
+    expect(w2.state(0).squash).toBeLessThan(0.3);
+    expect(w2.isObstacle(0)).toBe(false);
+    expect(car.z).toBeGreaterThan(13);
+    expect(path.find((p) => p.z > 10.5)!.speed).toBeGreaterThan(6 * 0.8);
+    expect(w2.takeEvents().map((e) => e.type)).toContain("flatten");
+  });
+  it("signpost: heavy post, needs ≥ 8 u/s to fall; mast ≥ 7; both hold a slow car", () => {
+    for (const [c, speed] of [["signpost", 8], ["mast", 7]] as const) {
+      const slow = new PropWorld([def(c)]);
+      drive(slow, [0, 7], speed - 2, 12);
+      expect(slow.state(0).phase, `${c} slow`).toBe("wobbling");
+      expect(slow.isObstacle(0)).toBe(true);
+      const fast = new PropWorld([def(c)]);
+      const { car } = drive(fast, [0, 4], speed + 3, 14);
+      expect(["falling", "down"], `${c} fast`).toContain(fast.state(0).phase);
+      expect(car.z).toBeGreaterThan(12);
+    }
+  });
+});

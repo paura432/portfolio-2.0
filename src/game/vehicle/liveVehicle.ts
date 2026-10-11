@@ -25,6 +25,8 @@ export const liveVehicle = {
   clock: { state: "car" as VehicleState, t: 0, duration: 0 },
   /** Increments on resets and teleports so the camera snaps. */
   generation: 0,
+  /** Every state the machine has been in since the last reset / teleport (probe and tests; capped). */
+  stateLog: ["car"] as VehicleState[],
   /** Eased 0..1 progress of the running transformation (1 when none runs). */
   progress(): number {
     if (this.clock.duration <= 0) return 1;
@@ -35,4 +37,13 @@ export const liveVehicle = {
 
 export function bumpGeneration(): void {
   liveVehicle.generation++;
+}
+
+/** Record a state-machine transition (called by the store); the log restarts at `reset`. */
+export function logVehicleState(next: VehicleState, reset = false): void {
+  if (reset) liveVehicle.stateLog = [next];
+  else {
+    liveVehicle.stateLog.push(next);
+    if (liveVehicle.stateLog.length > 64) liveVehicle.stateLog.shift();
+  }
 }

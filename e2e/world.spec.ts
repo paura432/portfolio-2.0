@@ -192,7 +192,7 @@ test.describe("V9 destructible street furniture", () => {
     await expect.poll(() => phase(page, bench.id), { timeout: 15_000 }).toBe("down");
     const summary = await page.evaluate(() => window.__pauWorld!.props.summary());
     expect(summary.down).toBe(1);
-    expect(summary.active).toEqual(["lamp", "planter", "bench"]);
+    expect(summary.active).toEqual(["lamp", "planter", "bench", "bollard", "bush", "signpost", "mast"]);
     // The Central Hub remains a rigid obstacle and the probe's collider list is the static set.
     const kinds = await page.evaluate(() => window.__pauWorld!.debug.obstacles().map((o) => o.kind));
     expect(kinds).toContain("round");
@@ -208,6 +208,59 @@ test.describe("V9 destructible street furniture", () => {
     await twoFrames(page);
     await page.evaluate(() => window.__pauWorld!.debug.colliders(false));
     await twoFrames(page);
+    expect(errors()).toEqual([]);
+  });
+
+  test("bollard, bush and signpost (iteration 4): each holds a creeping car, each gives way to a fast one in its own way", async ({ page }) => {
+    const errors = collectErrors(page);
+    await startGame(page);
+    await page.evaluate(() => window.__pauWorld!.setQuality("low", true));
+    // The inner bollard of the plaza's south exit (east side), approached from the road heading east: the lamp
+    // beside the outer bollard (0.7 u away, GEO-04) stays clear of this line.
+    const bollard = await nearest(page, 4.4, 17.7, "bollard");
+    expect(bollard.category).toBe("bollard");
+    await aimAt(page, bollard, [bollard.x - 8, bollard.z], 1.3 + 0.16, 0.3);
+    expect(await holdKeyUntil(page, "KeyW", async () => (await phase(page, bollard.id)) !== "standing", 10_000)).toBe(true);
+    expect(await phase(page, bollard.id)).toBe("wobbling");
+    expect((await car(page)).x, "held outside the bollard").toBeLessThan(bollard.x - 1.3);
+    await expect.poll(() => phase(page, bollard.id), { timeout: 10_000 }).toBe("standing");
+    await aimAt(page, bollard, [bollard.x - 8, bollard.z], 1.3 + 0.16, 2.5);
+    expect(await holdKeyUntil(page, "KeyW", async () => ["falling", "down"].includes(await phase(page, bollard.id)))).toBe(true);
+    // The event itself (the toast can be overwritten by the next contact a frame later).
+    const knocks = await page.evaluate(() => window.__pauWorld!.props.events().filter((e) => e.type === "knock"));
+    expect(knocks.some((e) => e.id === bollard.id && e.impact >= 4), "a knock event with impact ≥ 4 u/s").toBe(true);
+    expect(await collider(page, bollard.id)).toBeNull();
+
+    // A garden bush: flattened at speed, the car keeps rolling through it.
+    const bush = await nearest(page, -24, 28, "bush");
+    expect(bush.category).toBe("bush");
+    await aimAt(page, bush, [bush.x + 6, bush.z], 1.3 + 0.6, 2.0);
+    const flattened = await holdKeyUntil(page, "KeyW", async () => (await phase(page, bush.id)) === "down");
+    expect(flattened).toBe(true);
+    expect((await state(page, bush.id)).squash).toBeLessThan(0.3);
+    await expect(page.getByTestId("impact-toast")).toContainText("Bush flattened");
+    expect(await collider(page, bush.id)).toBeNull();
+    const through = await holdKeyUntil(page, "KeyW", async () => (await car(page)).x < bush.x - 0.5, 8_000);
+    expect(through, "drove through the flattened bush").toBe(true);
+
+    // The plaza's south signpost: heavy, falls only from a fast hit; its panels go with the post.
+    const sign = await nearest(page, 6.7, 20, "signpost");
+    expect(sign.category).toBe("signpost");
+    await aimAt(page, sign, [sign.x, sign.z + 8], 1.3 + 0.2, 0.3);
+    expect(await holdKeyUntil(page, "KeyW", async () => (await phase(page, sign.id)) !== "standing", 10_000)).toBe(true);
+    expect(await phase(page, sign.id)).toBe("wobbling");
+    await expect.poll(() => phase(page, sign.id), { timeout: 10_000 }).toBe("standing");
+    await aimAt(page, sign, [sign.x, sign.z + 9], 1.3 + 0.2, 3.5);
+    expect(await holdKeyUntil(page, "KeyW", async () => ["falling", "down"].includes(await phase(page, sign.id)))).toBe(true);
+    await expect(page.getByTestId("impact-toast")).toContainText("Signpost knocked over");
+    await expect.poll(() => phase(page, sign.id), { timeout: 15_000 }).toBe("down");
+    const summary = await page.evaluate(() => window.__pauWorld!.props.summary());
+    expect(summary.active).toEqual(["lamp", "planter", "bench", "bollard", "bush", "signpost", "mast"]);
+    expect(summary.down).toBeGreaterThanOrEqual(3);
+    await page.evaluate(() => window.__pauWorld!.teleport(0, 27, Math.PI));
+    await page.getByTestId("reset-world").click();
+    await expect.poll(() => phase(page, sign.id), { timeout: 10_000 }).toBe("standing");
+    await expect.poll(() => phase(page, bush.id), { timeout: 10_000 }).toBe("standing");
     expect(errors()).toEqual([]);
   });
 });

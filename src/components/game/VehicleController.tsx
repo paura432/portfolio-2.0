@@ -9,6 +9,8 @@ import { transitionClock } from "@/game/vehicle/vehicleManager";
 import { useGameStore } from "@/stores/gameStore";
 
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+/** Longest simulated step per frame, as the vehicle models use (`maxDt · 3`). */
+const PHYSICS_FRAME_CLAMP = 0.1;
 
 /**
  * Times the two kinds of sequences PAU TRANSFORMER-X runs (paused with the
@@ -42,8 +44,8 @@ function stepTransition(store: Store, delta: number) {
     transitionClock.t = 0;
   }
   if (store.phase !== "playing") return;
-  // Wall-clock within reason: a glide is a short cinematic, so a slow frame still advances it by up to 0.4 s.
-  transitionClock.t += Math.min(delta, 0.4);
+  // Same clamp as the physics (0.1 s per frame): on a slow frame the glide and the hull advance together.
+  transitionClock.t += Math.min(delta, PHYSICS_FRAME_CLAMP);
   if (t.kind === "moor") {
     const m = getHarbor(t.harbor).mooring;
     const s = transitionClock.progress();
@@ -86,7 +88,10 @@ function stepTransform(store: Store, delta: number) {
     clock.duration = duration;
   }
   if (store.phase !== "playing") return;
-  clock.t += Math.min(delta, 0.4);
+  // V9: the sequence clock never outruns the physics. The car, the boat and the aircraft integrate at most 0.1 s per
+  // frame; with a 0.4 s clamp a slow frame let the wings or the wheels finish while the body had barely moved
+  // (the hull came ashore too far out, the lip launch could fire a frame late), so the two now share one clamp.
+  clock.t += Math.min(delta, PHYSICS_FRAME_CLAMP);
   if (clock.t >= clock.duration) {
     const next = COMPLETES_TO[s];
     if (next) {

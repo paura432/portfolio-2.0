@@ -17,8 +17,13 @@ export function constrainRampBodies(x: number, z: number, prevX: number, prevZ: 
   let blocked = false;
   for (const r of ramps) {
     const prev = rampLocal(r, prevX, prevZ);
-    const legit = Math.abs(prev.lateral) <= r.width / 2 + 0.3 && prev.s >= -r.approach - 2 && prev.s <= r.length + 0.5;
-    if (legit) continue;
+    const cur = rampLocal(r, px, pz);
+    const inCorridor = Math.abs(prev.lateral) <= r.width / 2 + 0.3 && prev.s >= -r.approach - 2 && prev.s <= r.length + 0.5;
+    // Leaving the slope forward over the lip (V9): a car already past the lip and still moving away from it never
+    // meets the end face. Without this, two consecutive sub-steps inside the band just past the lip counted the
+    // second as "coming from beyond" and the end face pushed the car forward as a bump, killing its takeoff speed.
+    const leaving = Math.abs(prev.lateral) <= r.width / 2 + 0.3 && prev.s > r.length && cur.s >= prev.s - 1e-9;
+    if (inCorridor || leaving) continue;
     const out = pushOutOfSlope(r, px, pz);
     if (out) {
       px = out.x;

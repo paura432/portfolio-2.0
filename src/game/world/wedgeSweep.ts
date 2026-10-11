@@ -118,13 +118,10 @@ export function sweepWedges(o: WedgeOptions = {}): { tight: number; wedges: Wedg
     for (let z = b.minZ; z <= b.maxZ; z += pitch) {
       if (probe(x, z)) continue;
       const near: string[] = [];
-      for (const [dx, dz] of [
-        [reach, 0],
-        [-reach, 0],
-        [0, reach],
-        [0, -reach],
-      ] as const) {
-        const what = probe(x + dx, z + dz);
+      // Eight directions: pockets closed by diagonal neighbours (garden clusters) count as tight too.
+      for (let k = 0; k < 8; k++) {
+        const a = (k * Math.PI) / 4;
+        const what = probe(x + Math.sin(a) * reach, z + Math.cos(a) * reach);
         if (what) near.push(what);
       }
       if (near.length < 2) continue;

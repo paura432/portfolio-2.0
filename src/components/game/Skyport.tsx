@@ -11,6 +11,7 @@ import { Beach } from "./Islands";
 import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { SignPanel } from "./DistrictSigns";
+import { DynamicFixture } from "./DynamicFixture";
 import { useRocks, useTerrainGeometry } from "./Islands";
 import { buildCoastSkirt } from "@/game/world/islandTerrain";
 import { getMaterials } from "./materials";
@@ -169,21 +170,7 @@ export function Skyport() {
         <mesh material={m.lightAmberSoft} position={[pad.x, 0.06, pad.z]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[1.4, 1.7, 32]} />
         </mesh>
-        {[0, 1, 2, 3].map((i) => {
-          const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-          const x = pad.x + Math.cos(a) * (pad.radius + 1.2);
-          const z = pad.z + Math.sin(a) * (pad.radius + 1.2);
-          return (
-            <group key={i}>
-              <mesh material={m.metalDark} position={[x, 1.6, z]} castShadow>
-                <boxGeometry args={[0.14, 3.2, 0.14]} />
-              </mesh>
-              <mesh material={m.lightAmberSoft} position={[x, 3.3, z]}>
-                <boxGeometry args={[0.36, 0.14, 0.36]} />
-              </mesh>
-            </group>
-          );
-        })}
+
         {/* Hangar: open front toward the runway, orange door band, cyan roof strip */}
         <mesh material={m.facade} position={[hangar.x, hangar.h / 2, hangar.z + hangar.d / 2 - HANGAR_WALL / 2]} castShadow receiveShadow>
           <boxGeometry args={[hangar.w, hangar.h, HANGAR_WALL]} />
@@ -204,9 +191,6 @@ export function Skyport() {
         </mesh>
         <mesh material={m.concrete} position={[hangar.x, 0.06, hangar.z]} receiveShadow>
           <boxGeometry args={[hangar.w - 1.2, 0.12, hangar.d]} />
-        </mesh>
-        <mesh material={m.metalDark} position={[hangar.x + hangar.w / 2 + 1.2, 2.2, hangar.z - hangar.d / 2 - 0.5]} castShadow>
-          <boxGeometry args={[0.12, 4.4, 0.12]} />
         </mesh>
         {/* Control tower: shaft, cab, red beacon */}
         <mesh material={m.facadeDark} position={[tower.x, tower.h / 2 - 1.5, tower.z]} castShadow receiveShadow>
@@ -264,9 +248,25 @@ export function Skyport() {
       <instancedMesh ref={refThreshold} args={[undefined, undefined, Math.max(1, thresholdLights.length)]} material={m.lightAmber}>
         <boxGeometry args={[0.3, 0.24, 0.5]} />
       </instancedMesh>
-      <group position={[hangar.x + hangar.w / 2 + 1.2, 3.9, hangar.z - hangar.d / 2 - 0.5]} rotation={[0, Math.PI, 0]}>
-        <SignPanel title="SKYPORT" subtitle={SKYPORT.tagline} accent={palette.cyan} width={3.8} height={1.1} />
-      </group>
+      {/* Pad masts (four, amber heads) and the hangar sign post: destructible fixtures (V9) */}
+      {[0, 1, 2, 3].map((i) => (
+        <DynamicFixture key={i} fixtureKey={`skyport:pad:${i}`}>
+          <mesh material={m.metalDark} position={[0, 1.6, 0]} castShadow>
+            <boxGeometry args={[0.14, 3.2, 0.14]} />
+          </mesh>
+          <mesh material={m.lightAmberSoft} position={[0, 3.3, 0]}>
+            <boxGeometry args={[0.36, 0.14, 0.36]} />
+          </mesh>
+        </DynamicFixture>
+      ))}
+      <DynamicFixture fixtureKey="skyport:hangar-sign">
+        <mesh material={m.metalDark} position={[0, 2.2, 0]} castShadow>
+          <boxGeometry args={[0.12, 4.4, 0.12]} />
+        </mesh>
+        <group position={[0, 3.9, 0]}>
+          <SignPanel title="SKYPORT" subtitle={SKYPORT.tagline} accent={palette.cyan} width={3.8} height={1.1} />
+        </group>
+      </DynamicFixture>
       {profile.lampPools && (
         <>
           <mesh material={m.cyanPool} position={[pad.x, 0.028, pad.z]} rotation={[-Math.PI / 2, 0, 0]}>
