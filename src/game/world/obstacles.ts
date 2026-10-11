@@ -41,8 +41,9 @@ export interface DriveRect {
 /** Where the car may drive: the island platform plus the harbor quay (a union of rectangles). */
 export const DRIVE_AREAS: DriveRect[] = [
   { minX: -DRIVE_HALF_SIZE, maxX: DRIVE_HALF_SIZE, minZ: -DRIVE_HALF_SIZE, maxZ: DRIVE_HALF_SIZE },
-  // The quay overlaps the platform edge so the two rectangles form one connected area.
-  { minX: QUAY_DRIVE.minX, maxX: QUAY_DRIVE.maxX + 2, minZ: QUAY_DRIVE.minZ, maxZ: QUAY_DRIVE.maxZ },
+  // The quay overlaps the platform edge by more than a car diameter: the two rectangles, each shrunk by the
+  // car radius, still overlap, so the seam never traps the car (see the walk-through test).
+  { minX: QUAY_DRIVE.minX, maxX: QUAY_DRIVE.maxX + 2 * CAR_RADIUS + 2, minZ: QUAY_DRIVE.minZ, maxZ: QUAY_DRIVE.maxZ },
 ];
 
 /**

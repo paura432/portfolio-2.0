@@ -197,6 +197,12 @@ function createMaterials() {
     rock: standard("#27384A", 0.95, 0, { flatShading: true }),
     rockDark: standard("#1B2838", 0.98, 0, { flatShading: true }),
     sand: standard("#55606A", 0.95, 0, { flatShading: true }),
+    /** Island terrain and the main coast skirt: zones come from vertex colours. */
+    terrain: (() => {
+      const t = standard("#ffffff", 1, 0, { flatShading: true });
+      t.vertexColors = true;
+      return t;
+    })(),
     /** Boat hull colours: the car's orange family plus a deep navy and a light deck. */
     hullOrange: standard(palette.carOrange, 0.3, 0.15),
     hullNavy: standard("#17263B", 0.35, 0.2),

@@ -199,8 +199,8 @@ export const harbors: HarborDefinition[] = [
     pierLength: 16,
     pierWidth: 5,
     boardingZone: { x: QUAY.x0 + 5, z: 0, radius: 5 },
-    dockingZone: { x: QUAY.x0 - 14, z: 8, radius: 9 },
-    mooring: { vehicle: "boat", position: [QUAY.x0 - 11, 5.6], heading: -Math.PI / 2 },
+    dockingZone: { x: QUAY.x0 - 14, z: 7.5, radius: 9 },
+    mooring: { vehicle: "boat", position: [QUAY.x0 - 11, 5.0], heading: -Math.PI / 2 },
     landVehicles: ["car"],
   },
   {
@@ -214,8 +214,8 @@ export const harbors: HarborDefinition[] = [
     pierLength: 13,
     pierWidth: 4,
     boardingZone: { x: CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS - 5, z: CREATIVE_LAB_CENTER[1], radius: 4 },
-    dockingZone: { x: CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 10, z: CREATIVE_LAB_CENTER[1] + 7, radius: 8.5 },
-    mooring: { vehicle: "boat", position: [CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 8, CREATIVE_LAB_CENTER[1] + 5], heading: Math.PI / 2 },
+    dockingZone: { x: CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 10, z: CREATIVE_LAB_CENTER[1] + 6.5, radius: 8.5 },
+    mooring: { vehicle: "boat", position: [CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 8, CREATIVE_LAB_CENTER[1] + 4.5], heading: Math.PI / 2 },
     landVehicles: [],
   },
 ];

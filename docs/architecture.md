@@ -60,6 +60,7 @@ HUD / Panel / Menu ──► subscribe to store slices (React re-renders only on
 - Per-frame values never enter React state. The store changes only on transitions (enter/leave zone, open/close panel, phase).
 - Negative `useFrame` priorities keep fiber's automatic render loop while fixing the order car → proximity → camera.
 - The same `districts.ts` entry produces the building visuals, the collision shape, the interaction zone, the sign, the menu entry and the HTML route. Changing one number moves everything together.
+- V6: the store also carries the vehicle slice (`activeVehicle`, `transition`, `mooredAt`, harbor/dock proximity). `canControl(vehicle)` gates every controller; the car and the boat (`useFrame -3`) each keep a live state, the camera and minimap read `poseOf(activeVehicle)`, and `archipelago.ts` plays for islands/harbors the role `districts.ts` plays for buildings. See `docs/architecture/v6-multivehicle.md`.
 
 ## Rendering and performance
 - `dpr` clamped to [1, 1.5] in high quality, 1 in reduced. `PerformanceMonitor` flips to reduced automatically when the frame rate drops; the HUD button toggles it manually.
@@ -67,6 +68,7 @@ HUD / Panel / Menu ──► subscribe to store slices (React re-renders only on
 - One draw call each for trees (×2), lamp posts, lamp heads and each window grid (`InstancedMesh`).
 - No post-processing, no textures or models loaded from the network. The only textures are canvas-rendered signs.
 - Fog colour = background colour so the island edge dissolves.
+- V6: the ocean is one non-uniform grid (dense where the boat sails, coarse to the horizon) displaced in the vertex shader by the same Gerstner table the boat floats on; no reflection pass, no depth texture (`docs/art-direction/v6-ocean-harbor.md`).
 
 ## Scene readiness and context loss (sprint 02)
 - `FirstFrameSignal` flips `sceneReady` on the second `useFrame` callback, i.e. after the first frame has really been rendered; the loading overlay is removed only then.

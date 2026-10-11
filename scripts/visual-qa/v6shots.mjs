@@ -44,6 +44,7 @@ const hold = async (key, ms) => {
   await page.keyboard.up(key);
 };
 
+try {
 // 1. Island in the sea
 await photo([-10, 120, 125], [-25, 0, -5], 56);
 await shot("01-aerial-island", 1000);
@@ -123,5 +124,9 @@ await page.keyboard.press("Escape");
 await photo([-135, 30, 80], [-178, 0, 30], 50);
 await shot("21-island-aerial", 900);
 await follow();
+} catch (e) {
+  await page.screenshot({ path: `${out}/${prefix}-zz-failure.png` });
+  console.error("FAILED:", e.message, JSON.stringify(await vehicle()), JSON.stringify(await boat()));
+}
 writeFileSync(`${out}/${prefix}-stats.json`, JSON.stringify(stats, null, 1));
 await browser.close();

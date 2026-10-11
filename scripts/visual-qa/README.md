@@ -1,4 +1,4 @@
-# Visual QA scripts (V3 + V4 + V5)
+# Visual QA scripts (V3 + V4 + V5 + V6)
 
 All scripts drive a production build with Playwright's Chromium + SwiftShader and the in-page probe `window.__pauWorld` (photo mode, teleport, quality lock, renderer stats, fps sampler). Start the build first:
 
@@ -22,5 +22,7 @@ pnpm build && pnpm exec next start -p 3101
 | `v4drive.mjs <outDir> [base] [--quality q]` | V4: hard brake (skid marks + brake lights), fast turn, off-road dust, canopy sway pair |
 | `v5shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V5: campus set (island aerial, campus aerials, access, hall, plaza, four labs, prompt, campus/lab panels, menu) + `*-stats.json` |
 | `v4perf.mjs [base] [--label name] [--base-only]` | V4: five performance scenarios (world, one tree, several trees, prolonged driving, repeated restorations); `--base-only` for a build without destructible trees |
+| `v6shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V6: island in the sea, west coast, harbor approach/quay/pier, boarding prompt, moored boat, boarding transition, boat turnaround (rear/side/three-quarter/top), sailing, turning, wake, second island ahead, docking prompt, moored, POI panel, island aerial; every vehicle change goes through the real E key |
+| `v6perf.mjs [base] [--label name]` | V6: city driving (3 tiers, comparable with v4perf "world"), harbor view, open-sea sailing with wake (3 tiers), a transition round trip with counters before/after, and quality cycles while sailing |
 
 SwiftShader numbers are software rendering: use them for relative comparisons only, never as hardware performance.

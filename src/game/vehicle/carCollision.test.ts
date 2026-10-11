@@ -60,6 +60,14 @@ describe("drive area (V6): platform plus harbor quay", () => {
     // The seam between platform and quay is continuous: a point on the platform edge inside the quay band is free.
     expect(clampToDriveArea(-62.5, 2, CAR_RADIUS).boundary).toBe(false);
   });
+  it("drives from the platform onto the quay without getting caught on the seam", async () => {
+    const { constrainCar } = await import("@/game/world/obstacles");
+    const { stepCar, createCarState } = await import("./carPhysics");
+    let s = createCarState(-46, 0, -Math.PI / 2);
+    for (let t = 0; t < 6; t += 1 / 60) s = stepCar(s, { throttle: 1, steer: 0, brake: false }, 1 / 60, undefined, constrainCar);
+    expect(s.x).toBeLessThan(-66);
+    expect(s.x).toBeGreaterThan(-74);
+  });
   it("the harbor road reaches the quay and the cabin collides", async () => {
     const { distanceToRoad } = await import("@/data/world");
     const { obstacles, HARBOR_CABIN, CAR_RADIUS } = await import("@/game/world/obstacles");
