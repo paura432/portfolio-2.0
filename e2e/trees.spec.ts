@@ -21,10 +21,14 @@ async function aimAt(page: Page, tree: TreeInfo, start: [number, number]) {
   await page.waitForTimeout(300);
 }
 
+/** Two rendered frames (R3F renders on rAF): under software rendering a fixed delay may hold no frame at all. */
+const twoFrames = (page: Page) => page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+
 /** Fixed camera on the tree; mean pixel difference between two captures (0..255), computed in-page. */
 async function captureTree(page: Page, tree: TreeInfo) {
   await page.evaluate(({ x, z }) => window.__pauWorld!.photo({ position: [x + 7, 3.4, z + 5], target: [x, 1.6, z], fov: 44 }), { x: tree.x, z: tree.z });
   await page.waitForTimeout(500);
+  await twoFrames(page);
   const png = await page.screenshot({ clip: { x: 300, y: 120, width: 680, height: 460 } });
   await page.evaluate(() => window.__pauWorld!.photo(null));
   return png.toString("base64");
@@ -53,6 +57,8 @@ async function meanDiff(page: Page, a: string, b: string): Promise<number> {
 }
 
 test.describe("destructible trees", () => {
+  // Software rendering with the V7 scene runs under 2 fps; the tier cycle and the three capture comparisons need the room.
+  test.setTimeout(150_000);
   test("drive into a tree: it falls, the car drives on, quality changes keep it down, reset regrows it", async ({ page }) => {
     const errors = collectErrors(page);
     await startGame(page);
@@ -114,6 +120,7 @@ test.describe("destructible trees", () => {
       await toggle.click();
       await expect(toggle).toHaveAttribute("data-quality", q);
       await page.waitForTimeout(300);
+      await twoFrames(page);
       const t = await state(page, tree.id);
       expect(t.phase, `still fallen at ${q}`).toBe("fallen");
       expect(t.angle).toBe(s.angle);

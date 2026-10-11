@@ -32,7 +32,7 @@ test.describe("mobile viewport", () => {
     await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2); // tap registers pointerdown/up
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(2500); // under 2 fps (SwiftShader, V7 scene) the clamped physics step needs the longer hold
     await page.mouse.up();
     await expect.poll(() => page.evaluate(() => window.__pauWorld?.car().z ?? NaN)).toBeLessThan(before - 1);
 
