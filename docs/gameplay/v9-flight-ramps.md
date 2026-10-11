@@ -7,7 +7,7 @@ Status: iteration 1.
 | Ramp | Where | Approach → slope → lip | Launches over |
 |---|---|---|---|
 | West City Ramp | south-west turf, from (−53, 10) south | 22 u flat, 22 u slope to 5.5 u, lip at z = 54 | the south turf edge, then the sea |
-| Campus Ramp | east strip below the 4Geeks campus, from (53, −42) south | 12 u flat, 22 u slope to 5.5 u, lip at z = −8 | the east cross road and the island's south half |
+| Campus Ramp | east strip below the 4Geeks campus, from (53, −42) south; the campus plaza's west strip (x 50–52) north of the entry is the lining-up zone (`deployLead` 10 u) | 14.5 u flat, 22 u slope to 5.5 u, lip at z = −5.5 (iteration 5; was 12 u / −8) | the east cross road and the island's south half |
 | Skyport Ramp | the runway's east end, from the pad (124, −9) east | 50 u runway, 20 u slope to 5 u, lip at x = 194 | the open sea |
 
 These are the only slopes in the world besides the beaches: nothing else rises above the platform, so a street can never be mistaken for a ramp.
@@ -18,4 +18,4 @@ These are the only slopes in the world besides the beaches: nothing else rises a
 
 ## Verification
 
-`rampRuns.test.ts` drives each of the three ramps from 4 u before its entry with W held, against the real colliders: the corridor is reachable and clear every 0.5 u at three lateral offsets; the states appear in order; the launch fires at the lip at ≥ 14 u/s; the ground under the car really reached ≥ 90 % of the lip height; what lies beyond each lip is water or landable ground and a slow hop lands on solid ground. The West City Ramp is flown end to end in the browser (`e2e/transformer.spec.ts`). Campus and Skyport browser flights: iteration 2.
+`rampRuns.test.ts` drives each of the three ramps from 4 u before its rule zone, 2 u off the centre line with the helm on the centre line (the free lane beside a building's padding), W held, against the real colliders: the corridor is reachable and clear every 0.5 u at three lateral offsets; the states appear in order; the launch fires at the lip at ≥ 14 u/s; the ground under the car really reached ≥ 90 % of the lip height; what lies beyond each lip is water or landable ground and a slow hop lands on solid ground. All three are flown end to end in the browser: the West City Ramp in `e2e/transformer.spec.ts`, the Campus and Skyport Ramps in `e2e/ramps.spec.ts` (iteration 5). The lining-up lead exists because the wings need 1.7 s: at the car's top speed that is 34 u, and a corridor shorter than ~40 u from its entry to the lip (the Campus Ramp's 36.5 u) cannot absorb a slow frame; the lead lets the rule start where the player lines up, while the rails, the deck and the colliders are unchanged.

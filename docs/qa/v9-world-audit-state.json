@@ -4,7 +4,7 @@
   "baseSha": "9f93b38",
   "baseBranch": "integration/v8-editorial-final-qa",
   "headSha": "pending",
-  "iteration": 4,
+  "iteration": 5,
   "maxIterations": 12,
   "phase": "5-correction-cycle",
   "status": "IN_PROGRESS",
@@ -33,7 +33,7 @@
         "enterDepthAlong": 11.5,
         "exitDepthAlong": 9.7,
         "carToBoat": "PASS-unit(3 points)+PASS-e2e(centre)",
-        "boatToCar": "PASS-unit(3 points)",
+        "boatToCar": "PASS-unit(3 points)+PASS-e2e (beaches.spec, west third)",
         "blockers": 0
       },
       {
@@ -42,7 +42,7 @@
         "width": 28,
         "enterDepthAlong": 11.5,
         "exitDepthAlong": 9.7,
-        "carToBoat": "PASS-unit(3 points)",
+        "carToBoat": "PASS-unit(3 points)+PASS-e2e (beaches.spec)",
         "boatToCar": "PASS-unit(3 points)+PASS-e2e",
         "blockers": 0
       },
@@ -52,8 +52,8 @@
         "width": 26,
         "enterDepthAlong": 10.2,
         "exitDepthAlong": 8.7,
-        "carToBoat": "PASS-unit(3 points)",
-        "boatToCar": "PASS-unit(3 points)",
+        "carToBoat": "PASS-unit(3 points)+PASS-e2e (beaches.spec)",
+        "boatToCar": "PASS-unit(3 points)+PASS-e2e (beaches.spec)",
         "blockers": 0
       }
     ],
@@ -83,13 +83,14 @@
         ],
         "lip": [
           53,
-          -8
+          -5.5
         ],
         "lipDeg": 21.8,
         "corridorClear": true,
         "unitRun": "PASS",
-        "e2e": "NOT VERIFIED",
-        "beyondLip": "pavement, road, turf"
+        "e2e": "PASS (ramps.spec: plaza entry, launch, flight, landing on the south turf, car)",
+        "beyondLip": "pavement, road, turf",
+        "note": "V9 it5: slope moved 2.5 u south, approach 14.5 u (the slot between the east ring road and the AI Workflow lab is one ramp wide; the old 12 u approach gave 2 u of run-up)"
       },
       {
         "id": "skyport-ramp",
@@ -104,7 +105,7 @@
         "lipDeg": 21.8,
         "corridorClear": true,
         "unitRun": "PASS",
-        "e2e": "NOT VERIFIED",
+        "e2e": "PASS (ramps.spec: runway run-up, launch over the sea, landing on the causeway / apron strip, car)",
         "beyondLip": "slab then sea"
       }
     ],
@@ -279,6 +280,27 @@
         "status": "FIXED",
         "iteration": 4,
         "evidence": "VehicleController PHYSICS_FRAME_CLAMP; beach loop 24/24 ×2"
+      },
+      {
+        "id": "RMP-01",
+        "title": "Campus Ramp approach too short: launch only from one staging spot (lab padding 3 u north of the corridor entry)",
+        "status": "FIXED",
+        "iteration": 5,
+        "evidence": "node run-ups (launch margin 2–5 u from a standing start at the entry, ~10 u rolling), ramps.spec Campus 1/1, ramps.test corridor clearance 1.5 u from the road kept"
+      },
+      {
+        "id": "SEA-01",
+        "title": "a hull scraping the coast could not turn its bow away: stepBoat halved the yaw rate on every contact",
+        "status": "FIXED",
+        "iteration": 5,
+        "evidence": "beachRuns.test.ts 'helm keeps working on contact' (turn away + leave, slide along the coast); beaches.spec"
+      },
+      {
+        "id": "RMP-02",
+        "title": "Campus Ramp corridor (36.5 u entry→lip) leaves 2.5 u of margin for the 1.7 s wing deployment at top speed; one slow frame aborts the takeoff",
+        "status": "FIXED",
+        "iteration": 5,
+        "evidence": "ramps.deployLead (campus 10 u: the plaza strip is the lining-up zone, colliders untouched) + the sequence clock seeded in the deploy frame (no one-frame lag at low fps); ramps.spec Campus in runs F, G"
       }
     ],
     "P2": [
@@ -324,6 +346,11 @@
         "id": "V8-P2-01",
         "title": "stale impact toast after a body change",
         "status": "OPEN"
+      },
+      {
+        "id": "SEA-02",
+        "title": "a hull driven full-throttle into the 90° corner between a bay wall and the coast stays there while W is held (the stuck nudge cannot overcome the helm)",
+        "status": "OPEN (ordinary wall geometry; noted for the boat-side sweep)"
       }
     ],
     "P3": [
@@ -344,12 +371,11 @@
     "typecheck": "PASS",
     "unit": {
       "files": 48,
-      "tests": 290,
+      "tests": 292,
       "new": [
-        "fixtures.test.ts",
-        "propWorld.test.ts iteration-4 categories",
-        "rampColliders.test.ts lip phase sweep",
-        "wedge sweep probes 8 directions"
+        "beachRuns.test.ts SEA-01 helm tests",
+        "rampRuns from the free lane with centre-line steering",
+        "rampColliders lip sweep"
       ]
     },
     "build": "PASS",
@@ -368,7 +394,18 @@
       "it4FullRunB1": "24/24",
       "it4FullRunB2": "23/24 (ramp: end-face rule bumped a car leaving the lip → leaving cars exempt)",
       "it4FullRunC1": "24/24 (9.0 min)",
-      "it4FullRunC2": "24/24 (8.0 min)"
+      "it4FullRunC2": "24/24 (8.0 min)",
+      "rampsSpec": "2/2 PASS (Campus, Skyport)",
+      "beachesSpec": "1/1 PASS (East in, Skyport out+in, South west third out)",
+      "it5FullRun1": "25/27 (beaches first-test load; Skyport strip assertion)",
+      "it5FullRun2": "pending",
+      "it5FullRunA": "26/27 (V8 ramp flight leg: bank overshoot at low fps → roll-damped helm)",
+      "it5FullRunB": "27/27",
+      "it5FullRunC": "25/27 (Campus margin 2.5 u at top speed → lining-up lead + clock seeding; bush toast race → event log)",
+      "it5FullRunD": "26/27 (bush pass-through 8 s budget → suite default)",
+      "it5FullRunE": "26/27 (signpost step under load 15 min; diagnostics added)",
+      "it5FullRunF": "27/27 (14.4 min, two other sessions sharing the machine)",
+      "it5FullRunG": "27/27 (14.6 min)"
     }
   },
   "evidence": {
@@ -408,9 +445,8 @@
   "blockers": [],
   "nextIteration": [
     "CAM-01 camera obstacle avoidance (P1)",
-    "browser coverage: Campus Ramp, Skyport Ramp, Skyport Beach (B8, A7)",
-    "COL-06/07/08, GEO-01/03/04 (P2/P3)",
-    "v9shots 16-24 + perf re-measure"
+    "captures of the moved Campus Ramp and the Skyport launch",
+    "boat-side wedge sweep (SEA-02), P2 collision notes"
   ],
   "history": [
     {
@@ -436,7 +472,13 @@
       "date": "2026-10-11",
       "summary": "COL-02, COL-03, DES-01, DES-02 closed: bollards, bushes, signposts and masts destructible with colliders (fixtures.ts shares positions with the components; DynamicFixture tilts the drawn posts); furniture particles; bushes yield at walking pace and props yield to a car centred inside them; sweep probes 8 directions (0 wedges); found and fixed under load: sequence-clock clamp (PHY-01) and the lip end-face bump (NAV-02); bushes yield to any forward motion; probe records vehicle state transitions and prop events so the specs assert sequences, not samples",
       "commit": "pending"
+    },
+    {
+      "iteration": 5,
+      "date": "2026-10-11",
+      "summary": "browser coverage closed for every ramp (Campus, Skyport) and every beach direction (East in, Skyport out/in, South west third out); Campus Ramp approach lengthened (RMP-01); boat helm works on coast contact (SEA-01); shared e2e/flight.ts helpers; telemetry gained beach/ramp/depth; under load the suite also found: bank overshoot in the shared flight helm (roll-damped), the Campus takeoff margin (lead zone + clock seeding, RMP-02), toast races (event log)",
+      "commit": "see git log (iteration 5)"
     }
   ],
-  "lastValidatedSha": "e4d954a"
+  "lastValidatedSha": "3ab048b"
 }

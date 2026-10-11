@@ -20,6 +20,12 @@ export interface RampDefinition {
   heading: number;
   /** Flat approach before the slope (part of the corridor: deployment may start here). */
   approach: number;
+  /**
+   * How far before the approach the ramp rule already treats an aligned car as "lined up" (prepare / deploy may
+   * start there). The wings need 1.7 s; at the car's top speed that is 34 u, so a corridor shorter than ~40 u
+   * from its entry to the lip needs a lead. Colliders, rails and the drawn deck are unaffected.
+   */
+  deployLead?: number;
   /** Slope length and lip height. */
   length: number;
   height: number;
@@ -44,10 +50,16 @@ export const ramps: RampDefinition[] = [
   {
     id: "campus-ramp",
     name: "Campus Ramp",
-    // East strip below the 4Geeks campus, launching south over the causeway road.
-    start: [53, -30],
+    // East strip below the 4Geeks campus, launching south over the east cross road. The slot between the east ring
+    // road and the AI Workflow lab is exactly one ramp wide, so the corridor cannot shift sideways; V9 moved the
+    // slope 2.5 u south and lengthened the approach to 14.5 u (the lip keeps the 1.5 u sidewalk clearance from the
+    // road's asphalt); a car at rest at the corridor entry still launches, a rolling entry has ample margin.
+    start: [53, -27.5],
     heading: 0,
-    approach: 12,
+    approach: 14.5,
+    // The campus plaza's west strip north of the entry is the lining-up zone: 36.5 u from the entry to the lip is
+    // 2.5 u more than the wings need at top speed, which one slow frame can eat.
+    deployLead: 10,
     length: 22,
     height: 5.5,
     width: 7,
@@ -99,6 +111,18 @@ export function rampSlopeAt(r: RampDefinition, s: number): number {
 export function insideRampCorridor(r: RampDefinition, x: number, z: number, margin = 0): boolean {
   const l = rampLocal(r, x, z);
   return Math.abs(l.lateral) <= r.width / 2 + margin && l.s >= -r.approach - margin && l.s <= r.length + margin;
+}
+
+/** The ramp rule's zone: the corridor plus the ramp's lining-up lead before the approach. */
+export function insideRampZone(r: RampDefinition, x: number, z: number): boolean {
+  const l = rampLocal(r, x, z);
+  return Math.abs(l.lateral) <= r.width / 2 && l.s >= -r.approach - (r.deployLead ?? 0) && l.s <= r.length;
+}
+
+/** Ramp whose rule zone contains (x, z). */
+export function rampZoneAt(x: number, z: number): RampDefinition | null {
+  for (const r of ramps) if (insideRampZone(r, x, z)) return r;
+  return null;
 }
 
 /** On the slope itself (the part with height). */

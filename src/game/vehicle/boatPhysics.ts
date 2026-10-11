@@ -139,13 +139,16 @@ export function stepBoat(state: BoatState, input: DriveInput, dt: number, config
     }
     const vn = s.vx * nx + s.vz * nz;
     const into = vn < 0 ? -vn : 0;
+    // The helm keeps working while the hull scrapes along a wall (V9: halving the yaw rate on every contact pinned
+    // a hull steered into the coast, its bow unable to turn away); only a hard head-on hit knocks the yaw down.
+    const headOn = into > 0.6 * Math.max(1, boatSpeed(s));
     s = {
       ...s,
       x: c.x,
       z: c.z,
       vx: vn < 0 ? s.vx - vn * nx * (1 + config.restitution) : s.vx,
       vz: vn < 0 ? s.vz - vn * nz * (1 + config.restitution) : s.vz,
-      yawRate: s.yawRate * 0.5,
+      yawRate: headOn ? s.yawRate * 0.5 : s.yawRate,
       bump: Math.max(s.bump, into),
     };
   }

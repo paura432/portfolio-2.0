@@ -25,6 +25,7 @@ import {
   BOAT_ENTER_DEPTH,
   boatVelocityFromCar,
   carSpeedFromBoat,
+  DURATION,
   hopVelocity,
   LANDING_ROLL_SPEED,
   launchPose,
@@ -266,7 +267,11 @@ export function Vehicle() {
       const decision = store.phase === "playing" ? rs.decision : null;
       if (decision === "prepare") store.setVehicleState("preparing-flight");
       else if (decision === "clear") store.setVehicleState("car");
-      else if (decision === "deploy") store.setVehicleState("transforming-to-plane");
+      else if (decision === "deploy") {
+        // Seed the sequence clock now: the controller (which runs before this) would otherwise start it a frame
+        // late, 0.1 s of physics at low frame rates, i.e. two car lengths of the corridor.
+        if (store.setVehicleState("transforming-to-plane")) liveVehicle.clock = { state: "transforming-to-plane", t: 0, duration: DURATION["transforming-to-plane"] };
+      }
       else if (decision === "abort") {
         if (store.setVehicleState("transforming-to-car")) notice(pastLip ? (next.speed < TAKEOFF_SPEED ? "Too slow to take off" : "Wings were not out in time") : "Takeoff aborted: keep speed up the ramp");
       } else if (decision === "launch") {
@@ -425,7 +430,8 @@ export function Vehicle() {
 
     jolt.current = Math.max(0, jolt.current - dt * 2.2);
     if (debugLog.enabled) {
-      debugLog.sample({ t: clock.elapsedTime, state, authority, mode: store.phase === "playing" ? (store.transition ? store.transition.kind : store.mooredAt ? "moored" : state) : "paused", x: px, y: py, z: pz, heading, speed: authority === "car" ? liveCar.state.speed : authority === "boat" ? boatSpeed(liveBoat.state) : livePlane.state.speed, throttle: input.throttle, steer: input.steer, brake: input.brake, driving, phase: store.phase, blocked: debugLog.frameContacts > 0 });
+      const st = useGameStore.getState();
+      debugLog.sample({ t: clock.elapsedTime, state, authority, mode: store.phase === "playing" ? (store.transition ? store.transition.kind : store.mooredAt ? "moored" : state) : "paused", x: px, y: py, z: pz, heading, speed: authority === "car" ? liveCar.state.speed : authority === "boat" ? boatSpeed(liveBoat.state) : livePlane.state.speed, throttle: input.throttle, steer: input.steer, brake: input.brake, driving, phase: store.phase, blocked: debugLog.frameContacts > 0, beach: st.nearbyBeach, ramp: st.nearbyRamp, depth: authority === "plane" ? 0 : sampleGround(px, pz, heading).depth });
     }
     if (!g) return;
     g.position.set(px, py, pz);

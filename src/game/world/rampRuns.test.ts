@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rampPoint, ramps } from "@/data/ramps";
+import { rampLocal, rampPoint, ramps } from "@/data/ramps";
 import { CAR_CONFIG, createCarState, stepCar, type Constrain } from "../vehicle/carPhysics";
 import { rampStep } from "../vehicle/rampRun";
 import { DEPLOY_SPEED, DURATION, launchPose, TAKEOFF_SPEED, type VehicleState } from "../vehicle/transformer";
@@ -38,8 +38,11 @@ describe("V9 flight ramps: every inventoried ramp", () => {
         }
       }
     });
-    it(`${r.id}: driven from its entry with W held, the car prepares, deploys its wings and launches at the lip with takeoff speed, following the real slope`, () => {
-      const [ex, ez] = rampPoint(r, -r.approach - 4, 0);
+    it(`${r.id}: driven from before its rule zone with W held and the helm on the centre line, the car prepares, deploys its wings and launches at the lip with takeoff speed, following the real slope`, () => {
+      // Start 4 u before the rule zone (approach + lining-up lead), 2 u left of the centre line (the free lane beside
+      // a building's padding, as on the Campus Ramp), steering to the centre with a 10 u lookahead like the E2E driver.
+      const [ex, ez] = rampPoint(r, -r.approach - (r.deployLead ?? 0) - 4, -2);
+      const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
       let car = createCarState(ex, ez, r.heading);
       let state: VehicleState = "car";
       let onRamp: (typeof ramps)[number]["id"] | null = null;
@@ -51,7 +54,10 @@ describe("V9 flight ramps: every inventoried ramp", () => {
       let blocked = false;
       for (let i = 0; i < 60 * 20 && !launch; i++) {
         const prev = car;
-        car = stepCar(car, { throttle: 1, steer: 0, brake: false }, 1 / 60, CAR_CONFIG, constrainVehicle);
+        const l = rampLocal(r, car.x, car.z);
+        const [tx, tz] = rampPoint(r, l.s + 10, 0);
+        const err = wrap(Math.atan2(tx - car.x, tz - car.z) - car.heading);
+        car = stepCar(car, { throttle: 1, steer: Math.abs(err) < 0.08 ? 0 : err > 0 ? -1 : 1, brake: false }, 1 / 60, CAR_CONFIG, constrainVehicle);
         if (car.speed < prev.speed - 1) blocked = true;
         maxGround = Math.max(maxGround, groundHeightAt(car.x, car.z));
         if (state === "transforming-to-plane") {

@@ -1,4 +1,4 @@
-import { getRamp, rampAt, rampLocal, rampSlopeAt, type RampDefinition, type RampId } from "@/data/ramps";
+import { getRamp, rampLocal, rampSlopeAt, rampZoneAt, type RampDefinition, type RampId } from "@/data/ramps";
 import { rampUnder } from "../world/ground";
 import { RAMP_ALIGN, rampDecision, type RampDecision, type VehicleState } from "./transformer";
 
@@ -50,7 +50,7 @@ export function rampStep(i: RampStepInput): RampStepResult {
     }
     onRamp = null;
   }
-  const corridor = rampAt(i.x, i.z);
+  const corridor = rampZoneAt(i.x, i.z);
   const aligned = corridor ? Math.abs(wrap(i.heading - corridor.heading)) < RAMP_ALIGN && i.speed > 0 : false;
   const decision = rampDecision({ state: i.state, inCorridor: corridor !== null, aligned, speed: i.speed, pastLip, deployed: i.wings >= 0.999, sinceLast: i.sinceLast });
   return { onRamp, pastLip, lipSlope, corridor, aligned, decision };

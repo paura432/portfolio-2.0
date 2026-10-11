@@ -25,6 +25,10 @@ export interface VehicleSample {
   /** Contacts resolved during this frame's physics. */
   contacts: number;
   blocked: boolean;
+  /** Beach / ramp the store names this frame, water depth under the body. */
+  beach: string | null;
+  ramp: string | null;
+  depth: number;
 }
 
 export interface ContactSample {

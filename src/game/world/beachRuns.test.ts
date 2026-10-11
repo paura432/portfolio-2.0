@@ -121,3 +121,34 @@ describe("V9 universal beaches: boat → car at several points of every beach", 
     }
   });
 });
+
+describe("V9 hull against the coast: the helm keeps working on contact (SEA-01)", () => {
+  const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+  it("a hull pushed bow-first into the coast beside South Beach turns away under full helm and leaves the wall", () => {
+    // Start just off the coast west of the bay, pointing into the land at a shallow angle, W held.
+    let boat = createBoatState(2, 77.5, Math.PI - 0.6); // heading ≈ north-west into the coast
+    for (let i = 0; i < 60 * 3; i++) boat = stepBoat(boat, { throttle: 1, steer: 0, brake: false }, 1 / 60, undefined, constrainBoat);
+    expect(boat.bump).toBeGreaterThan(0); // pressed against the coast
+    const pinnedAt: [number, number] = [boat.x, boat.z];
+    // Full helm to starboard (away from the land, toward the open sea), throttle held: the bow must come round.
+    let turned = false;
+    for (let i = 0; i < 60 * 6 && !turned; i++) {
+      boat = stepBoat(boat, { throttle: 1, steer: 1, brake: false }, 1 / 60, undefined, constrainBoat);
+      if (Math.abs(wrapA(boat.heading - (Math.PI - 0.6))) > 1.2) turned = true;
+    }
+    expect(turned, `bow came round (heading ${boat.heading.toFixed(2)})`).toBe(true);
+    // And the hull gets clear of the coast: 6 u from where it was pinned within a few seconds.
+    let away = false;
+    for (let i = 0; i < 60 * 6 && !away; i++) {
+      boat = stepBoat(boat, { throttle: 1, steer: 0, brake: false }, 1 / 60, undefined, constrainBoat);
+      if (Math.hypot(boat.x - pinnedAt[0], boat.z - pinnedAt[1]) > 6) away = true;
+    }
+    expect(away).toBe(true);
+  });
+  it("a hull scraping along the coast at a shallow angle keeps sliding instead of stopping", () => {
+    let boat = createBoatState(-20, 76.0, Math.PI / 2 + 0.25); // mostly east, drifting into the south coast
+    const x0 = boat.x;
+    for (let i = 0; i < 60 * 4; i++) boat = stepBoat(boat, { throttle: 1, steer: 0, brake: false }, 1 / 60, undefined, constrainBoat);
+    expect(boat.x - x0).toBeGreaterThan(10);
+  });
+});

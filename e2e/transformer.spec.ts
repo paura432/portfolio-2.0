@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { car, collectErrors, holdKeyUntil, startGame } from "./helpers";
 
 /**
@@ -10,48 +10,7 @@ import { car, collectErrors, holdKeyUntil, startGame } from "./helpers";
  * enter depth), sail round to East Beach and drive out (wheels down at the
  * exit depth).
  */
-type V = { state: string; authority: string; body: string; x: number; y: number; z: number; heading: number; speed: number; nearbyRamp: string | null; nearbyBeach: string | null; landingZone: boolean; progress: number };
-const vehicle = (page: Page): Promise<V> => page.evaluate(() => window.__pauWorld!.vehicle());
-const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
-
-/** Shared steering loop for the air and the water: A/D toward `target()`, W/S toward `altitude` (air only). */
-async function steer(page: Page, target: (v: V) => [number, number], altitude: number | null, done: (v: V) => boolean, timeoutMs: number, forward: "KeyW" | null = null): Promise<boolean> {
-  const start = Date.now();
-  let bank: "KeyA" | "KeyD" | null = null;
-  let pitchKey: "KeyW" | "KeyS" | null = null;
-  if (forward) await page.keyboard.down(forward);
-  try {
-    while (Date.now() - start < timeoutMs) {
-      const v = await vehicle(page);
-      if (done(v)) return true;
-      const [tx, tz] = target(v);
-      const err = wrap(Math.atan2(tx - v.x, tz - v.z) - v.heading);
-      const nextBank: "KeyA" | "KeyD" | null = Math.abs(err) < 0.08 ? null : err > 0 ? "KeyA" : "KeyD";
-      if (nextBank !== bank) {
-        if (bank) await page.keyboard.up(bank);
-        if (nextBank) await page.keyboard.down(nextBank);
-        bank = nextBank;
-      }
-      if (altitude !== null) {
-        const dy = altitude - v.y;
-        const nextPitch: "KeyW" | "KeyS" | null = dy > 3 ? "KeyW" : dy < -3 ? "KeyS" : null;
-        if (nextPitch !== pitchKey) {
-          if (pitchKey) await page.keyboard.up(pitchKey);
-          if (nextPitch) await page.keyboard.down(nextPitch);
-          pitchKey = nextPitch;
-        }
-      }
-      await page.waitForTimeout(120);
-    }
-    return false;
-  } finally {
-    if (bank) await page.keyboard.up(bank);
-    if (pitchKey) await page.keyboard.up(pitchKey);
-    if (forward) await page.keyboard.up(forward);
-  }
-}
-const flyTo = (page: Page, t: [number, number], altitude: number, radius: number, timeoutMs = 60_000) => steer(page, () => t, altitude, (v) => Math.hypot(t[0] - v.x, t[1] - v.z) < radius, timeoutMs);
-const sailTo = (page: Page, t: [number, number], radius: number, timeoutMs = 90_000) => steer(page, () => t, null, (v) => Math.hypot(t[0] - v.x, t[1] - v.z) < radius, timeoutMs, "KeyW");
+import { flyTo, sailTo, steer, vehicle } from "./flight";
 
 test.describe("PAU TRANSFORMER-X", () => {
   test.setTimeout(480_000);

@@ -238,9 +238,10 @@ test.describe("V9 destructible street furniture", () => {
     const flattened = await holdKeyUntil(page, "KeyW", async () => (await phase(page, bush.id)) === "down");
     expect(flattened).toBe(true);
     expect((await state(page, bush.id)).squash).toBeLessThan(0.3);
-    await expect(page.getByTestId("impact-toast")).toContainText("Bush flattened");
+    const flattens = await page.evaluate(() => window.__pauWorld!.props.events().filter((e) => e.type === "flatten"));
+    expect(flattens.some((e) => e.id === bush.id), "a flatten event for this bush (the toast may be overwritten by the next contact)").toBe(true);
     expect(await collider(page, bush.id)).toBeNull();
-    const through = await holdKeyUntil(page, "KeyW", async () => (await car(page)).x < bush.x - 0.5, 8_000);
+    const through = await holdKeyUntil(page, "KeyW", async () => (await car(page)).x < bush.x - 0.5);
     expect(through, "drove through the flattened bush").toBe(true);
 
     // The plaza's south signpost: heavy, falls only from a fast hit; its panels go with the post.
@@ -251,7 +252,17 @@ test.describe("V9 destructible street furniture", () => {
     expect(await phase(page, sign.id)).toBe("wobbling");
     await expect.poll(() => phase(page, sign.id), { timeout: 10_000 }).toBe("standing");
     await aimAt(page, sign, [sign.x, sign.z + 9], 1.3 + 0.2, 3.5);
-    expect(await holdKeyUntil(page, "KeyW", async () => ["falling", "down"].includes(await phase(page, sign.id)))).toBe(true);
+    await page.evaluate(() => {
+      window.__pauWorld!.debug.telemetry(true);
+      window.__pauWorld!.debug.clearLog();
+    });
+    const signFell = await holdKeyUntil(page, "KeyW", async () => ["falling", "down"].includes(await phase(page, sign.id)));
+    if (!signFell) {
+      const samples = await page.evaluate(() => window.__pauWorld!.debug.samples(400));
+      const contacts = await page.evaluate(() => window.__pauWorld!.debug.contactLog(20));
+      const events = await page.evaluate(() => window.__pauWorld!.props.events());
+      throw new Error(`signpost did not fall. phase ${await phase(page, sign.id)}; events ${JSON.stringify(events.slice(-8))}; contacts ${JSON.stringify(contacts.map((c) => [c.what, c.x0.toFixed(1), c.z0.toFixed(1), c.speedBefore.toFixed(1), c.reason]))}\n${samples.filter((_, i) => i % 3 === 0).map((v) => `${v.t.toFixed(2)} x=${v.x.toFixed(1)} z=${v.z.toFixed(1)} v=${v.speed.toFixed(1)} th=${v.throttle} ${v.blocked ? "BLK" : ""}`).join("\n")}`);
+    }
     await expect(page.getByTestId("impact-toast")).toContainText("Signpost knocked over");
     await expect.poll(() => phase(page, sign.id), { timeout: 15_000 }).toBe("down");
     const summary = await page.evaluate(() => window.__pauWorld!.props.summary());

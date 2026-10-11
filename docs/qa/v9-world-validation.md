@@ -14,7 +14,7 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | A4 | Enter by one beach, leave by another | PASS (South → East, real driving) | `e2e/transformer.spec.ts` beach loop (V8, unchanged, green in this run) |
 | A5 | Hysteresis and lockout kept: no mode flapping from waves, a hull drifting along the waterline keeps its form | PASS | `transformer.test.ts` (two depths, direction, lockout, reversal only); `beachRuns.test.ts` "drifting sideways" on every beach; depth is still-water depth (waves ignored by design) |
 | A6 | No invisible blocks at the entries and exits | PASS (3/3) | `beachRuns` asserts no bump on the way down; the audit found 0 trees, 0 lamps, 0 building colliders inside any beach drive rectangle |
-| A7 | Several points per beach stretch verified in the browser | PARTIAL | E2E covers South Beach in (centre) and East Beach out (V8). The nine-point coverage is unit-level; a browser pass over the other beaches is planned for iteration 2 |
+| A7 | Several points per beach stretch verified in the browser | PASS (iteration 5) | `transformer.spec.ts`: South in (centre), East out; `beaches.spec.ts`: East in (30 % of the width), Skyport out (centre) and in (east third), South out (west third). Unit level: nine points per direction |
 
 ### B. Launch ramps
 
@@ -22,12 +22,12 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 |---|---|---|---|
 | B1 | 100 % of the inventoried launch ramps (3) are reachable by car along their whole corridor | PASS (3/3) | `rampRuns.test.ts` "whole corridor reachable and free": every 0.5 u of each corridor at three lateral offsets is inside the drive area, clear of buildings, trees and furniture |
 | B2 | Each has a working physical slope (the car climbs real terrain) | PASS (3/3) | `rampRuns` "driven from its entry": the ground height under the car reaches ≥ 90 % of the lip height before the launch; `ground.test.ts` (V8) |
-| B3 | Wings deploy visibly on the approach / slope before the lip | PASS (3/3 unit, 1/3 browser) | `rampRuns`: states `car → preparing-flight → transforming-to-plane` in order for every ramp; `e2e/transformer.spec.ts` ramp loop (West City Ramp) and the V8 capture `04-wings-deploying` |
-| B4 | Launch at the lip when the conditions hold, with the car's own speed, no teleport | PASS (3/3 unit, 1/3 browser) | `rampRuns`: `launch` decision at the lip with speed ≥ 14 u/s and pitch > 0.12 for every ramp, using the same `rampStep` the vehicle runs; E2E West City Ramp flight |
+| B3 | Wings deploy visibly on the approach / slope before the lip | PASS (3/3 unit, 3/3 browser) | `rampRuns`: states `car → preparing-flight → transforming-to-plane` in order for every ramp; `e2e/transformer.spec.ts` ramp loop (West City Ramp) and the V8 capture `04-wings-deploying` |
+| B4 | Launch at the lip when the conditions hold, with the car's own speed, no teleport | PASS (3/3 unit, 3/3 browser) | `rampRuns`: `launch` decision at the lip with speed ≥ 14 u/s and pitch > 0.12 for every ramp, using the same `rampStep` the vehicle runs; E2E West City Ramp flight |
 | B5 | Wrong entries are controlled (too slow → hop, side entry blocked, no fake flight); a car leaving the lip forward is never bumped by the end face | PASS | `transformer.test.ts`, `rampColliders.test.ts` (lip phase sweep at 8–20 u/s, iteration 4), E2E guards (slow lip hop), ramp E2E 4/4 under CPU load |
-| B6 | Flight, landing and recovery of the car | PASS (browser, West City Ramp) | E2E ramp loop: flight, touchdown on the south turf, roll-out, fold |
+| B6 | Flight, landing and recovery of the car | PASS (browser, all three ramps) | E2E ramp loop: flight, touchdown on the south turf, roll-out, fold |
 | B7 | What lies beyond every lip is water or landable ground; a slow hop lands on solid ground | PASS (3/3) | `rampRuns` "beyond the lip" |
-| B8 | Campus Ramp and Skyport Ramp flown in the browser | NOT VERIFIED | planned iteration 2 (`e2e/ramps.spec.ts`) |
+| B8 | Campus Ramp and Skyport Ramp flown in the browser | PASS (iteration 5) | `e2e/ramps.spec.ts`: Campus (plaza entry, deploy, launch over the cross road, flight, touchdown on the south turf, car), Skyport (runway run-up, launch over the sea, landing on the causeway / apron, car). Campus Ramp geometry corrected first (RMP-01): slope 2.5 u further south, approach 14.5 u |
 
 ### C. Coherent collisions
 
@@ -87,7 +87,7 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | G4 | Performance measured | PASS (SwiftShader, relative) | §3 |
 | G5 | Responsive | PASS (mobile E2E suite) | §2 |
 | G6 | V8 regressions | PASS | the V8 suites (transformer, trees, campus, dialog, smoke, context loss, mobile) in the same full run |
-| G7 | Every beach, every ramp, every category, every collider type reviewed in the browser | PARTIAL | this iteration: lamp / planter / bench / hangar in the browser; beaches and ramps at unit level for all, browser for one each |
+| G7 | Every beach, every ramp, every category, every collider type reviewed in the browser | PASS (iteration 5) | every ramp and every beach direction driven in the browser; every furniture class in `world.spec.ts`; colliders in `navigation.spec.ts` and the overlay captures |
 
 ## 2. Automated checks (iteration 1)
 
@@ -100,6 +100,7 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | `e2e/world.spec.ts` (new) | 3/3: street lamp (1.7 min), planter (41 s), bench (33 s) |
 | Full E2E, run 1 (desktop + mobile, 21 tests, 10.3 min) | 20/21. The one failure is `campus.spec.ts` "keeps driving" (the V5 fixed-time check: 0.37 u of reverse in 1.2 s wall-clock under SwiftShader while the machine was loaded; the same assertion passed in the isolated re-run of the campus spec, 2/2). Not weakened; recorded as the known load-sensitive check from the V7/V8 reports |
 | Full E2E, run 2 | NOT RUN in iteration 1 |
+| Iteration 5 full runs (27 tests: + ramps, beaches) | 25/27, 26/27, 27/27, 25/27, 26/27, 26/27, then **27/27 and 27/27 consecutive** (F 14.4 min, G 14.6 min with two other sessions on the machine). Each failure was reproduced with telemetry and fixed at its root or in the driver: see the state file and `world-polish-report.md` |
 | Iteration 4 full runs (24 tests) | 22/24, 22/24, 23/24, 24/24, 23/24, then **24/24 and 24/24 consecutive** (runs C1 9.0 min, C2 8.0 min). Each failure was reproduced and fixed at the root, none hidden: see `world-polish-report.md` iteration 3 and the state file |
 
 ### The new E2E, step by step (teleports only stage the car; every reaction comes from driving)
@@ -146,6 +147,8 @@ Reading: the destructible furniture costs the city scene +1 006 triangles and 0 
 | `14-colliders-hangar-open-front`, `15-car-inside-hangar` | the hangar's three wall colliders and the car parked inside after driving through the open front | the former invisible facade is gone |
 
 Navigation evidence (iteration 3, `scripts/visual-qa/v9nav.mjs`, HIGH, real keys): `nav-01-duplex-corner-overlay` (the former wedge pose on the sidewalk between the Duplex padding box and a boulevard trunk, overlay on), `nav-02-duplex-corner-contact-normals` (reversing into the facade padding: contact dots and normals, log entries `duplex`, depth 0.018 u), `nav-03-duplex-corner-pivot-out` (W + A pivots the nose along the facade; contacts `tree` below topple speed), `nav-04-duplex-sidewalk-corridor` (the car 19 u down the sidewalk after knocking a boulevard tree at 12 u/s, "Tree knocked down"), `nav-05-duplex-corner-follow-camera` (the follow camera's own framing of the pose: the facade fills the frame and the car is hidden — CAM-01 evidence, also `evidence/cam-01-duplex-corner-camera-inside-building.png`), `nav-06/07-plaza-exit-pocket` (the plaza south exit pocket, out with S + A; contacts `prop`). `nav-log.json` keeps the car pose and the last contacts per frame.
+
+Ramp evidence (iteration 5, `scripts/visual-qa/v9ramps.mjs`, HIGH, real keys from the campus plaza strip): `ramps-01-campus-ramp-from-the-plaza` (the moved slope and its entry beside the AI Workflow lab), `ramps-02-campus-ramp-lip-and-cross-road` (the lip 2 u short of the east cross road's asphalt), `ramps-03-campus-wings-deploying-on-the-approach`, `ramps-04-campus-lip-launch`, `ramps-05-campus-climb-over-the-city`; `ramps-log.json` keeps the vehicle state per frame.
 
 Observation for V9.2 (from `04`): in car form the folded wings and floats read as side pieces along the flanks; the new brief lists this and it is queued there, not changed here.
 

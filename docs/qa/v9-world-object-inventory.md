@@ -19,7 +19,7 @@ Shore profile (centre line of each main-island beach): along 0 → sand (depth �
 | Id | Entry (x, z) | Lip (x, z) | Heading | Approach / slope / lip height | Lip angle | Entry to nearest road | Corridor clear | Beyond the lip |
 |---|---|---|---|---|---:|---:|---|---|
 | `west-ramp` | (−53, 10) | (−53, 54) | +Z (south) | 22 / 22 / 5.5 | 21.8° | 6.5 u | yes (0 buildings, 0 trees, 0 lamps, 0 unreachable samples) | turf 4–10 u, then the skirt and the open sea (depth 3.1) |
-| `campus-ramp` | (53, −42) | (53, −8) | +Z (south) | 12 / 22 / 5.5 | 21.8° | 9.5 u (turf from the ring road corner) | yes | pavement 4 u, the east cross road at 10 u, turf 20–45 u, then the south coast |
+| `campus-ramp` | (53, −42) | (53, −5.5) (V9 it5; was −8) | +Z (south) | 14.5 / 22 / 5.5 (V9 it5; was 12 / 22) | 21.8° | 9.5 u (turf from the ring road corner); the campus plaza's west strip (x 50–52) is the run-up | yes | the east cross road 2 u past the lip (1.5 u sidewalk clearance kept), turf beyond, then the south coast |
 | `skyport-ramp` | (124, −9) = the pad | (194, −9) | +X (east) | 50 (the runway) / 20 / 5 | 21.8° | 0 (on the apron road) | yes | slab 4 u, then the open sea (depth 3.1 from 10 u) |
 
 Gate masts (2 per ramp) and sign posts (1 per ramp): `west-ramp` masts (−57.4, 10) (−48.6, 10), sign (−47.3, 11); `campus-ramp` masts (48.6, −42) (57.4, −42), sign (58.7, −41); `skyport-ramp` masts (124, −4.6) (124, −13.4), sign (125, −14.7). None has a collider yet (see §6).
@@ -87,4 +87,7 @@ Static collider set: 1 round + 25 boxes (V9: 23 boxes before the hangar split an
 | GEO-03 | P2 | Two lamps stand inside the Skyport runway strip, beside the pad road: (120, −13.8), (120, −4.2) | `lampsOnSkyport` | open (destructible now, so no longer a passable ghost; placement to review) |
 | DES-01 | P1 | Only trees were destructible | V8 | **fixed, iteration 4**: lamps, planters, benches (iteration 1), bollards, bushes (flattened), signposts, light masts (iteration 4) all react per category |
 | DES-02 | P2 | No particles for furniture impacts | `ImpactParticles.tsx` | **fixed, iteration 4** (fragments + dust on a knock-over, planter foliage scatter, leaves for a flattened bush, dust on a shove / settle; same pooled meshes) |
+| RMP-01 | P1 | Campus Ramp launched only from one staging spot: the AI Workflow lab's padding sits 3 u north of the corridor entry, so a car had 2 u of run-up before a 12 u approach; the slot between the east ring road and the lab is exactly one ramp wide, so the corridor cannot move sideways | node run-ups (abort with wings 0.99 from 0.5 u closer) | **fixed, iteration 5** (slope 2.5 u south, approach 14.5 u; `ramps.spec.ts`) |
+| SEA-01 | P1 | A hull scraping the coast could not turn away: `stepBoat` halved the yaw rate on every contact | boat trace: heading frozen against the coast | **fixed, iteration 5** (yaw damped only on a hard head-on hit; `beachRuns.test.ts`) |
+| SEA-02 | P2 | A hull driven full-throttle into the 90° corner between a bay wall and the coast stays there while W is held; the stuck nudge (0.8 u) cannot beat the helm | E2E telemetry at (9.5, 77) | open: ordinary wall geometry; candidate for a boat-side sweep |
 | V8-P2-01 | P2 | A stale impact toast can reappear after a body change | V8 report | open (unchanged) |

@@ -50,6 +50,14 @@ Triggered by the third brief ("P0: vehicle stuck in city"), which asked for inst
 
 **Also.** Every plaza-exit bollard pair has a street lamp 0.7 u beside its outer bollard (GEO-04, placement note). The probe now records the vehicle's state transitions (`vehicleStates()`) and the prop events (`props.events()`), so the specs assert the machine's own sequence instead of polled samples and HUD toasts that a later contact can overwrite. The new E2E case for bollard, bush and signpost uses the helpers' 40 s condition-based budget like the rest of the suite (its first 12 s budget timed out under load).
 
+## Iteration 4 (2026-10-12) · browser coverage of every ramp and beach; what the loaded suite taught
+
+**Done.** `e2e/ramps.spec.ts` (Campus from the plaza strip, Skyport from the runway threshold: run-up, deploy, launch, flight, landing, car) and `e2e/beaches.spec.ts` (East Beach in, Skyport Beach out and in, South Beach west third out), with shared helpers in `e2e/flight.ts`. Two geometry / physics findings fixed at the root: the Campus Ramp's approach (RMP-01: slope moved 2.5 u south, 14.5 u approach, the 1.5 u sidewalk clearance kept) and its takeoff margin (RMP-02: a `deployLead` on the plaza strip and the sequence clock seeded in the deploy frame); the boat's helm now works while scraping the coast (SEA-01: the yaw rate was halved on every contact). A hull driven full-throttle into the 90° corner between a bay wall and the coast stays there while W is held (SEA-02, P2: ordinary walls; the stuck nudge cannot beat a held helm).
+
+**Scripted drivers, honestly.** Several failures were the test drivers, not the world: a pursuit target before the lip flipped the helm; a far target sat inside the helm's deadband and the car scraped the deck rail; a hull still running west drifted into the bay's wall while turning north; the flight helm overshot at low frame rates (now damped by the aircraft's real roll); HUD toasts were overwritten by the next contact (the specs now assert the simulation's own event log). Each driver fix is explained in the spec. The Skyport re-entry is staged by a teleport as its own scenario, which the brief allows; every transformation still comes from driving.
+
+**Gate.** Full suite (27 tests) green twice in a row (runs F and G, 14.4 and 14.6 min on a machine shared with two other sessions), after six runs that each surfaced one of the items above.
+
 ## Critical review checkpoints
 
 Recorded at the end of each phase (level designer, technical artist, gameplay engineer, UX designer), with concrete defects. None yet.
