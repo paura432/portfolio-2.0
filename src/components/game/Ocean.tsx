@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { BufferAttribute, BufferGeometry } from "three";
 import { WATER_LEVEL } from "@/data/archipelago";
 import { buildOceanGrid, OCEAN_SPACING } from "@/game/ocean/oceanMesh";
+import { shoreDistanceAt } from "@/game/world/ground";
 import { createOceanMaterial, oceanUniforms } from "@/game/ocean/oceanMaterial";
 import { boatWake } from "@/game/ocean/wake";
 import { oceanClock } from "@/game/ocean/waves";
@@ -30,7 +31,7 @@ export function Ocean() {
   const quality = useGameStore((s) => s.quality);
   const profile = QUALITY_PROFILES[quality];
   const geometry = useMemo(() => {
-    const grid = buildOceanGrid(OCEAN_SPACING[quality]);
+    const grid = buildOceanGrid(OCEAN_SPACING[quality], undefined, undefined, shoreDistanceAt);
     const g = new BufferGeometry();
     g.setAttribute("position", new BufferAttribute(grid.positions, 3));
     g.setAttribute("aShore", new BufferAttribute(grid.shore, 1));

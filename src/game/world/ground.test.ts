@@ -3,7 +3,7 @@ import { WATER_LEVEL } from "@/data/archipelago";
 import { beaches, beachLocal } from "@/data/beaches";
 import { ramps, rampPoint } from "@/data/ramps";
 import { PLATFORM } from "@/data/world";
-import { groundHeightAt, sampleGround, terrainClassAt, waterDepthAt } from "./ground";
+import { groundHeightAt, sampleGround, shoreDistanceAt, terrainClassAt, waterDepthAt } from "./ground";
 
 describe("ground height field", () => {
   it("the city platform is flat at 0, roads read as road, turf as grass, the open sea as sea floor", () => {
@@ -50,5 +50,16 @@ describe("ground height field", () => {
     const b = beaches[0]!;
     expect(groundHeightAt(b.edge.from[0] + 3, PLATFORM.halfSize - 1)).toBe(0);
     expect(waterDepthAt(b.edge.from[0] + 3, PLATFORM.halfSize - 1)).toBeLessThan(0);
+  });
+
+  it("the ocean's shore distance follows the sand inside a beach and the coastline elsewhere", () => {
+    const b = beaches[0]!;
+    const mx = (b.edge.from[0] + b.edge.to[0]) / 2;
+    // Dry sand: negative (land); the waterline: 0; deeper: positive and growing.
+    expect(shoreDistanceAt(mx, b.edge.from[1] + 2)).toBeLessThan(0);
+    const d8 = shoreDistanceAt(mx, b.edge.from[1] + 12);
+    const d16 = shoreDistanceAt(mx, b.edge.from[1] + 16);
+    expect(d16).toBeGreaterThan(d8);
+    expect(shoreDistanceAt(-150, -100)).toBeGreaterThan(40);
   });
 });

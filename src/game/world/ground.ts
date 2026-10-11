@@ -1,4 +1,4 @@
-import { WATER_LEVEL } from "@/data/archipelago";
+import { distanceToCoast, WATER_LEVEL } from "@/data/archipelago";
 import { beachAt, beachHeightAlong, beachLocal, SEA_FLOOR_Y, type BeachDefinition } from "@/data/beaches";
 import { ramps, rampHeightAt, rampLocal, rampSlopeAt, type RampDefinition } from "@/data/ramps";
 import { SKYPORT } from "@/data/skyport";
@@ -95,4 +95,17 @@ export function sampleGround(x: number, z: number, heading: number): GroundSampl
     ramp: ru?.ramp ?? null,
     beach: beachAt(x, z),
   };
+}
+
+/**
+ * Distance to the shore as the ocean sees it: outside the beaches the
+ * coastline polygon; inside a beach the sand itself (three units of
+ * "distance" per unit of water depth), so the foam band, the shallow colour
+ * and the wave damping follow the real waterline on the slope instead of the
+ * bay's outline under water.
+ */
+export function shoreDistanceAt(x: number, z: number): number {
+  const b = beachAt(x, z, 1);
+  if (b) return waterDepthAt(x, z) * 3;
+  return distanceToCoast(x, z);
 }

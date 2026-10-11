@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { ExtrudeGeometry, Object3D, Shape, type Group, type Mesh, type MeshStandardMaterial } from "three";
-import { distanceToCoast, WATER_LEVEL } from "@/data/archipelago";
+import { WATER_LEVEL } from "@/data/archipelago";
 import { getRamp, rampAt, rampLocal, rampSlopeAt } from "@/data/ramps";
 import { inputState } from "@/game/controls/input";
 import { heightAt, oceanClock, shoreDamp } from "@/game/ocean/waves";
@@ -36,7 +36,7 @@ import {
   TAKEOFF_SPEED,
 } from "@/game/vehicle/transformer";
 import { canControl } from "@/game/vehicle/vehicleManager";
-import { rampUnder, sampleGround } from "@/game/world/ground";
+import { rampUnder, sampleGround, shoreDistanceAt } from "@/game/world/ground";
 import { impactBus } from "@/game/world/impactBus";
 import { constrainCar } from "@/game/world/obstacles";
 import { constrainRampBodies } from "@/game/world/rampColliders";
@@ -346,7 +346,7 @@ export function Vehicle() {
         next = { ...prev, vx: 0, vz: 0, yawRate: 0, throttle: 0, bump: 0 };
       }
       liveBoat.state = next;
-      const fp = floatPose(next.x, next.z, next.heading, (x, z) => heightAt(x, z, t, shoreDamp(distanceToCoast(x, z))));
+      const fp = floatPose(next.x, next.z, next.heading, (x, z) => heightAt(x, z, t, shoreDamp(shoreDistanceAt(x, z))));
       const vf = forwardSpeed(next);
       const v = liveBoat.visual;
       v.y = floatDamp(v.y, fp.y + FLOAT_VISUAL.freeboard, FLOAT_VISUAL.heightLambda, dt);
