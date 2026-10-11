@@ -8,6 +8,7 @@ import { QUALITY_PROFILES } from "@/game/render/quality";
 import { stepCar } from "@/game/vehicle/carPhysics";
 import { liveCar } from "@/game/vehicle/carState";
 import { dampTo, isBraking, targetPitch, targetRoll, VISUAL_CONFIG } from "@/game/vehicle/carVisual";
+import { canControl } from "@/game/vehicle/vehicleManager";
 import { impactBus } from "@/game/world/impactBus";
 import { constrainCar } from "@/game/world/obstacles";
 import { treeWorld } from "@/game/world/treeWorld";
@@ -98,14 +99,18 @@ export function Car() {
   const cabinGeometry = useMemo(() => extrude(profile(CABIN_PROFILE), CABIN_WIDTH, 0.04), []);
 
   useFrame(({ clock }, delta) => {
-    const driving = useGameStore.getState().phase === "playing";
+    const store = useGameStore.getState();
+    // V6: only the active vehicle answers to the controls; a parked car stays exactly where it was left.
+    const driving = canControl("car", store.phase, store);
     const dt = Math.min(delta, 0.1);
 
-    // Pause semantics: while a panel or menu is open the car stops dead and ignores input.
+    // Pause semantics: while a panel or menu is open (or the boat is active) the car stops dead and ignores input.
     // Collisions are resolved inside every physics sub-step (see stepCar).
     const next = driving
       ? stepCar(liveCar.state, inputState.drive, delta, undefined, constrainCar)
-      : { ...liveCar.state, speed: 0, steerAngle: 0 };
+      : liveCar.state.speed === 0 && liveCar.state.steerAngle === 0
+        ? liveCar.state
+        : { ...liveCar.state, speed: 0, steerAngle: 0 };
     liveCar.state = next;
 
     const g = group.current;

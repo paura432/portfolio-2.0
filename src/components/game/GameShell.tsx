@@ -8,6 +8,7 @@ import { isWebGLAvailable } from "@/lib/webgl";
 import { useGameStore } from "@/stores/gameStore";
 import { Hud } from "@/components/hud/Hud";
 import { IntroScreen } from "@/components/hud/IntroScreen";
+import { PoiPanel } from "@/components/hud/PoiPanel";
 import { ProjectPanel } from "@/components/hud/ProjectPanel";
 import { ProjectsMenu } from "@/components/hud/ProjectsMenu";
 import { WebGLFallback } from "@/components/hud/WebGLFallback";
@@ -83,6 +84,7 @@ export function GameShell() {
       </div>
 
       {phase === "panel" && <ProjectPanel />}
+      {phase === "panel" && <PoiPanel />}
       {phase === "menu" && <ProjectsMenu />}
     </main>
   );

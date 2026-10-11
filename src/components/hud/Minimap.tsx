@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react";
 import { districts } from "@/data/districts";
 import { PLATFORM, PLAZA, ROADS } from "@/data/world";
-import { liveCar } from "@/game/vehicle/carState";
+import { poseOf } from "@/game/vehicle/vehicleManager";
 import { accentHex } from "@/lib/palette";
+import { useGameStore } from "@/stores/gameStore";
 
 const SIZE = 100; // viewBox units
 const SCALE = SIZE / (PLATFORM.halfSize * 2);
@@ -19,7 +20,7 @@ export function Minimap() {
     const tick = () => {
       const g = car.current;
       if (g) {
-        const { x, z, heading } = liveCar.state;
+        const { x, z, heading } = poseOf(useGameStore.getState().activeVehicle);
         const [mx, mz] = toMap(x, z);
         g.setAttribute("transform", `translate(${mx.toFixed(2)} ${mz.toFixed(2)}) rotate(${(-(heading * 180) / Math.PI + 180).toFixed(1)})`);
       }

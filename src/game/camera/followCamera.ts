@@ -50,6 +50,40 @@ export const FOLLOW_PORTRAIT: FollowConfig = {
   targetHeight: 1.0,
 };
 
+/**
+ * Boat profile (V6): farther and higher so the horizon and the destination
+ * island stay in frame, slower position damping so the swell never reaches the
+ * camera undamped, a slightly wider lens for the open sea.
+ */
+export const BOAT_FOLLOW_CONFIG: FollowConfig = {
+  distance: 16,
+  height: 7.6,
+  lookAhead: 4.5,
+  speedPullBack: 0.2,
+  positionLambda: 3.2,
+  targetLambda: 5.5,
+  fov: 54,
+  targetHeight: 0.9,
+};
+
+export const BOAT_FOLLOW_PORTRAIT: FollowConfig = {
+  distance: 21,
+  height: 12.5,
+  lookAhead: 6,
+  speedPullBack: 0.16,
+  positionLambda: 3.2,
+  targetLambda: 5.5,
+  fov: 64,
+  targetHeight: 0.6,
+};
+
+export type CameraVehicle = "car" | "boat";
+
+/** Landscape/portrait pair for a vehicle. */
+export function profilesFor(vehicle: CameraVehicle): { landscape: FollowConfig; portrait: FollowConfig } {
+  return vehicle === "boat" ? { landscape: BOAT_FOLLOW_CONFIG, portrait: BOAT_FOLLOW_PORTRAIT } : { landscape: FOLLOW_CONFIG, portrait: FOLLOW_PORTRAIT };
+}
+
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 /** Blend factor: 0 at aspect ≥ 1.15 (landscape), 1 at aspect ≤ 0.7 (portrait). */
@@ -81,12 +115,17 @@ export function damp(current: number, target: number, lambda: number, dt: number
   return current + (target - current) * dampFactor(lambda, dt);
 }
 
+/** How much of the vehicle's vertical motion (a boat on the swell) reaches the camera position. */
+export const SWELL_TO_CAMERA = 0.35;
+
 export function desiredCamera(
   carX: number,
   carZ: number,
   heading: number,
   speed: number,
   c: FollowConfig = FOLLOW_CONFIG,
+  /** Vehicle height above the ground plane (0 for the car; the boat's buoyancy height). */
+  baseY = 0,
 ): { position: Vec3; target: Vec3 } {
   const fx = Math.sin(heading);
   const fz = Math.cos(heading);
@@ -94,7 +133,7 @@ export function desiredCamera(
   const dist = c.distance + speedAbs * c.speedPullBack;
   const lead = c.lookAhead * Math.min(1, speedAbs / 10);
   return {
-    position: { x: carX - fx * dist, y: c.height + speedAbs * 0.05, z: carZ - fz * dist },
-    target: { x: carX + fx * lead, y: c.targetHeight, z: carZ + fz * lead },
+    position: { x: carX - fx * dist, y: c.height + speedAbs * 0.05 + baseY * SWELL_TO_CAMERA, z: carZ - fz * dist },
+    target: { x: carX + fx * lead, y: c.targetHeight + baseY, z: carZ + fz * lead },
   };
 }

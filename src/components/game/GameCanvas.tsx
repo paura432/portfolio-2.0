@@ -8,7 +8,12 @@ import { photoMode, probeState, type PhotoCamera } from "@/game/camera/photoMode
 import type { LightingPresetId } from "@/game/render/lighting";
 import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
 import { particleStats } from "@/game/fx/particles";
+import { liveBoat, placeBoat } from "@/game/vehicle/boatState";
+import { boatSpeed } from "@/game/vehicle/boatPhysics";
 import { liveCar } from "@/game/vehicle/carState";
+import { resolveVehicleMode, type VehicleMode } from "@/game/vehicle/vehicleManager";
+import { heightAt, oceanClock } from "@/game/ocean/waves";
+import type { HarborId, VehicleId } from "@/data/archipelago";
 import { treeWorld, type TreeState } from "@/game/world/treeWorld";
 import { type TreeDef } from "@/game/world/trees";
 import { useGameStore, type Quality } from "@/stores/gameStore";
@@ -20,6 +25,7 @@ import { ProximitySensor } from "./ProximitySensor";
 import { SceneLighting } from "./SceneLighting";
 import { World } from "./World";
 import { Signposts } from "./Signposts";
+import { VehicleController } from "./VehicleController";
 import { ContextLossHandler, FirstFrameSignal } from "./SceneSignals";
 
 /** Applies the quality tier to the renderer without remounting the canvas. */
@@ -54,6 +60,12 @@ declare global {
       car: () => { x: number; z: number; speed: number; heading: number };
       /** Place the car (test/capture tooling). */
       teleport: (x: number, z: number, heading: number) => void;
+      /** V6: the boat (2D state plus the buoyancy pose) and the vehicle manager's view. */
+      boat: () => { x: number; z: number; y: number; speed: number; heading: number; pitch: number; roll: number; throttle: number };
+      teleportBoat: (x: number, z: number, heading: number) => void;
+      vehicle: () => { active: VehicleId; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyHarbor: HarborId | null; nearbyDock: HarborId | null };
+      /** Water surface height at a world point (the same function the boat floats on). */
+      water: (x: number, z: number) => number;
       /** Fixed camera for reproducible screenshots; null restores the follow camera. */
       photo: (camera: PhotoCamera | null) => void;
       setQuality: (q: Quality, lock?: boolean) => void;
@@ -86,6 +98,16 @@ function Probe() {
         liveCar.state = { ...liveCar.state, x, z, heading, speed: 0, steerAngle: 0 };
         liveCar.generation++;
       },
+      boat: () => {
+        const b = liveBoat.state;
+        return { x: b.x, z: b.z, y: liveBoat.visual.y, speed: boatSpeed(b), heading: b.heading, pitch: liveBoat.visual.pitch, roll: liveBoat.visual.roll, throttle: b.throttle };
+      },
+      teleportBoat: (x, z, heading) => placeBoat(x, z, heading),
+      vehicle: () => {
+        const s = useGameStore.getState();
+        return { active: s.activeVehicle, mode: resolveVehicleMode(s.phase, s), transition: s.transition?.kind ?? null, mooredAt: s.mooredAt, nearbyHarbor: s.nearbyHarbor, nearbyDock: s.nearbyDock };
+      },
+      water: (x, z) => heightAt(x, z, oceanClock.time),
       photo: (camera) => {
         photoMode.camera = camera;
       },
@@ -178,6 +200,7 @@ export function GameCanvas() {
       <SceneLighting />
       <World />
       <Signposts />
+      <VehicleController />
       <Car />
       <ImpactParticles />
       <SkidMarks />
