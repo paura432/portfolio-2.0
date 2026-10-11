@@ -88,8 +88,10 @@ export type Constrain = (x: number, z: number, step?: StepInfo) => ConstrainResu
 export const BUMP_RESTITUTION = 0.2;
 /** Contacts flatter than this (|forward · normal|) slide along the surface instead of bouncing back. */
 export const HEAD_ON_DOT = 0.6;
-/** Least fraction of the speed kept while sliding along an obstacle. */
+/** Least fraction of the speed kept per sub-step while sliding along an obstacle. */
 export const SLIDE_MIN = 0.3;
+/** Scrape friction per sub-step, proportional to the normal component of the motion (|forward · normal|). */
+export const SLIDE_FRICTION = 0.35;
 /**
  * Steering authority a crawling car keeps while the throttle is held (fraction of the full turn rate).
  * V9: without it a car wedged between two rigid bodies never gains the speed it needs to turn out.
@@ -132,7 +134,7 @@ export function stepCar(
  * bounces back softly, a glancing one keeps most of the speed so the car
  * slides along the wall / kerb / trunk instead of stopping dead (V9).
  */
-function bumpSpeed(s: CarState, rx: number, rz: number): number {
+export function bumpSpeed(s: CarState, rx: number, rz: number): number {
   const px = rx - s.x;
   const pz = rz - s.z;
   const len = Math.hypot(px, pz);
@@ -142,7 +144,9 @@ function bumpSpeed(s: CarState, rx: number, rz: number): number {
   const dir = s.speed >= 0 ? 1 : -1;
   const dot = ((fx * px + fz * pz) / len) * dir;
   if (dot < -HEAD_ON_DOT) return -s.speed * BUMP_RESTITUTION;
-  return s.speed * Math.max(SLIDE_MIN, 1 - Math.abs(dot));
+  // Scraping along the surface: the push-out already removed the motion into it; a little friction per sub-step
+  // (proportional to how hard the car presses) balances the throttle at a few u/s instead of stalling the car.
+  return s.speed * Math.max(SLIDE_MIN, 1 - SLIDE_FRICTION * Math.abs(dot));
 }
 
 function integrate(s: CarState, input: DriveInput, dt: number, c: CarConfig): CarState {

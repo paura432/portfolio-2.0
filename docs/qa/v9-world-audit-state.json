@@ -4,7 +4,7 @@
   "baseSha": "9f93b38",
   "baseBranch": "integration/v8-editorial-final-qa",
   "headSha": "pending",
-  "iteration": 2,
+  "iteration": 3,
   "maxIterations": 12,
   "phase": "5-correction-cycle",
   "status": "IN_PROGRESS",
@@ -260,6 +260,13 @@
         "status": "PARTIAL",
         "iteration": 1,
         "detail": "lamp/planter/bench active; bollard/bush/signpost/mast pending"
+      },
+      {
+        "id": "CAM-01",
+        "title": "follow camera enters building volumes: at the Duplex forecourt corner the facade fills the frame and the car is hidden",
+        "status": "OPEN",
+        "evidence": "docs/screenshots/v9/evidence/cam-01-duplex-corner-camera-inside-building.png (navigation E2E frame)",
+        "plan": "camera obstacle avoidance (brief V9.1 §2.2): ray/sphere test camera↔car against the static colliders, pull in, recover smoothly"
       }
     ],
     "P2": [
@@ -318,10 +325,10 @@
     "lint": "PASS",
     "typecheck": "PASS",
     "unit": {
-      "files": 45,
-      "tests": 272,
+      "files": 46,
+      "tests": 281,
       "new": [
-        "wedge.test.ts (sweep + Duplex/TrustOS/plaza poses)"
+        "contacts.test.ts (8: corner, seam, rotated bench vs building, diagonal corner + reverse, wall scrape, reverse into wall, 30/60/144 fps, double penetration)"
       ]
     },
     "build": "PASS",
@@ -329,14 +336,15 @@
       "worldSpec": "3/3 PASS",
       "fullRun1": "20/21 (it1)",
       "fullRun2": "not run in iteration 1",
-      "navigationSpec": "1/1 PASS",
+      "navigationSpec": "2/2 PASS (telemetry-backed escapes; Duplex corridor route)",
       "it2FullRun1": "21/22 (campus fixed-time check as first test of the run; converted to condition-based)",
       "it2FullRun2": "22/22 PASS (desktop + mobile, 7.4 min)",
-      "consecutiveGreen": 1
+      "consecutiveGreen": 2,
+      "it3FullRun1": "23/23 PASS (7.6 min)"
     }
   },
   "evidence": {
-    "captures": "docs/screenshots/v9/high-01..15 + high-stats.json",
+    "captures": "docs/screenshots/v9/high-01..15 (it1), nav-01..07 + nav-log.json (it3), evidence/cam-01-*.png",
     "perf": "docs/screenshots/v9/perf/perf-v9.json",
     "docs": [
       "docs/qa/v9-world-validation.md",
@@ -371,11 +379,10 @@
   },
   "blockers": [],
   "nextIteration": [
-    "activate bollard, bush, signpost categories (collider + reaction + DynamicProps parts + particles)",
-    "mast and sign-post props from shared positions (ramp gates, pad, hangar sign, harbor gate sign)",
-    "e2e/ramps.spec.ts: Campus Ramp and Skyport Ramp flown for real; Skyport Beach in the browser",
-    "furniture particles (DES-02); GEO-01 bench placement; COL-08 hop clamp",
-    "camera obstacle avoidance (CAM-01, from the V9.1 brief)"
+    "CAM-01 camera obstacle avoidance (P1, evidence captured)",
+    "COL-02/03 remaining prop categories",
+    "ramps/beach browser coverage",
+    "v9shots: Duplex corner with overlay + contact normals"
   ],
   "history": [
     {
@@ -389,7 +396,13 @@
       "date": "2026-10-11",
       "summary": "P0 NAV-01: wedge points reproduced by a physics sweep (295), root cause in the car model (turn authority ∝ speed, bumps reverse speed); fixed with a low-speed steering floor and sliding contacts; sweep is a regression test (0 wedges); navigation E2E with real keys",
       "commit": "pending"
+    },
+    {
+      "iteration": 3,
+      "date": "2026-10-11",
+      "summary": "third brief (P0 stuck vehicle) folded in: debugLog telemetry ring buffers + probe hooks + contact normals in the overlay; iterative multi-contact resolution (MAX_PASSES 4, buildings win pockets); scrape friction; contacts.test.ts; navigation E2E with mode/telemetry/corridor checks; CAM-01 evidence captured",
+      "commit": "see git log (iteration 3)"
     }
   ],
-  "lastValidatedSha": "4501f2c"
+  "lastValidatedSha": "f645922"
 }

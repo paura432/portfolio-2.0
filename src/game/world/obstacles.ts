@@ -6,6 +6,8 @@ import { SKYPORT_DRIVE_RECTS, SKYPORT_OBSTACLES } from "@/data/skyport";
 import { PLATFORM } from "@/data/world";
 import { boxFromFootprint, resolveCollisions, type Obstacle } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
+import { debugLog } from "../physics/debugLog";
+import { bumpSpeed, type StepInfo } from "../vehicle/carPhysics";
 import { propWorld } from "./propWorld";
 import { treeWorld } from "./treeWorld";
 
@@ -86,25 +88,30 @@ export function clampToDriveArea(x: number, z: number, r: number, areas: readonl
   return { x: bestX, z: bestZ, boundary: bestD > 1e-12 };
 }
 
-/** Last contacts of the car's constraint (V9 debug overlay and the probe; a short ring buffer, never read by gameplay). */
-export interface Contact {
-  x: number;
-  z: number;
-  /** What was touched: an obstacle id, "boundary", "tree" or "prop". */
-  what: string;
-  /** Monotonic counter so the overlay can fade old contacts. */
-  n: number;
-}
-export const contactLog: { enabled: boolean; items: Contact[]; n: number; push: (x: number, z: number, what: string) => void } = {
+/** Contact log for the overlay and the probe (V9 debug): see `debugLog`; `contactLog` keeps the overlay's short list. */
+export const contactLog = {
   enabled: false,
-  items: [],
+  items: [] as { x: number; z: number; what: string; n: number; nx: number; nz: number; depth: number }[],
   n: 0,
-  push(x, z, what) {
+  push(x: number, z: number, what: string, nx = 0, nz = 0, depth = 0) {
     this.n++;
-    this.items.push({ x, z, what, n: this.n });
+    this.items.push({ x, z, what, n: this.n, nx, nz, depth });
     if (this.items.length > 24) this.items.shift();
   },
 };
+
+function logContact(what: string, x0: number, z0: number, x1: number, z1: number, step: StepInfo | undefined, yieldedSpeed: number | undefined, reason: string): void {
+  const dx = x1 - x0;
+  const dz = z1 - z0;
+  const depth = Math.hypot(dx, dz);
+  const nx = depth > 1e-9 ? dx / depth : 0;
+  const nz = depth > 1e-9 ? dz / depth : 0;
+  contactLog.push(x0, z0, what, nx, nz, depth);
+  const speedBefore = step?.speed ?? 0;
+  // A rigid contact gets the car model's own bump rule (head-on bounce or scrape); a yielding one the retained speed.
+  const speedAfter = yieldedSpeed ?? (step ? bumpSpeed({ x: x0, z: z0, heading: step.heading, speed: speedBefore, steerAngle: 0 }, x1, z1) : speedBefore);
+  debugLog.contact({ what, x0, z0, x1, z1, depth, nx, nz, heading: step?.heading ?? 0, speedBefore, speedAfter, reason });
+}
 
 /**
  * Constraint used by the vehicle each sub-step: buildings (rigid), the drive
@@ -117,11 +124,13 @@ export const constrainCar: Constrain = (x, z, step) => {
   const rigid = r.hits.length > 0 || b.boundary;
   const t = treeWorld.constrain(b.x, b.z, step);
   const p = propWorld.constrain(t.x, t.z, step && t.speed !== undefined ? { ...step, speed: t.speed } : step);
-  if (contactLog.enabled) {
-    for (const h of r.hits) contactLog.push(x, z, h);
-    if (b.boundary) contactLog.push(x, z, "boundary");
-    if (t.blocked) contactLog.push(x, z, "tree");
-    if (p.blocked) contactLog.push(x, z, "prop");
+  if (contactLog.enabled || debugLog.enabled) {
+    for (const h of r.hits) logContact(h, x, z, r.x, r.z, step, undefined, "rigid obstacle");
+    if (b.boundary) logContact("boundary", r.x, r.z, b.x, b.z, step, undefined, "drive-area edge");
+    if (t.blocked) logContact("tree", b.x, b.z, t.x, t.z, step, undefined, "standing trunk below topple speed");
+    else if (t.speed !== undefined) logContact("tree", b.x, b.z, t.x, t.z, step, t.speed, "trunk yielded");
+    if (p.blocked) logContact("prop", t.x, t.z, p.x, p.z, step, undefined, "solid furniture below knock speed");
+    else if (p.speed !== undefined) logContact("prop", t.x, t.z, p.x, p.z, step, p.speed, "furniture yielded");
   }
   if (rigid || t.blocked || p.blocked) return { x: p.x, z: p.z, blocked: true };
   const speed = p.speed ?? t.speed;

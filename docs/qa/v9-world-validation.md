@@ -42,7 +42,9 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | C7 | Drivable zones keep their accesses (districts, labs, harbor, Skyport, beaches, ramps) | PASS | `data.test.ts` (entrances by road), `rampRuns` corridors, `beachRuns`, spawns free (audit) |
 | C8 | Collisions reliable at different frame rates | PASS | `carCollision.test.ts` (no tunnelling at 0.1 s frames), `propWorld.test.ts` "frame-rate independent" (30 vs 120 fps, same rest pose) |
 | C10 | No pose on drivable land from which the car cannot drive away (invisible wedges) | PASS (iteration 2) | `wedgeSweep.ts` / `wedge.test.ts`: 736 tight spots, 0 wedges; before the fix 295 points failed. Root cause and fix in `world-polish-report.md` iteration 1 |
-| C11 | The worst former wedges driven out in the browser with real keys | PASS | `e2e/navigation.spec.ts` 1/1 |
+| C11 | The worst former wedges driven out in the browser with real keys, in car mode, with every contact a real object and no position jump; the Duplex corridor driven 8 u forward and 3 u back | PASS | `e2e/navigation.spec.ts` 2/2 (iteration 3, telemetry-backed) |
+| C12 | Multi-contact resolution: corners and touching boxes never leave the car inside a body; unresolvable pockets end outside the building | PASS | `contacts.test.ts` (iteration 3), `resolveCollisions` iterative passes |
+| C13 | Debug telemetry on demand (vehicle samples, contacts with before/after position and speed, normals, blocking reason), never per frame | PASS | `debugLog.ts`, probe `debug.telemetry/samples/contactLog`, overlay normals |
 | C9 | Debug tooling to see colliders and contacts, hidden from visitors | PASS | `DebugColliders.tsx`: static colliders, drive areas, ramps, beaches, trunks, live prop colliders (red solid / grey down), the car's circle, the last 24 contact points; switched on only by the probe (`__pauWorld.debug.colliders`) or `?debug=colliders` in development builds; captures `13`–`15` |
 
 ### D. Destructible furniture
@@ -138,6 +140,8 @@ Reading: the destructible furniture costs the city scene +1 006 triangles and 0 
 | `10-bench-intact` → `11-bench-flipped-follow` → `12-bench-down` | the plaza bench at 67.5° | 12: bench on its back |
 | `13-colliders-plaza` | the debug overlay over the plaza: building boxes, the hub's cylinder, trunk cylinders, lamp cylinders, bench / planter oriented boxes (grey where down), the car's circle | shapes sit on the drawn objects; no oversized box |
 | `14-colliders-hangar-open-front`, `15-car-inside-hangar` | the hangar's three wall colliders and the car parked inside after driving through the open front | the former invisible facade is gone |
+
+Navigation evidence (iteration 3, `scripts/visual-qa/v9nav.mjs`, HIGH, real keys): `nav-01-duplex-corner-overlay` (the former wedge pose on the sidewalk between the Duplex padding box and a boulevard trunk, overlay on), `nav-02-duplex-corner-contact-normals` (reversing into the facade padding: contact dots and normals, log entries `duplex`, depth 0.018 u), `nav-03-duplex-corner-pivot-out` (W + A pivots the nose along the facade; contacts `tree` below topple speed), `nav-04-duplex-sidewalk-corridor` (the car 19 u down the sidewalk after knocking a boulevard tree at 12 u/s, "Tree knocked down"), `nav-05-duplex-corner-follow-camera` (the follow camera's own framing of the pose: the facade fills the frame and the car is hidden — CAM-01 evidence, also `evidence/cam-01-duplex-corner-camera-inside-building.png`), `nav-06/07-plaza-exit-pocket` (the plaza south exit pocket, out with S + A; contacts `prop`). `nav-log.json` keeps the car pose and the last contacts per frame.
 
 Observation for V9.2 (from `04`): in car form the folded wings and floats read as side pieces along the flanks; the new brief lists this and it is queued there, not changed here.
 

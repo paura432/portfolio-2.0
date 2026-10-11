@@ -67,6 +67,7 @@ function Overlay() {
       cyan: new LineBasicMaterial({ color: "#3DF2C2" }),
       amber: new LineBasicMaterial({ color: "#FFB46A" }),
       sand: new LineBasicMaterial({ color: "#C9B27A" }),
+      normal: new LineBasicMaterial({ color: "#FF57E8" }),
     }),
     [],
   );
@@ -135,6 +136,13 @@ function Overlay() {
   const propBoxes = useRef<InstancedMesh>(null);
   const car = useRef<InstancedMesh>(null);
   const contacts = useRef<InstancedMesh>(null);
+  const normals = useRef<LineSegments>(null);
+  const normalGeo = useMemo(() => {
+    const g = new BufferGeometry();
+    g.setAttribute("position", new Float32BufferAttribute(new Float32Array(24 * 6), 3));
+    return g;
+  }, []);
+  useEffect(() => () => normalGeo.dispose(), [normalGeo]);
   const scratch = useRef({ o: new Object3D(), m: new Matrix4(), c: new Color() });
   const propCount = propWorld.defs.length;
   useFrame(() => {
@@ -214,6 +222,20 @@ function Overlay() {
       ct.count = contactLog.items.length;
       ct.instanceMatrix.needsUpdate = true;
     }
+    // Contact normals: a 1.5 u segment from the penetration point along the push direction, scaled by the depth.
+    const nl = normals.current;
+    if (nl) {
+      const pos = normalGeo.getAttribute("position") as Float32BufferAttribute;
+      const arr = pos.array as Float32Array;
+      arr.fill(0);
+      contactLog.items.forEach((p, i) => {
+        const y = groundHeightAt(p.x, p.z) + 0.35;
+        const len = 0.8 + Math.min(2, p.depth * 4);
+        arr.set([p.x, y, p.z, p.x + p.nx * len, y, p.z + p.nz * len], i * 6);
+      });
+      pos.needsUpdate = true;
+      normalGeo.setDrawRange(0, contactLog.items.length * 2);
+    }
   });
 
   return (
@@ -228,6 +250,7 @@ function Overlay() {
       <instancedMesh ref={propBoxes} args={[geos.unitBox, mats.live, Math.max(1, propCount)]} frustumCulled={false} />
       <instancedMesh ref={car} args={[geos.unitCyl, mats.car, 1]} frustumCulled={false} />
       <instancedMesh ref={contacts} args={[geos.dot, mats.contact, 24]} frustumCulled={false} />
+      <lineSegments ref={normals} geometry={normalGeo} material={mats.normal} frustumCulled={false} />
     </group>
   );
 }

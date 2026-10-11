@@ -131,6 +131,9 @@ export function resolveCircleObstacle(c: Circle, o: Obstacle): { x: number; z: n
   return o.kind === "box" ? resolveCircleBox(c, o) : o.kind === "round" ? resolveCircleRound(c, o) : resolveCircleObb(c, o);
 }
 
+/** Resolution passes per step: enough for corners and touching boxes, bounded so a true pocket cannot spin. */
+export const MAX_PASSES = 4;
+
 export function resolveCollisions(
   circle: Circle,
   obstacles: readonly Obstacle[],
@@ -139,13 +142,25 @@ export function resolveCollisions(
   let { x, z } = circle;
   const hits: string[] = [];
 
-  for (const o of obstacles) {
-    const out = resolveCircleObstacle({ x, z, r: circle.r }, o);
-    if (out) {
-      x = out.x;
-      z = out.z;
-      hits.push(o.id);
+  // Iterative resolution (V9): pushing out of one obstacle may push into a neighbour (a corner, two touching
+  // boxes), so the pass repeats until no obstacle moves the circle or the pass budget is spent. A pocket that
+  // cannot be resolved leaves the circle where the last pass put it, never inside the first obstacle.
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
+    let moved = false;
+    // The last pass runs in reverse so that, in a pocket narrower than the circle, the earliest obstacles
+    // (the buildings come first in the world's list) have the final word: the car may overlap furniture, never a facade.
+    const last = pass === MAX_PASSES - 1;
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[last ? obstacles.length - 1 - i : i]!;
+      const out = resolveCircleObstacle({ x, z, r: circle.r }, o);
+      if (out) {
+        x = out.x;
+        z = out.z;
+        if (!hits.includes(o.id)) hits.push(o.id);
+        moved = true;
+      }
     }
+    if (!moved) break;
   }
 
   const limit = boundaryHalfSize - circle.r;

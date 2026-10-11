@@ -3,8 +3,8 @@
   "branch": "feat/v9-world-physics-destruction",
   "baseSha": "9f93b38",
   "v9Iteration1Sha": "7123491",
-  "lastValidatedSha": "4501f2c",
-  "iteration": 1,
+  "lastValidatedSha": "f645922",
+  "iteration": 2,
   "maxIterations": 12,
   "phase": "V9.1 gameplay foundation",
   "status": "IN_PROGRESS",
@@ -208,7 +208,7 @@
       {
         "id": "CAM-01",
         "title": "no camera obstacle avoidance (buildings fill the frame / clip)",
-        "status": "OPEN (V9.1 §2.2)"
+        "status": "OPEN (evidence: docs/screenshots/v9/evidence/cam-01-duplex-corner-camera-inside-building.png)"
       },
       {
         "id": "HUD-01",
@@ -283,7 +283,7 @@
     }
   ],
   "tests": {
-    "unit": 272,
+    "unit": 281,
     "e2eSpecs": [
       "smoke",
       "campus",
@@ -298,17 +298,18 @@
     "fullRuns": [
       "20/21 (v9 it1)",
       "21/22 (polish it1, run 1)",
-      "22/22 (polish it1, run 2)"
+      "22/22 (polish it1, run 2)",
+      "23/23 (polish it2)"
     ]
   },
-  "captures": "docs/screenshots/v9/ (iteration-1 set); before/after sets per fix to follow",
+  "captures": "docs/screenshots/v9/ (it1 set, nav-01..07, evidence/cam-01)",
   "performance": "docs/screenshots/v9/perf/perf-v9.json (baseline for V9.1; city HIGH 424 calls / 127 616 tris)",
   "regressions": [],
   "blockers": [],
   "nextIteration": [
     "CAM-01 camera obstacle avoidance",
-    "COL-02/03 activate remaining prop categories",
-    "level audit: circulation map (docs/design/v9-level-design.md)",
+    "COL-02/03",
+    "circulation map",
     "ramps/beach browser coverage"
   ],
   "history": [
@@ -321,6 +322,11 @@
       "iteration": 1,
       "date": "2026-10-11",
       "summary": "NAV-01 fixed at the root (car model) and guarded by the wedge sweep test and a real-key navigation E2E"
+    },
+    {
+      "iteration": 2,
+      "date": "2026-10-11",
+      "summary": "P0 hardening per the third brief: telemetry, iterative contact resolution, contacts tests, navigation E2E extended; camera-inside-building evidence recorded as CAM-01"
     }
   ]
 }

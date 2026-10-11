@@ -18,7 +18,9 @@ Order per sub-step:
 4. **Street furniture** (`propWorld.constrain`, V9): solid props push the car out (circle for posts, oriented box for benches and planters, in the prop's local frame); above the category's `knock` speed they yield (`retain` fraction kept); between `shove` and `knock` heavy props slide along the push and stay solid.
 5. **Ramp bodies** (`constrainRampBodies`, V8): the slope is solid from every side but its approach.
 
-A blocked sub-step reverses 20 % of the speed (soft bump). The debug contact log records what was touched when the overlay is on.
+A blocked sub-step bounces back softly (20 % of the speed, reversed) only when the contact is head-on (|forward · normal| > 0.6, the normal being the push-out direction); a glancing contact keeps the speed minus a scrape friction proportional to how hard the car presses (`SLIDE_FRICTION` 0.35 · |dot| per sub-step, floor 30 %), so the car slides along facades, kerbs and trunks. With the throttle held a crawling car keeps 35 % of its turn rate (`LOW_SPEED_STEER`), so it can pivot out of a tight spot; a stationary car with no throttle does not rotate. These two rules (iteration 2) closed the wedge P0: `wedgeSweep.ts`.
+
+**Multi-contact resolution (iteration 3).** `resolveCollisions` repeats its pass over the obstacle list until nothing moves the circle (at most `MAX_PASSES` = 4), so pushing out of one body never leaves the car inside its neighbour (corners, touching boxes). The last pass runs in reverse, so in a pocket narrower than the car the earliest obstacles in the list (the buildings) have the final word: the car may overlap a bench, never a facade. `contacts.test.ts` covers the corner, the seam between touching boxes, a rotated bench against a building, reverse into a wall, scrape along a wall, 30/60/144 fps and separation from a pre-existing double penetration.
 
 ## Oriented boxes
 
@@ -34,7 +36,9 @@ The hangar's three walls let the car drive in. The aircraft must still not land 
 
 ## Debug tooling
 
-`DebugColliders.tsx` draws every static collider (red wireframe), the drive areas (cyan), the ramp corridors (amber), the beach footprints (sand), the trunks and the live prop colliders (red when solid, grey when down), the car's circle (green) and the last 24 contacts (magenta). It mounts only when `debugColliders` is set in the store, which only the probe (`window.__pauWorld.debug.colliders(true)`) or `?debug=colliders` in a development build can do. Production visitors never see it.
+`DebugColliders.tsx` draws every static collider (red wireframe), the drive areas (cyan), the ramp corridors (amber), the beach footprints (sand), the trunks and the live prop colliders (red when solid, grey when down), the car's circle (green), the last 24 contact points (magenta dots) and their contact normals (magenta segments from the penetration point along the push, longer for deeper corrections).
+
+**Telemetry (`src/game/physics/debugLog.ts`, iteration 3).** Two ring buffers, free while disabled: one vehicle sample per frame (state, authority, mode, phase, x / y / z, heading, speed, throttle / steer / brake, driving, number of contacts that frame, blocked) and one entry per contact (what was hit — obstacle id, "tree", "prop", "boundary", "ramp" —, position before and after the resolution, correction depth, normal, heading, speed before and after, and the reason the step counted as blocked or yielded). Read on demand through the probe: `debug.telemetry(true)`, `debug.samples(n)`, `debug.contactLog(n)`, `debug.clearLog()`. Nothing is printed per frame. It mounts only when `debugColliders` is set in the store, which only the probe (`window.__pauWorld.debug.colliders(true)`) or `?debug=colliders` in a development build can do. Production visitors never see it.
 
 ## Open points (see the inventory §6)
 

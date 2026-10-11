@@ -36,7 +36,8 @@ import {
 import { canControl } from "@/game/vehicle/vehicleManager";
 import { sampleGround, seawardSpeedAt, shoreDistanceAt } from "@/game/world/ground";
 import { impactBus } from "@/game/world/impactBus";
-import { constrainCar } from "@/game/world/obstacles";
+import { debugLog } from "@/game/physics/debugLog";
+import { constrainCar, contactLog } from "@/game/world/obstacles";
 import { constrainRampBodies } from "@/game/world/rampColliders";
 import { constrainBoat, openWaterDirection } from "@/game/world/seaObstacles";
 import { treeWorld } from "@/game/world/treeWorld";
@@ -133,6 +134,11 @@ const IDLE = { throttle: 0, steer: 0, brake: false } as const;
 const constrainVehicle: Constrain = (x, z, step) => {
   const c = constrainCar(x, z, step);
   const r = constrainRampBodies(c.x, c.z, step?.prevX ?? c.x, step?.prevZ ?? c.z);
+  if (r.blocked && (debugLog.enabled || contactLog.enabled)) {
+    const d = Math.hypot(r.x - c.x, r.z - c.z);
+    contactLog.push(c.x, c.z, "ramp", d > 1e-9 ? (r.x - c.x) / d : 0, d > 1e-9 ? (r.z - c.z) / d : 0, d);
+    debugLog.contact({ what: "ramp", x0: c.x, z0: c.z, x1: r.x, z1: r.z, depth: d, nx: d > 1e-9 ? (r.x - c.x) / d : 0, nz: d > 1e-9 ? (r.z - c.z) / d : 0, heading: step?.heading ?? 0, speedBefore: step?.speed ?? 0, speedAfter: -(step?.speed ?? 0) * 0.2, reason: "ramp body (slope entered from the side or the end)" });
+  }
   return r.blocked ? { x: r.x, z: r.z, blocked: true } : c;
 };
 
@@ -418,6 +424,9 @@ export function Vehicle() {
     }
 
     jolt.current = Math.max(0, jolt.current - dt * 2.2);
+    if (debugLog.enabled) {
+      debugLog.sample({ t: clock.elapsedTime, state, authority, mode: store.phase === "playing" ? (store.transition ? store.transition.kind : store.mooredAt ? "moored" : state) : "paused", x: px, y: py, z: pz, heading, speed: authority === "car" ? liveCar.state.speed : authority === "boat" ? boatSpeed(liveBoat.state) : livePlane.state.speed, throttle: input.throttle, steer: input.steer, brake: input.brake, driving, phase: store.phase, blocked: debugLog.frameContacts > 0 });
+    }
     if (!g) return;
     g.position.set(px, py, pz);
     g.rotation.set(0, heading, 0);

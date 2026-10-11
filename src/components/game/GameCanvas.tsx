@@ -19,6 +19,7 @@ import { heightAt, oceanClock } from "@/game/ocean/waves";
 import type { HarborId } from "@/data/archipelago";
 import type { BeachId } from "@/data/beaches";
 import type { RampId } from "@/data/ramps";
+import { debugLog, type ContactSample, type VehicleSample } from "@/game/physics/debugLog";
 import { contactLog, obstacles } from "@/game/world/obstacles";
 import type { PropCategory } from "@/game/world/propCatalog";
 import { propWorld, type PropDef, type PropState } from "@/game/world/propWorld";
@@ -122,6 +123,11 @@ declare global {
         colliders: (on: boolean) => void;
         obstacles: () => { kind: string; id: string }[];
         contacts: () => { x: number; z: number; what: string }[];
+        /** Telemetry ring buffers: on/off, then read the last n vehicle samples or contact samples on demand. */
+        telemetry: (on: boolean) => void;
+        samples: (n?: number) => VehicleSample[];
+        contactLog: (n?: number) => ContactSample[];
+        clearLog: () => void;
       };
     };
   }
@@ -243,6 +249,13 @@ function Probe() {
         colliders: (on) => useGameStore.getState().setDebugColliders(on),
         obstacles: () => obstacles.map((o) => ({ kind: o.kind, id: o.id })),
         contacts: () => contactLog.items.map((c) => ({ x: c.x, z: c.z, what: c.what })),
+        telemetry: (on) => {
+          debugLog.enabled = on;
+          if (!on) debugLog.clear();
+        },
+        samples: (n = 60) => debugLog.vehicle.last(n).map((s) => ({ ...s })),
+        contactLog: (n = 50) => debugLog.contacts.last(n).map((c) => ({ ...c })),
+        clearLog: () => debugLog.clear(),
       },
       stats: () => {
         const size = gl.getSize(new Vector2());
@@ -270,6 +283,8 @@ function Probe() {
       photoMode.camera = null;
       probeState.lockQuality = false;
       useGameStore.getState().setDebugColliders(false);
+      debugLog.enabled = false;
+      debugLog.clear();
     };
   }, [gl]);
   return null;
