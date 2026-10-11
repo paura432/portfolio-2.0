@@ -12,6 +12,8 @@ import { liveBoat, placeBoat } from "@/game/vehicle/boatState";
 import { boatSpeed } from "@/game/vehicle/boatPhysics";
 import { liveCar } from "@/game/vehicle/carState";
 import { resolveVehicleMode, type VehicleMode } from "@/game/vehicle/vehicleManager";
+import { livePlane, placePlane } from "@/game/vehicle/planeState";
+import type { CarForm, FlightPhase } from "@/game/vehicle/transform";
 import { heightAt, oceanClock } from "@/game/ocean/waves";
 import type { HarborId, VehicleId } from "@/data/archipelago";
 import { treeWorld, type TreeState } from "@/game/world/treeWorld";
@@ -68,7 +70,11 @@ declare global {
       /** V6: the boat (2D state plus the buoyancy pose) and the vehicle manager's view. */
       boat: () => { x: number; z: number; y: number; speed: number; heading: number; pitch: number; roll: number; throttle: number };
       teleportBoat: (x: number, z: number, heading: number) => void;
-      vehicle: () => { active: VehicleId; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyHarbor: HarborId | null; nearbyDock: HarborId | null };
+      vehicle: () => { active: VehicleId; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyHarbor: HarborId | null; nearbyDock: HarborId | null; carForm: CarForm; flight: FlightPhase; nearbyPad: boolean; landingZone: boolean };
+      /** V7: the aircraft state while the car is in flight form. */
+      plane: () => { x: number; y: number; z: number; heading: number; pitch: number; roll: number; speed: number; onGround: boolean; stalled: boolean; throttle: number };
+      /** Stage the aircraft (test/capture tooling): on the ground in plane form, or airborne at cruise speed. */
+      teleportPlane: (x: number, y: number, z: number, heading: number, airborne?: boolean) => void;
       /** Water surface height at a world point (the same function the boat floats on). */
       water: (x: number, z: number) => number;
       /** Fixed camera for reproducible screenshots; null restores the follow camera. */
@@ -110,7 +116,15 @@ function Probe() {
       teleportBoat: (x, z, heading) => placeBoat(x, z, heading),
       vehicle: () => {
         const s = useGameStore.getState();
-        return { active: s.activeVehicle, mode: resolveVehicleMode(s.phase, s), transition: s.transition?.kind ?? null, mooredAt: s.mooredAt, nearbyHarbor: s.nearbyHarbor, nearbyDock: s.nearbyDock };
+        return { active: s.activeVehicle, mode: resolveVehicleMode(s.phase, s), transition: s.transition?.kind ?? null, mooredAt: s.mooredAt, nearbyHarbor: s.nearbyHarbor, nearbyDock: s.nearbyDock, carForm: s.carForm, flight: s.flight, nearbyPad: s.nearbyPad, landingZone: s.landingZone };
+      },
+      plane: () => {
+        const p = livePlane.state;
+        return { x: p.x, y: p.y, z: p.z, heading: p.heading, pitch: p.pitch, roll: p.roll, speed: p.speed, onGround: p.onGround, stalled: p.stalled, throttle: p.throttle };
+      },
+      teleportPlane: (x, y, z, heading, airborne = false) => {
+        placePlane(x, y, z, heading, airborne);
+        useGameStore.setState({ carForm: "plane", flight: airborne ? "flying" : "plane-ready", landingZone: false });
       },
       water: (x, z) => heightAt(x, z, oceanClock.time),
       photo: (camera) => {

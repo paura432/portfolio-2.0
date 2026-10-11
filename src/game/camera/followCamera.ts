@@ -77,11 +77,63 @@ export const BOAT_FOLLOW_PORTRAIT: FollowConfig = {
   targetHeight: 0.6,
 };
 
-export type CameraVehicle = "car" | "boat";
+/** Flight profile (V7): farther and higher, the horizon in frame, slower damping; the camera follows altitude 1:1. */
+export const PLANE_FOLLOW_CONFIG: FollowConfig = {
+  distance: 20,
+  height: 7.5,
+  lookAhead: 7,
+  speedPullBack: 0.08,
+  positionLambda: 3,
+  targetLambda: 5,
+  fov: 56,
+  targetHeight: 1.0,
+};
 
-/** Landscape/portrait pair for a vehicle. */
+export const PLANE_FOLLOW_PORTRAIT: FollowConfig = {
+  distance: 26,
+  height: 11,
+  lookAhead: 8,
+  speedPullBack: 0.06,
+  positionLambda: 3,
+  targetLambda: 5,
+  fov: 66,
+  targetHeight: 0.8,
+};
+
+/** Transformation: the car profile pulled back and raised so the wings fit in frame. */
+export const TRANSFORM_FOLLOW_CONFIG: FollowConfig = { ...FOLLOW_CONFIG, distance: FOLLOW_CONFIG.distance + 4, height: FOLLOW_CONFIG.height + 2, lookAhead: 0 };
+export const TRANSFORM_FOLLOW_PORTRAIT: FollowConfig = { ...FOLLOW_PORTRAIT, distance: FOLLOW_PORTRAIT.distance + 4, height: FOLLOW_PORTRAIT.height + 2, lookAhead: 0 };
+
+export type CameraVehicle = "car" | "boat" | "plane" | "transform";
+
+/** Landscape/portrait pair for a vehicle (or the transformation framing). */
 export function profilesFor(vehicle: CameraVehicle): { landscape: FollowConfig; portrait: FollowConfig } {
-  return vehicle === "boat" ? { landscape: BOAT_FOLLOW_CONFIG, portrait: BOAT_FOLLOW_PORTRAIT } : { landscape: FOLLOW_CONFIG, portrait: FOLLOW_PORTRAIT };
+  switch (vehicle) {
+    case "boat":
+      return { landscape: BOAT_FOLLOW_CONFIG, portrait: BOAT_FOLLOW_PORTRAIT };
+    case "plane":
+      return { landscape: PLANE_FOLLOW_CONFIG, portrait: PLANE_FOLLOW_PORTRAIT };
+    case "transform":
+      return { landscape: TRANSFORM_FOLLOW_CONFIG, portrait: TRANSFORM_FOLLOW_PORTRAIT };
+    default:
+      return { landscape: FOLLOW_CONFIG, portrait: FOLLOW_PORTRAIT };
+  }
+}
+
+/** Blend two configs (used for the continuous ground ⇄ flight framing by altitude). */
+export function blendConfigs(a: FollowConfig, b: FollowConfig, t: number): FollowConfig {
+  if (t <= 0) return a;
+  if (t >= 1) return b;
+  return {
+    distance: lerp(a.distance, b.distance, t),
+    height: lerp(a.height, b.height, t),
+    lookAhead: lerp(a.lookAhead, b.lookAhead, t),
+    speedPullBack: lerp(a.speedPullBack, b.speedPullBack, t),
+    positionLambda: lerp(a.positionLambda, b.positionLambda, t),
+    targetLambda: lerp(a.targetLambda, b.targetLambda, t),
+    fov: lerp(a.fov, b.fov, t),
+    targetHeight: lerp(a.targetHeight, b.targetHeight, t),
+  };
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -124,8 +176,12 @@ export function desiredCamera(
   heading: number,
   speed: number,
   c: FollowConfig = FOLLOW_CONFIG,
-  /** Vehicle height above the ground plane (0 for the car; the boat's buoyancy height). */
+  /** Vehicle height above the ground plane (0 for the car; the boat's buoyancy height; the aircraft's altitude). */
   baseY = 0,
+  /** Fraction of `baseY` that reaches the camera position (swell damping for the boat; 1 for the aircraft). */
+  yFollow = SWELL_TO_CAMERA,
+  /** Nose pitch: the look-at point follows the nose up and down (aircraft only). */
+  pitch = 0,
 ): { position: Vec3; target: Vec3 } {
   const fx = Math.sin(heading);
   const fz = Math.cos(heading);
@@ -133,7 +189,7 @@ export function desiredCamera(
   const dist = c.distance + speedAbs * c.speedPullBack;
   const lead = c.lookAhead * Math.min(1, speedAbs / 10);
   return {
-    position: { x: carX - fx * dist, y: c.height + speedAbs * 0.05 + baseY * SWELL_TO_CAMERA, z: carZ - fz * dist },
-    target: { x: carX + fx * lead, y: c.targetHeight + baseY, z: carZ + fz * lead },
+    position: { x: carX - fx * dist, y: c.height + speedAbs * 0.05 + baseY * yFollow, z: carZ - fz * dist },
+    target: { x: carX + fx * lead, y: c.targetHeight + baseY + Math.sin(pitch) * lead, z: carZ + fz * lead },
   };
 }

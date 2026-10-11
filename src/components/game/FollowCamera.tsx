@@ -3,18 +3,25 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { PerspectiveCamera, Vector3 } from "three";
-import { configForAspect, damp, desiredCamera, profilesFor } from "@/game/camera/followCamera";
+import { SKYPORT } from "@/data/skyport";
+import { blendConfigs, configForAspect, damp, desiredCamera, profilesFor, SWELL_TO_CAMERA, type FollowConfig } from "@/game/camera/followCamera";
 import { photoMode } from "@/game/camera/photoMode";
-import { generationOf, poseOf, transitionClock } from "@/game/vehicle/vehicleManager";
+import { generationOf, poseOf, TRANSFORMING, transitionClock, usesPlanePose } from "@/game/vehicle/vehicleManager";
 import { impactBus } from "@/game/world/impactBus";
 import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
+
+/** Altitude above the runway at which the framing is fully the flight profile. */
+const FLIGHT_BLEND_ALTITUDE = 8;
 
 /**
  * Smooth third-person camera for the active vehicle; damping is exponential so
  * it is frame-rate independent. During a vehicle transition the camera glides
  * from where it was to the destination vehicle's framing (eased), then the
- * normal damping takes over without a seam.
+ * normal damping takes over without a seam. In the car's flight form (V7) the
+ * framing blends continuously from the car profile to the flight profile with
+ * altitude, so takeoff and landing need no separate camera mode; the
+ * transformation uses a pulled-back car framing.
  */
 export function FollowCamera() {
   const target = useRef(new Vector3());
@@ -43,10 +50,30 @@ export function FollowCamera() {
     const transition = store.transition;
     // While a transition runs the camera already frames the destination vehicle.
     const vehicle = transition ? transition.to : store.activeVehicle;
-    const profiles = profilesFor(vehicle);
-    const config = configForAspect(size.width / Math.max(1, size.height), profiles.landscape, profiles.portrait);
-    const pose = poseOf(vehicle);
-    const want = desiredCamera(pose.x, pose.z, pose.heading, pose.speed, config, pose.y);
+    const aspect = size.width / Math.max(1, size.height);
+    const planeForm = vehicle === "car" && usesPlanePose(store);
+    let config: FollowConfig;
+    let pose = poseOf(vehicle, planeForm);
+    let yFollow = SWELL_TO_CAMERA;
+    let pitch = 0;
+    if (planeForm) {
+      yFollow = 1;
+      pitch = pose.pitch;
+      if (TRANSFORMING.has(store.flight)) {
+        const p = profilesFor("transform");
+        config = configForAspect(aspect, p.landscape, p.portrait);
+      } else {
+        const car = profilesFor("car");
+        const air = profilesFor("plane");
+        const t = Math.max(0, Math.min(1, (pose.y - SKYPORT.runway.y) / FLIGHT_BLEND_ALTITUDE));
+        config = blendConfigs(configForAspect(aspect, car.landscape, car.portrait), configForAspect(aspect, air.landscape, air.portrait), t);
+      }
+    } else {
+      const profiles = profilesFor(vehicle);
+      config = configForAspect(aspect, profiles.landscape, profiles.portrait);
+      pose = poseOf(vehicle);
+    }
+    const want = desiredCamera(pose.x, pose.z, pose.heading, pose.speed, config, pose.y, yFollow, pitch);
     const dt = Math.min(delta, 0.1);
 
     const generation = generationOf(vehicle);

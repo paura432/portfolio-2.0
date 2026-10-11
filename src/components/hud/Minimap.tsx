@@ -3,8 +3,9 @@
 import { useEffect, useRef } from "react";
 import { harbors, islands, pointsOfInterest, QUAY } from "@/data/archipelago";
 import { districts } from "@/data/districts";
+import { SKYPORT } from "@/data/skyport";
 import { PLATFORM, PLAZA, ROADS } from "@/data/world";
-import { poseOf } from "@/game/vehicle/vehicleManager";
+import { poseOf, usesPlanePose } from "@/game/vehicle/vehicleManager";
 import { accentHex } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 
@@ -12,8 +13,8 @@ const SIZE = 100; // viewBox units
 
 /** City view: the platform fills the map. */
 const CITY = { x0: -PLATFORM.halfSize, z0: -PLATFORM.halfSize, span: PLATFORM.halfSize * 2 };
-/** Archipelago view (boat mode): both islands and the sea between them. */
-const SEA = { x0: -215, z0: -92.5, span: 310 };
+/** Archipelago view (boat and flight modes): the three islands and the sea between them. */
+const SEA = { x0: -220, z0: -125, span: 450 };
 
 type View = typeof CITY;
 const mapper =
@@ -26,7 +27,11 @@ const mapper =
  * with the harbors, the islands and both vehicles. Markers update outside React.
  */
 export function Minimap() {
-  const boat = useGameStore((s) => s.activeVehicle) === "boat";
+  const activeVehicle = useGameStore((s) => s.activeVehicle);
+  const carForm = useGameStore((s) => s.carForm);
+  const flight = useGameStore((s) => s.flight);
+  const air = activeVehicle === "car" && usesPlanePose({ carForm, flight });
+  const boat = activeVehicle === "boat" || air;
   const active = useRef<SVGGElement>(null);
   const other = useRef<SVGGElement>(null);
   const toMap = mapper(boat ? SEA : CITY);
@@ -34,10 +39,11 @@ export function Minimap() {
   useEffect(() => {
     let raf = 0;
     const tick = () => {
-      const v = useGameStore.getState().activeVehicle;
+      const st = useGameStore.getState();
+      const v = st.activeVehicle;
       const place = (g: SVGGElement | null, vehicle: "car" | "boat") => {
         if (!g) return;
-        const { x, z, heading } = poseOf(vehicle);
+        const { x, z, heading } = poseOf(vehicle, vehicle === "car" && usesPlanePose(st));
         const [mx, mz] = toMap(x, z);
         g.setAttribute("transform", `translate(${mx.toFixed(2)} ${mz.toFixed(2)}) rotate(${(-(heading * 180) / Math.PI + 180).toFixed(1)})`);
       };
@@ -53,7 +59,7 @@ export function Minimap() {
   const poly = (pts: readonly [number, number][]) => pts.map(([x, z]) => toMap(x, z).map((v) => v.toFixed(1)).join(",")).join(" ");
 
   return (
-    <svg className="minimap" viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={boat ? "Map of the archipelago with the boat position" : "Map of the city with the car position"} data-testid="minimap" data-mode={boat ? "sea" : "city"}>
+    <svg className="minimap" viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={air ? "Map of the archipelago with the aircraft position" : boat ? "Map of the archipelago with the boat position" : "Map of the city with the car position"} data-testid="minimap" data-mode={air ? "air" : boat ? "sea" : "city"}>
       <rect x="1" y="1" width={SIZE - 2} height={SIZE - 2} rx="6" fill={boat ? "#0B2240" : "#142538"} />
       {boat && (
         <>
@@ -75,6 +81,9 @@ export function Minimap() {
               </g>
             );
           })}
+          {/* Skyport runway and pad */}
+          <rect x={toMap(SKYPORT.runway.minX, SKYPORT.runway.minZ)[0]} y={toMap(SKYPORT.runway.minX, SKYPORT.runway.minZ)[1]} width={(SKYPORT.runway.maxX - SKYPORT.runway.minX) * scale} height={Math.max(1, (SKYPORT.runway.maxZ - SKYPORT.runway.minZ) * scale)} fill="#CFD8E2" opacity="0.85" data-runway="skyport" />
+          <circle cx={toMap(SKYPORT.pad.x, SKYPORT.pad.z)[0]} cy={toMap(SKYPORT.pad.x, SKYPORT.pad.z)[1]} r="1.8" fill="none" stroke={accentHex.cyan} strokeWidth="0.6" />
           {pointsOfInterest.map((p) => {
             const [px, pz] = toMap(p.position[0], p.position[1]);
             return <rect key={p.id} x={px - 1.6} y={pz - 1.6} width="3.2" height="3.2" rx="0.6" fill={accentHex.cyan} opacity="0.9" />;
@@ -125,10 +134,10 @@ export function Minimap() {
       )}
       {/* The parked / moored vehicle, then the active one on top */}
       <g ref={other} data-testid="minimap-other">
-        {boat ? <circle r="1.6" fill="#FF7A3D" opacity="0.8" /> : <polygon points="0,-2.4 1.6,2 0,1.2 -1.6,2" fill="#7FE2E9" opacity="0.8" />}
+        {activeVehicle === "boat" ? <circle r="1.6" fill="#FF7A3D" opacity="0.8" /> : <polygon points="0,-2.4 1.6,2 0,1.2 -1.6,2" fill="#7FE2E9" opacity="0.8" />}
       </g>
       <g ref={active} data-testid="minimap-active">
-        <polygon points="0,-3.2 2.4,2.6 0,1.4 -2.4,2.6" fill={boat ? "#7FE2E9" : "#FF7A3D"} stroke="#080F1D" strokeWidth="0.6" />
+        <polygon points="0,-3.2 2.4,2.6 0,1.4 -2.4,2.6" fill={activeVehicle === "boat" ? "#7FE2E9" : "#FF7A3D"} stroke="#080F1D" strokeWidth="0.6" />
       </g>
     </svg>
   );
