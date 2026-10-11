@@ -7,10 +7,11 @@
  * Headings follow the vehicles: forward = (sin h, 0, cos h); -PI/2 faces west.
  */
 import { seededRandom } from "@/lib/seededRandom";
+import { SKYPORT, skyportCoastline } from "./skyport";
 import { PLATFORM } from "./world";
 
-export type IslandId = "main" | "creative-lab";
-export type HarborId = "pau-harbor" | "creative-lab-pier";
+export type IslandId = "main" | "creative-lab" | "skyport";
+export type HarborId = "pau-harbor" | "creative-lab-pier" | "skyport-pier";
 export type PoiId = "creative-lab";
 export type VehicleId = "car" | "boat";
 
@@ -76,7 +77,7 @@ export interface IslandDefinition {
 export const WATER_LEVEL = -1.1;
 
 /** Soft navigation boundary: beyond it the boat is pushed back toward the archipelago. */
-export const SEA_BOUNDS = { minX: -250, maxX: 120, minZ: -160, maxZ: 160 } as const;
+export const SEA_BOUNDS = { minX: -250, maxX: 250, minZ: -160, maxZ: 160 } as const;
 
 /** Extent of the rendered ocean surface (covers the far plane from anywhere inside SEA_BOUNDS). */
 export const OCEAN_EXTENT = { centerX: -65, centerZ: 0, halfWidth: 420, halfDepth: 360 } as const;
@@ -186,6 +187,14 @@ export const islands: IslandDefinition[] = [
     landHeight: 0.6,
     harbors: ["creative-lab-pier"],
   },
+  {
+    id: "skyport",
+    name: "Skyport Island",
+    center: SKYPORT.center,
+    coastline: skyportCoastline(),
+    landHeight: 0,
+    harbors: ["skyport-pier"],
+  },
 ];
 
 export const harbors: HarborDefinition[] = [
@@ -217,6 +226,21 @@ export const harbors: HarborDefinition[] = [
     dockingZone: { x: CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 10, z: CREATIVE_LAB_CENTER[1] + 6.5, radius: 8.5 },
     mooring: { vehicle: "boat", position: [CREATIVE_LAB_CENTER[0] + CREATIVE_LAB_RADIUS + 8, CREATIVE_LAB_CENTER[1] + 4.5], heading: Math.PI / 2 },
     landVehicles: [],
+  },
+  {
+    id: "skyport-pier",
+    island: "skyport",
+    name: "Skyport Pier",
+    tagline: "Boats to the aerial district",
+    // Leaves the island's south shore; heading 0 = +Z (south).
+    pierRoot: [SKYPORT.center[0], SKYPORT.slab.maxZ + 4],
+    pierHeading: 0,
+    pierLength: 12,
+    pierWidth: 4,
+    boardingZone: { x: SKYPORT.center[0], z: SKYPORT.slab.maxZ - 3.5, radius: 4.5 },
+    dockingZone: { x: SKYPORT.center[0] + 6, z: SKYPORT.slab.maxZ + 18, radius: 8.5 },
+    mooring: { vehicle: "boat", position: [SKYPORT.center[0] + 4.5, SKYPORT.slab.maxZ + 14], heading: 0 },
+    landVehicles: ["car"],
   },
 ];
 

@@ -19,12 +19,14 @@ describe("signage rules", () => {
 
 describe("signposts", () => {
   const posts = buildSignposts();
-  it("lists every non-hub district exactly once, plus the harbor on the west exit (V6)", () => {
+  it("lists every non-hub district exactly once, plus the harbor on the west exit (V6) and the Skyport on the east exit (V7)", () => {
     const ids = posts.flatMap((p) => p.entries.map((e) => e.destination.id)).sort();
-    const expected = [...districts.filter((d) => d.kind !== "hub").map((d) => d.id), "pau-harbor"].sort();
+    const expected = [...districts.filter((d) => d.kind !== "hub").map((d) => d.id), "pau-harbor", "skyport"].sort();
     expect(ids).toEqual(expected);
     const west = posts.find((p) => p.exit === "west")!;
     expect(west.entries.find((e) => e.destination.id === "pau-harbor")?.side).toBe("ahead");
+    const east = posts.find((p) => p.exit === "east")!;
+    expect(east.entries.find((e) => e.destination.id === "skyport")?.side).toBe("ahead");
   });
   it("reports the correct side of the road", () => {
     const duplex = destinationOf(districts.find((d) => d.id === "duplex")!);

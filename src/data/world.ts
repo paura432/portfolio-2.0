@@ -2,6 +2,8 @@
  * World geometry: platform, road network and car spawn.
  * Pure data so tests, visuals and collisions share one definition.
  */
+import { SKYPORT_ROADS } from "./skyport";
+
 export interface RoadSegment {
   from: [x: number, z: number];
   to: [x: number, z: number];
@@ -43,6 +45,8 @@ export const ROADS: RoadSegment[] = [
   { from: [30, -40], to: [30, -47], width: ROAD_WIDTH },
   // Harbor road (V6): the west cross road continues past the ring road onto the quay of PAU Harbor.
   { from: [-40, 0], to: [-70, 0], width: ROAD_WIDTH },
+  // Skyport (V7): the east cross road continues over the causeway onto the island and up to the pad.
+  ...SKYPORT_ROADS.map((r): RoadSegment => ({ from: r.from, to: r.to, width: ROAD_WIDTH })),
 ];
 
 /** Paved areas that are not roads: no vegetation, "pavement" for the driving feedback. */

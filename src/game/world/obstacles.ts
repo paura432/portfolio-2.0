@@ -1,5 +1,6 @@
 import { QUAY_DRIVE } from "@/data/archipelago";
 import { allPlots, districts } from "@/data/districts";
+import { SKYPORT_DRIVE_RECTS, SKYPORT_OBSTACLES } from "@/data/skyport";
 import { PLATFORM } from "@/data/world";
 import { boxFromFootprint, resolveCollisions, type Obstacle } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
@@ -29,6 +30,8 @@ export const obstacles: Obstacle[] = [
     .filter((p) => p.id.includes(":"))
     .map((p): Obstacle => ({ kind: "box", ...boxFromFootprint(p.id, p.position, p.footprint, BUILDING_PADDING) })),
   { kind: "box", ...boxFromFootprint(HARBOR_CABIN.id, HARBOR_CABIN.position, HARBOR_CABIN.footprint, 0.6) },
+  // Skyport buildings (V7).
+  ...SKYPORT_OBSTACLES.map((b): Obstacle => ({ kind: "box", ...boxFromFootprint(b.id, b.position, b.footprint, 0.8) })),
 ];
 
 export interface DriveRect {
@@ -44,6 +47,8 @@ export const DRIVE_AREAS: DriveRect[] = [
   // The quay overlaps the platform edge by more than a car diameter: the two rectangles, each shrunk by the
   // car radius, still overlap, so the seam never traps the car (see the walk-through test).
   { minX: QUAY_DRIVE.minX, maxX: QUAY_DRIVE.maxX + 2 * CAR_RADIUS + 2, minZ: QUAY_DRIVE.minZ, maxZ: QUAY_DRIVE.maxZ },
+  // Causeway and Skyport Island (V7); each rectangle overlaps its neighbour by more than a car diameter.
+  ...SKYPORT_DRIVE_RECTS,
 ];
 
 /**

@@ -33,7 +33,7 @@ describe("ocean grid", () => {
     expect(low).toBeLessThan(medium);
     expect(medium).toBeLessThan(high);
     expect(high).toBeLessThan(60_000);
-    expect(low).toBeLessThan(10_000);
+    expect(low).toBeLessThan(14_000);
   });
   it("faces point up (counter-clockwise seen from above)", () => {
     const g = buildOceanGrid(50, SEA_BOUNDS, OCEAN_EXTENT, () => 50);

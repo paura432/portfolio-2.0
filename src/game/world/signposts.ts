@@ -1,4 +1,5 @@
 import { harbors } from "@/data/archipelago";
+import { SKYPORT } from "@/data/skyport";
 import { districts, type Accent, type District } from "@/data/districts";
 import { PLAZA, ROADS } from "@/data/world";
 import { roadsideExtent } from "./urban";
@@ -56,6 +57,11 @@ export function harborDestinations(): Destination[] {
     .map((h) => ({ id: h.id, name: h.name, tagline: h.tagline, accent: "amber", built: true, position: h.pierRoot, entrance: [h.boardingZone.x, h.boardingZone.z] }));
 }
 
+/** The Skyport (V7) is reached by car over the east causeway. */
+export function skyportDestination(): Destination {
+  return { id: SKYPORT.id, name: SKYPORT.name, tagline: SKYPORT.tagline, accent: "cyan", built: true, position: SKYPORT.center, entrance: [SKYPORT.pad.x, SKYPORT.pad.z] };
+}
+
 function exitFor(d: Destination): Exit | null {
   const [x, z] = d.entrance;
   // Beyond the ring road (|z| >= 40) a district is reached from the north/south exit whatever its x.
@@ -81,7 +87,7 @@ export function buildSignposts(): Signpost[] {
   const exits: Exit[] = ["west", "east", "north", "south"];
   // Beyond the sidewalk on the driver's left, so the post never sits in the road or on the pavement.
   const lateral = roadsideExtent(ROADS[0]!.width) + 0.7;
-  const destinations: Destination[] = [...districts.filter((d) => d.kind !== "hub").map(destinationOf), ...harborDestinations()];
+  const destinations: Destination[] = [...districts.filter((d) => d.kind !== "hub").map(destinationOf), ...harborDestinations(), skyportDestination()];
   return exits
     .map((exit): Signpost => {
       const [fx, fz] = EXIT_DIR[exit];

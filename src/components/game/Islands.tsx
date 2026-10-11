@@ -10,9 +10,10 @@ import { palette } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 import { SignPanel } from "./DistrictSigns";
 import { getMaterials } from "./materials";
+import { Skyport } from "./Skyport";
 import { StaticBatch } from "./StaticBatch";
 
-function useTerrainGeometry(build: () => { positions: Float32Array; colors: Float32Array; indices: Uint32Array }) {
+export function useTerrainGeometry(build: () => { positions: Float32Array; colors: Float32Array; indices: Uint32Array }) {
   const geometry = useMemo(() => {
     const t = build();
     const g = new BufferGeometry();
@@ -27,7 +28,7 @@ function useTerrainGeometry(build: () => { positions: Float32Array; colors: Floa
   return geometry;
 }
 
-function useRocks(rocks: RockInstance[]) {
+export function useRocks(rocks: RockInstance[]) {
   return useCallback(
     (mesh: InstancedMesh | null) => {
       if (!mesh) return;
@@ -255,6 +256,7 @@ export function Islands() {
     <group>
       <MainCoast />
       <CreativeLabIsland />
+      <Skyport />
     </group>
   );
 }

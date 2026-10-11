@@ -1,4 +1,5 @@
 import { SEA_BOUNDS, harbors, islands, pierBox, polygonDistance, type Point } from "@/data/archipelago";
+import { SKYPORT } from "@/data/skyport";
 import { resolveCircleBox, type Box } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
 
@@ -76,7 +77,11 @@ export interface SeaResult {
 }
 
 export const coastPolygons: { id: string; poly: Point[] }[] = islands.map((i) => ({ id: i.id, poly: i.coastline }));
-export const pierBoxes: Box[] = harbors.map((h) => ({ id: h.id, ...pierBox(h) }));
+export const pierBoxes: Box[] = [
+  ...harbors.map((h) => ({ id: h.id, ...pierBox(h) })),
+  // The Skyport causeway (V7): deck on piles, no passage underneath.
+  { id: "causeway", minX: SKYPORT.causeway.fromX, maxX: SKYPORT.causeway.toX, minZ: SKYPORT.causeway.z - SKYPORT.causeway.width / 2, maxZ: SKYPORT.causeway.z + SKYPORT.causeway.width / 2 },
+];
 
 export function resolveSeaCollisions(circle: { x: number; z: number; r: number }, polygons = coastPolygons, boxes = pierBoxes, bounds = SEA_BOUNDS): SeaResult {
   let { x, z } = circle;

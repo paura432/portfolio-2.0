@@ -187,13 +187,17 @@ export function buildIslandTerrain(coast: readonly Point[], center: Point, landH
  * coast polygon (just under the water) and a submerged sea-floor ring beyond.
  * The quay face is skipped: the quay slab stands there.
  */
-export function buildCoastSkirt(coast: readonly Point[], seed: number, innerHalf = PLATFORM.halfSize): TerrainMesh {
+export function buildCoastSkirt(
+  coast: readonly Point[],
+  seed: number,
+  /** Projects a coast vertex onto the built edge the skirt starts from (default: the city's square platform). */
+  clampInner: (x: number, z: number) => [number, number] = (x, z) => [Math.max(-PLATFORM.halfSize, Math.min(PLATFORM.halfSize, x)), Math.max(-PLATFORM.halfSize, Math.min(PLATFORM.halfSize, z))],
+): TerrainMesh {
   const rand = seededRandom(seed);
   const n = coast.length;
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
-  const clampIn = (v: number) => Math.max(-innerHalf, Math.min(innerHalf, v));
   const rings: { scale: number; y: number; color: (y: number) => [number, number, number] }[] = [
     { scale: 0, y: -0.03, color: () => hex(TERRAIN_COLORS.ground) },
     { scale: 0.55, y: -0.5, color: () => hex(TERRAIN_COLORS.sand) },
@@ -204,8 +208,7 @@ export function buildCoastSkirt(coast: readonly Point[], seed: number, innerHalf
     const ring = rings[r]!;
     for (let i = 0; i < n; i++) {
       const [cx, cz] = coast[i]!;
-      const ix = clampIn(cx);
-      const iz = clampIn(cz);
+      const [ix, iz] = clampInner(cx, cz);
       // The last ring sits further out (sea floor), the others interpolate inner → coast.
       const extra = r === rings.length - 1 ? 1.35 : 1;
       let x = ix + (cx - ix) * ring.scale * extra;
