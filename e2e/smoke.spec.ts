@@ -42,11 +42,13 @@ test.describe("PAU WORLD smoke", () => {
     await expect(panel).toBeHidden();
     expect(await page.evaluate(() => document.activeElement?.closest("[role=dialog]") ?? null)).toBeNull();
     const before = await car(page);
-    await page.keyboard.down("KeyS");
-    await page.waitForTimeout(1200);
-    await page.keyboard.up("KeyS");
-    const after = await car(page);
-    expect(Math.hypot(after.x - before.x, after.z - before.z), "car moves again after closing the panel").toBeGreaterThan(0.5);
+    // Condition-based: the car has moved more than half a unit under S (the same assertion, no fixed delay: under
+    // software rendering a fixed 1.2 s is sometimes a single physics step).
+    const moved = await holdKeyUntil(page, "KeyS", async () => {
+      const c = await car(page);
+      return Math.hypot(c.x - before.x, c.z - before.z) > 0.5;
+    }, 10_000);
+    expect(moved, "car moves again after closing the panel").toBe(true);
 
     // Projects menu: every district is on the map (V3 + the V5 campus), grouped by category, the planned group is gone.
     await page.keyboard.press("KeyM");
