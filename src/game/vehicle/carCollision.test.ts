@@ -39,3 +39,36 @@ describe("collisions inside the physics step", () => {
     expect(Math.abs(next.z - s.z)).toBeLessThan(3);
   });
 });
+
+describe("drive area (V6): platform plus harbor quay", () => {
+  it("lets the car reach the boarding zone on the quay but not the pier or the sea", async () => {
+    const { clampToDriveArea, CAR_RADIUS } = await import("@/game/world/obstacles");
+    const { getHarbor, QUAY_DRIVE } = await import("@/data/archipelago");
+    const h = getHarbor("pau-harbor");
+    const atZone = clampToDriveArea(h.boardingZone.x, h.boardingZone.z, CAR_RADIUS);
+    expect(atZone.boundary).toBe(false);
+    // Past the quay edge toward the pier: clamped back onto the quay.
+    const past = clampToDriveArea(h.pierRoot[0] - 3, 0, CAR_RADIUS);
+    expect(past.boundary).toBe(true);
+    expect(past.x).toBeCloseTo(QUAY_DRIVE.minX + CAR_RADIUS, 9);
+    // Off the platform edge away from the quay: still the square boundary.
+    const side = clampToDriveArea(-64, 30, CAR_RADIUS);
+    expect(side.boundary).toBe(true);
+    expect(side.x).toBeCloseTo(-62 + CAR_RADIUS, 9);
+    // Inside the platform: untouched.
+    expect(clampToDriveArea(10, -20, CAR_RADIUS)).toEqual({ x: 10, z: -20, boundary: false });
+    // The seam between platform and quay is continuous: a point on the platform edge inside the quay band is free.
+    expect(clampToDriveArea(-62.5, 2, CAR_RADIUS).boundary).toBe(false);
+  });
+  it("the harbor road reaches the quay and the cabin collides", async () => {
+    const { distanceToRoad } = await import("@/data/world");
+    const { obstacles, HARBOR_CABIN, CAR_RADIUS } = await import("@/game/world/obstacles");
+    const { resolveCollisions } = await import("@/game/physics/collision");
+    const { getHarbor } = await import("@/data/archipelago");
+    const h = getHarbor("pau-harbor");
+    expect(distanceToRoad(h.boardingZone.x, h.boardingZone.z)).toBe(0);
+    expect(distanceToRoad(-55, 0)).toBe(0);
+    const r = resolveCollisions({ x: HARBOR_CABIN.position[0], z: HARBOR_CABIN.position[1], r: CAR_RADIUS }, obstacles, Infinity);
+    expect(r.hits).toContain("harbor-cabin");
+  });
+});

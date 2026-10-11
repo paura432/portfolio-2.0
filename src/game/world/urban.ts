@@ -39,6 +39,9 @@ export interface ParkingPad {
 export const PARKING_PADS: ParkingPad[] = [
   { x: -18.5, z: -8, width: 5, depth: 4, rotation: 0, bays: 3 },
   { x: 18.5, z: -8, width: 5, depth: 4, rotation: 0, bays: 3 },
+  // PAU Harbor quay (V6): two pads flanking the harbor road, where the car parks before boarding.
+  { x: -69.5, z: -6.5, width: 7, depth: 4.4, rotation: 0, bays: 4 },
+  { x: -69.5, z: 6.5, width: 7, depth: 4.4, rotation: 0, bays: 4 },
 ];
 
 export function insideParkingPad(x: number, z: number, margin = 0): boolean {

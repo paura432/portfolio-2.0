@@ -25,6 +25,7 @@ import { ProximitySensor } from "./ProximitySensor";
 import { SceneLighting } from "./SceneLighting";
 import { World } from "./World";
 import { Signposts } from "./Signposts";
+import { Harbor } from "./Harbor";
 import { VehicleController } from "./VehicleController";
 import { ContextLossHandler, FirstFrameSignal } from "./SceneSignals";
 
@@ -199,6 +200,7 @@ export function GameCanvas() {
       <ContextLossHandler />
       <SceneLighting />
       <World />
+      <Harbor />
       <Signposts />
       <VehicleController />
       <Car />

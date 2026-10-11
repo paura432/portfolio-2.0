@@ -9,12 +9,12 @@ import { getMaterials } from "./materials";
 const ARROW = { left: "←", right: "→", ahead: "↑" } as const;
 
 function Panel({ entry, y }: { entry: SignpostEntry; y: number }) {
-  const { district, side } = entry;
-  const accent = district.built ? accentHex[district.accent] : palette.muted;
-  const title = side === "left" ? `${ARROW.left} ${district.name}` : `${district.name} ${ARROW[side]}`;
+  const { destination, side } = entry;
+  const accent = destination.built ? accentHex[destination.accent] : palette.muted;
+  const title = side === "left" ? `${ARROW.left} ${destination.name}` : `${destination.name} ${ARROW[side]}`;
   return (
     <group position={[0, y, 0]}>
-      <SignPanel title={title} subtitle={district.built ? district.tagline : "planned district"} accent={accent} width={2.9} height={0.84} compact />
+      <SignPanel title={title} subtitle={destination.built ? destination.tagline : "planned district"} accent={accent} width={2.9} height={0.84} compact />
     </group>
   );
 }
@@ -31,7 +31,7 @@ export function Signposts() {
             <boxGeometry args={[0.14, SIGNPOST_TOP_Y + 0.5, 0.14]} />
           </mesh>
           {p.entries.map((e, i) => (
-            <Panel key={e.district.id} entry={e} y={SIGNPOST_TOP_Y - i * SIGNPOST_PANEL_PITCH} />
+            <Panel key={e.destination.id} entry={e} y={SIGNPOST_TOP_Y - i * SIGNPOST_PANEL_PITCH} />
           ))}
         </group>
       ))}

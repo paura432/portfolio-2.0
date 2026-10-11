@@ -41,6 +41,8 @@ export const ROADS: RoadSegment[] = [
   { from: [0, 40], to: [0, 47], width: ROAD_WIDTH },
   // Spur to the 4Geeks AI Engineering Campus (V5), off the north ring road
   { from: [30, -40], to: [30, -47], width: ROAD_WIDTH },
+  // Harbor road (V6): the west cross road continues past the ring road onto the quay of PAU Harbor.
+  { from: [-40, 0], to: [-70, 0], width: ROAD_WIDTH },
 ];
 
 /** Paved areas that are not roads: no vegetation, "pavement" for the driving feedback. */

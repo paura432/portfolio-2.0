@@ -188,6 +188,22 @@ function createMaterials() {
     bush: standard(palette.treeTeal, 0.95, 0, { flatShading: true }),
     planter: standard(palette.concreteLight, 0.9, 0, { flatShading: true }),
 
+    // Harbor & coast (V6)
+    /** Technical deck paving of the piers: dark composite planks. */
+    deck: standard("#2B3644", 0.82, 0.08, { flatShading: true }),
+    deckEdge: standard("#3E4C5E", 0.7, 0.2),
+    pile: standard("#232C38", 0.75, 0.3),
+    fender: standard("#121821", 0.95, 0),
+    rock: standard("#27384A", 0.95, 0, { flatShading: true }),
+    rockDark: standard("#1B2838", 0.98, 0, { flatShading: true }),
+    sand: standard("#55606A", 0.95, 0, { flatShading: true }),
+    /** Boat hull colours: the car's orange family plus a deep navy and a light deck. */
+    hullOrange: standard(palette.carOrange, 0.3, 0.15),
+    hullNavy: standard("#17263B", 0.35, 0.2),
+    hullDeck: standard("#C9D3DE", 0.6, 0.05),
+    hullSeat: standard("#243244", 0.7, 0.05),
+    navGreen: basicLight("#5CF08A"),
+
     // Vehicle
     carBody: standard(palette.carOrange, 0.32, 0.12),
     carBodyDark: standard(palette.carOrangeDark, 0.4, 0.1),

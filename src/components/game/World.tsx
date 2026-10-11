@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { InstancedMesh, Object3D } from "three";
+import { QUAY } from "@/data/archipelago";
 import { PLATFORM, PLAZA, ROADS } from "@/data/world";
 import { CURB_HEIGHT, CURB_WIDTH, generateCrosswalks, generateCurbs, generateForecourts, generateLaneDashes, generateSidewalks, PARKING_PADS, SIDEWALK_WIDTH, type Run } from "@/game/world/urban";
 import { Buildings } from "./Buildings";
@@ -125,7 +126,9 @@ export function World() {
         [0, half - 0.4, half * 2, 0.8],
         [0, -half + 0.4, half * 2, 0.8],
         [half - 0.4, 0, 0.8, half * 2],
-        [-half + 0.4, 0, 0.8, half * 2],
+        // West rim is cut where the harbor quay continues the platform (V6).
+        [-half + 0.4, (QUAY.z1 + half) / 2, 0.8, half - QUAY.z1],
+        [-half + 0.4, (QUAY.z0 - half) / 2, 0.8, half + QUAY.z0],
       ].map(([x, z, w, d], i) => (
         <mesh key={i} position={[x!, 0.06, z!]} material={m.concrete}>
           <boxGeometry args={[w!, 0.12, d!]} />
