@@ -103,3 +103,19 @@ Three readings: recruiter — the focus cards now say what was built and for who
 Validation: typecheck clean, lint 0 problems, 221/221 unit tests. Build and browser re-check: deferred to the next tick (the V8 capture is using the machine); the changed texts are two short strings in places already checked for overflow with longer text.
 
 Decision: first pass without P0/P1 findings (1 of the 2 required). Continue.
+
+## Iteration 4 · 2026-10-11
+
+Consistency pass over every public string: spelling variant (the copy is British: organisation, containerised, authorisation, colour), double spaces, stray punctuation, capitalisation of product names, key names in the HUD.
+
+| id | sev | where | before → after | why |
+|---|---|---|---|---|
+| E17 | P2 | BROKI decision trade-off; BROKI district sign | "normalization" → "normalisation"; "legacy modernization" → "legacy modernisation" | the only two American spellings left among the public strings |
+
+No P0 or P1 found: second consecutive pass without important findings. No double spaces or stray punctuation; product names (DUPLEX, OVI, BROKI, TrustOS, PAU WORLD, AERO-X) are consistent; HUD key names match the bindings (`KEY_BINDINGS`).
+
+Three readings: recruiter — nothing new; senior engineer — nothing new; UX editor — nothing new.
+
+Validation: typecheck clean, lint 0 problems, 221/221 unit tests. Build and browser re-check for iterations 3–4: still deferred (the V8 capture is using the machine); they are the only open validation before the loop can stop.
+
+Decision: the copy criteria are met (two clean passes, no open P0/P1, no contradiction with the CVs or the audits, no removed mechanic described, CTAs and game messages checked). The final build and browser check run on the next tick; if clean, the loop stops as SATISFACTORY.

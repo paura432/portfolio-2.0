@@ -109,7 +109,7 @@ export const districts: District[] = [
     id: "broki",
     category: "personal",
     name: "BROKI",
-    tagline: "Airport operations · legacy modernization",
+    tagline: "Airport operations · legacy modernisation",
     kind: "project",
     projectSlug: "broki",
     position: [28, 17],

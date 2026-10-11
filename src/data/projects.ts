@@ -211,7 +211,7 @@ export const projects: Project[] = [
       {
         decision: "Legacy transition as a parallel, audited track",
         why: "Existing records and flows must keep operational meaning until each operation is proven at parity.",
-        tradeOff: "Audit, normalization and dual operation add delivery complexity.",
+        tradeOff: "Audit, normalisation and dual operation add delivery complexity.",
       },
     ],
     quality: ["Husky pre-commit gate", "Unit, integration and E2E coverage", "Offline smoke checks"],
