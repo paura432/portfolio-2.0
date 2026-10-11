@@ -9,17 +9,19 @@ import type { LightingPresetId } from "@/game/render/lighting";
 import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
 import { particleStats } from "@/game/fx/particles";
 import { liveBoat, placeBoat } from "@/game/vehicle/boatState";
+import { bumpGeneration, liveVehicle } from "@/game/vehicle/liveVehicle";
+import { authorityOf, bodyModeOf, type VehicleState } from "@/game/vehicle/transformer";
 import { boatSpeed } from "@/game/vehicle/boatPhysics";
 import { liveCar } from "@/game/vehicle/carState";
-import { resolveVehicleMode, type VehicleMode } from "@/game/vehicle/vehicleManager";
+import { poseOf, resolveVehicleMode, type VehicleMode } from "@/game/vehicle/vehicleManager";
 import { livePlane, placePlane } from "@/game/vehicle/planeState";
-import type { CarForm, FlightPhase } from "@/game/vehicle/transform";
 import { heightAt, oceanClock } from "@/game/ocean/waves";
-import type { HarborId, VehicleId } from "@/data/archipelago";
+import type { HarborId } from "@/data/archipelago";
+import type { BeachId } from "@/data/beaches";
+import type { RampId } from "@/data/ramps";
 import { treeWorld, type TreeState } from "@/game/world/treeWorld";
 import { type TreeDef } from "@/game/world/trees";
 import { useGameStore, type Quality } from "@/stores/gameStore";
-import { Car } from "./Car";
 import { ImpactParticles } from "./ImpactParticles";
 import { SkidMarks } from "./SkidMarks";
 import { FollowCamera } from "./FollowCamera";
@@ -28,7 +30,8 @@ import { SceneLighting } from "./SceneLighting";
 import { World } from "./World";
 import { Signposts } from "./Signposts";
 import { Harbor } from "./Harbor";
-import { Boat } from "./Boat";
+import { Vehicle } from "./Vehicle";
+import { Ramps } from "./Ramps";
 import { BoatSpray } from "./BoatSpray";
 import { Islands } from "./Islands";
 import { Ocean } from "./Ocean";
@@ -70,7 +73,8 @@ declare global {
       /** V6: the boat (2D state plus the buoyancy pose) and the vehicle manager's view. */
       boat: () => { x: number; z: number; y: number; speed: number; heading: number; pitch: number; roll: number; throttle: number };
       teleportBoat: (x: number, z: number, heading: number) => void;
-      vehicle: () => { active: VehicleId; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyHarbor: HarborId | null; nearbyDock: HarborId | null; carForm: CarForm; flight: FlightPhase; nearbyPad: boolean; landingZone: boolean };
+      /** V8: the one vehicle's state machine view and its authoritative pose. */
+      vehicle: () => { state: VehicleState; authority: "car" | "boat" | "plane"; body: "car" | "boat" | "plane"; mode: VehicleMode; transition: string | null; mooredAt: HarborId | null; nearbyDock: HarborId | null; nearbyRamp: RampId | null; nearbyBeach: BeachId | null; landingZone: boolean; x: number; y: number; z: number; heading: number; speed: number; progress: number };
       /** V7: the aircraft state while the car is in flight form. */
       plane: () => { x: number; y: number; z: number; heading: number; pitch: number; roll: number; speed: number; onGround: boolean; stalled: boolean; throttle: number };
       /** Stage the aircraft (test/capture tooling): on the ground in plane form, or airborne at cruise speed. */
@@ -107,24 +111,38 @@ function Probe() {
       car: () => ({ x: liveCar.state.x, z: liveCar.state.z, speed: liveCar.state.speed, heading: liveCar.state.heading }),
       teleport: (x, z, heading) => {
         liveCar.state = { ...liveCar.state, x, z, heading, speed: 0, steerAngle: 0 };
-        liveCar.generation++;
+        liveVehicle.y = 0;
+        liveVehicle.vy = 0;
+        liveVehicle.airborne = false;
+        liveVehicle.onRamp = null;
+        liveVehicle.sinceTransform = 10;
+        useGameStore.setState({ vehicleState: "car", transition: null, mooredAt: null, landingZone: false });
+        bumpGeneration();
       },
       boat: () => {
         const b = liveBoat.state;
         return { x: b.x, z: b.z, y: liveBoat.visual.y, speed: boatSpeed(b), heading: b.heading, pitch: liveBoat.visual.pitch, roll: liveBoat.visual.roll, throttle: b.throttle };
       },
-      teleportBoat: (x, z, heading) => placeBoat(x, z, heading),
+      teleportBoat: (x, z, heading) => {
+        placeBoat(x, z, heading);
+        liveVehicle.sinceTransform = 10;
+        useGameStore.setState({ vehicleState: "floating", transition: null, mooredAt: null, landingZone: false });
+        bumpGeneration();
+      },
       vehicle: () => {
         const s = useGameStore.getState();
-        return { active: s.activeVehicle, mode: resolveVehicleMode(s.phase, s), transition: s.transition?.kind ?? null, mooredAt: s.mooredAt, nearbyHarbor: s.nearbyHarbor, nearbyDock: s.nearbyDock, carForm: s.carForm, flight: s.flight, nearbyPad: s.nearbyPad, landingZone: s.landingZone };
+        const p = poseOf(s.vehicleState);
+        return { state: s.vehicleState, authority: authorityOf(s.vehicleState), body: bodyModeOf(s.vehicleState), mode: resolveVehicleMode(s.phase, s), transition: s.transition?.kind ?? null, mooredAt: s.mooredAt, nearbyDock: s.nearbyDock, nearbyRamp: s.nearbyRamp, nearbyBeach: s.nearbyBeach, landingZone: s.landingZone, x: p.x, y: p.y, z: p.z, heading: p.heading, speed: p.speed, progress: liveVehicle.progress() };
       },
       plane: () => {
         const p = livePlane.state;
         return { x: p.x, y: p.y, z: p.z, heading: p.heading, pitch: p.pitch, roll: p.roll, speed: p.speed, onGround: p.onGround, stalled: p.stalled, throttle: p.throttle };
       },
-      teleportPlane: (x, y, z, heading, airborne = false) => {
-        placePlane(x, y, z, heading, airborne);
-        useGameStore.setState({ carForm: "plane", flight: airborne ? "flying" : "plane-ready", landingZone: false });
+      teleportPlane: (x, y, z, heading) => {
+        placePlane(x, y, z, heading, true);
+        liveVehicle.sinceTransform = 10;
+        useGameStore.setState({ vehicleState: "flying", transition: null, mooredAt: null, landingZone: false });
+        bumpGeneration();
       },
       water: (x, z) => heightAt(x, z, oceanClock.time),
       photo: (camera) => {
@@ -223,8 +241,8 @@ export function GameCanvas() {
       <Harbor />
       <Signposts />
       <VehicleController />
-      <Car />
-      <Boat />
+      <Ramps />
+      <Vehicle />
       <BoatSpray />
       <ImpactParticles />
       <SkidMarks />

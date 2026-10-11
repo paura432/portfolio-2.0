@@ -1,4 +1,4 @@
-import { getHarbor, harbors, type HarborId } from "@/data/archipelago";
+import { getHarbor, type HarborId } from "@/data/archipelago";
 import { createBoatState, type BoatState } from "./boatPhysics";
 
 /**
@@ -20,26 +20,6 @@ export const liveBoat: {
 function spawnAt(harbor: HarborId): BoatState {
   const m = getHarbor(harbor).mooring;
   return createBoatState(m.position[0], m.position[1], m.heading);
-}
-
-/** Harbor whose mooring is closest to a point. */
-export function nearestHarbor(x: number, z: number): HarborId {
-  let best = harbors[0]!;
-  let bestD = Infinity;
-  for (const h of harbors) {
-    const d = Math.hypot(h.mooring.position[0] - x, h.mooring.position[1] - z);
-    if (d < bestD) {
-      bestD = d;
-      best = h;
-    }
-  }
-  return best.id;
-}
-
-/** Put the boat back at a harbor mooring (default: the nearest one). Recovery action for a stuck player. */
-export function resetBoat(harbor: HarborId = nearestHarbor(liveBoat.state.x, liveBoat.state.z)): void {
-  liveBoat.state = spawnAt(harbor);
-  liveBoat.generation++;
 }
 
 /** Place the boat (test/capture tooling). */

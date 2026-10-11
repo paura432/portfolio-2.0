@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import type { HarborId, PoiId } from "@/data/archipelago";
 import { pointsOfInterest } from "@/data/archipelago";
+import type { BeachId } from "@/data/beaches";
 import type { DistrictId } from "@/data/districts";
+import type { RampId } from "@/data/ramps";
 import type { LabZoneId } from "@/game/interaction/zones";
 import { DEFAULT_LIGHTING, type LightingPresetId } from "@/game/render/lighting";
 import type { Quality } from "@/game/render/quality";
-import { applyTransition, canBoard, canDock, carAvailableAt, makeTransition, poseOf, TRANSFORMING, type VehicleId, type VehicleSnapshot, type VehicleTransition } from "@/game/vehicle/vehicleManager";
-import { canTransformToCar, canTransformToPlane, type FlightPhase } from "@/game/vehicle/transform";
-import { livePlane } from "@/game/vehicle/planeState";
+import { canTransition, type VehicleState } from "@/game/vehicle/transformer";
+import { applyTransition, canDock, makeTransition, poseOf, type VehicleSnapshot, type VehicleTransition } from "@/game/vehicle/vehicleManager";
 
 export type GamePhase = "intro" | "playing" | "panel" | "menu";
 export type { Quality };
@@ -35,12 +36,14 @@ interface GameState extends VehicleSnapshot {
   treesDown: number;
   /** Last tree impact for the HUD toast; `at` is performance.now(). */
   lastImpact: { kind: "shake" | "topple" | "break"; at: number } | null;
-  /** V7: car inside the Skyport transformation pad. */
-  nearbyPad: boolean;
-  /** V7: aircraft low, slow and near the runway. */
+  /** V8: ramp whose corridor the car is in. */
+  nearbyRamp: RampId | null;
+  /** V8: beach whose footprint the vehicle is on. */
+  nearbyBeach: BeachId | null;
+  /** V8: the aircraft is low and slow over ground it may land on. */
   landingZone: boolean;
-  /** V7: short HUD notice about flight (why a transformation was refused, the altitude floor, ...). */
-  flightNotice: { text: string; at: number } | null;
+  /** Short HUD notice about the vehicle (why a takeoff failed, the altitude floor, the sea change, ...). */
+  vehicleNotice: { text: string; at: number } | null;
 
   startGame: () => void;
   setSceneReady: (ready: boolean) => void;
@@ -51,38 +54,35 @@ interface GameState extends VehicleSnapshot {
   noteImpact: (kind: "shake" | "topple" | "break") => void;
   setNearby: (id: DistrictId | null) => void;
   setNearbyLab: (id: LabZoneId | null) => void;
-  setNearbyHarbor: (id: HarborId | null) => void;
   setNearbyDock: (id: HarborId | null) => void;
-  setNearbyPad: (on: boolean) => void;
+  setNearbyRamp: (id: RampId | null) => void;
+  setNearbyBeach: (id: BeachId | null) => void;
   setLandingZone: (on: boolean) => void;
-  noteFlight: (text: string) => void;
-  /** Car → aircraft on the pad. Returns true when the sequence started; otherwise leaves a notice with the reason. */
-  transformToPlane: () => boolean;
-  /** Aircraft → car once rolled out and stopped. */
-  transformToCar: () => boolean;
-  completeTransform: () => void;
-  /** Lift-off / touchdown reported by the flight controller. */
-  setFlightPhase: (phase: FlightPhase) => void;
-  /** Reset to the plain car form (any transformation or flight is cancelled). */
-  resetFlight: () => void;
+  noteVehicle: (text: string) => void;
+  /**
+   * Move the vehicle state machine along one of its edges (the physics
+   * controller is the only caller). Returns false and changes nothing when
+   * the edge does not exist, so two transformations can never overlap.
+   */
+  setVehicleState: (next: VehicleState) => boolean;
+  /** Reset: back to the plain car, stopped, no glide, no sequence. */
+  resetVehicle: () => void;
   openPanel: (id: DistrictId, lab?: string | null) => void;
   openPoiPanel: (id: PoiId) => void;
   /** Navigate inside the open panel (campus ↔ lab) without closing it. */
   selectLab: (lab: string | null) => void;
   /**
-   * The E key / prompt button. Opens the panel for the nearby district or point
-   * of interest, or boards / docks when a vehicle action is available. Returns true if it did something.
+   * The E key / prompt button. Opens the panel for the nearby district, lab or
+   * point of interest, or docks at a pier. Returns true if it did something.
    */
   interact: () => boolean;
-  /** Car → boat at the nearby harbor (slow car inside the boarding zone). */
-  boardBoat: () => boolean;
-  /** Boat → pier at the nearby dock: hands the controls to the parked car when there is one, otherwise moors. */
+  /** Floating hull inside a docking zone, slow enough → glide onto the mooring. */
   dockBoat: () => boolean;
-  /** Moored boat → sailing again. */
+  /** Moored hull → floating again. */
   castOff: () => boolean;
-  /** Called by the vehicle controller when the running transition reaches its end. */
+  /** Called by the vehicle controller when the running pier glide reaches its end. */
   completeTransition: () => void;
-  /** Called on a vehicle reset: any transition in flight is cancelled and the player lands in a controllable state. */
+  /** Called on a vehicle reset: any glide in flight is cancelled. */
   cancelTransition: () => void;
   closePanel: () => void;
   openMenu: () => void;
@@ -103,16 +103,14 @@ export const useGameStore = create<GameState>()((set, get) => ({
   openPoi: null,
   treesDown: 0,
   lastImpact: null,
-  activeVehicle: "car",
+  vehicleState: "car",
   transition: null,
   mooredAt: null,
-  nearbyHarbor: null,
   nearbyDock: null,
-  carForm: "car",
-  flight: "ground",
-  nearbyPad: false,
+  nearbyRamp: null,
+  nearbyBeach: null,
   landingZone: false,
-  flightNotice: null,
+  vehicleNotice: null,
 
   startGame: () => set({ phase: "playing" }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
@@ -129,107 +127,65 @@ export const useGameStore = create<GameState>()((set, get) => ({
   setNearbyLab: (id) => {
     if (get().nearbyLab !== id) set({ nearbyLab: id });
   },
-  setNearbyHarbor: (id) => {
-    if (get().nearbyHarbor !== id) set({ nearbyHarbor: id });
-  },
   setNearbyDock: (id) => {
     if (get().nearbyDock !== id) set({ nearbyDock: id });
   },
-  setNearbyPad: (on) => {
-    if (get().nearbyPad !== on) set({ nearbyPad: on });
+  setNearbyRamp: (id) => {
+    if (get().nearbyRamp !== id) set({ nearbyRamp: id });
+  },
+  setNearbyBeach: (id) => {
+    if (get().nearbyBeach !== id) set({ nearbyBeach: id });
   },
   setLandingZone: (on) => {
     if (get().landingZone !== on) set({ landingZone: on });
   },
-  noteFlight: (text) => set({ flightNotice: { text, at: performance.now() } }),
-  transformToPlane: () => {
+  noteVehicle: (text) => set({ vehicleNotice: { text, at: performance.now() } }),
+  setVehicleState: (next) => {
     const s = get();
-    const e = canTransformToPlane({
-      playing: s.phase === "playing",
-      inTransition: s.transition !== null || TRANSFORMING.has(s.flight) || s.carForm === "plane",
-      onPad: s.nearbyPad,
-      speed: poseOf("car").speed,
-      colliding: false,
-    });
-    if (!e.ok) {
-      const text = e.reason === "too-fast" ? "Stop on the pad to transform" : e.reason === "not-on-pad" ? "Transformation only at the Skyport pad" : e.reason === "transition" ? "Finish the current manoeuvre first" : "Cannot transform now";
-      if (s.phase === "playing") set({ flightNotice: { text, at: performance.now() } });
-      return false;
-    }
-    set({ flight: "transforming-to-plane", flightNotice: null });
+    if (s.vehicleState === next) return true;
+    if (!canTransition(s.vehicleState, next)) return false;
+    set({ vehicleState: next, landingZone: next === "flying" ? s.landingZone : false });
     return true;
   },
-  transformToCar: () => {
-    const s = get();
-    const p = livePlane.state;
-    if (s.activeVehicle !== "car" || s.carForm !== "plane") return false;
-    if (!canTransformToCar({ playing: s.phase === "playing", inTransition: s.transition !== null || TRANSFORMING.has(s.flight), onGround: p.onGround, speed: p.speed })) {
-      if (s.phase === "playing" && !p.onGround) set({ flightNotice: { text: "Land on the runway first", at: performance.now() } });
-      else if (s.phase === "playing") set({ flightNotice: { text: "Stop to reconfigure", at: performance.now() } });
-      return false;
-    }
-    set({ flight: "transforming-to-car", flightNotice: null });
-    return true;
-  },
-  completeTransform: () => {
-    const s = get();
-    if (s.flight === "transforming-to-plane") set({ carForm: "plane", flight: "plane-ready" });
-    else if (s.flight === "transforming-to-car") set({ carForm: "car", flight: "ground", landingZone: false });
-  },
-  setFlightPhase: (flight) => {
-    if (get().flight !== flight) set({ flight });
-  },
-  resetFlight: () => set({ carForm: "car", flight: "ground", landingZone: false, flightNotice: null }),
+  resetVehicle: () => set({ vehicleState: "car", transition: null, mooredAt: null, nearbyDock: null, landingZone: false, vehicleNotice: null }),
   openPanel: (id, lab = null) => set({ phase: "panel", openDistrict: id, openLab: lab, openPoi: null }),
   openPoiPanel: (id) => set({ phase: "panel", openPoi: id, openDistrict: null, openLab: null }),
   selectLab: (openLab) => set({ openLab }),
   interact: () => {
     const s = get();
     if (s.phase !== "playing" || s.transition) return false;
-    if (s.activeVehicle === "car") {
-      if (TRANSFORMING.has(s.flight)) return false;
-      // V7: in flight form E folds back into the car (only once rolled out and stopped).
-      if (s.carForm === "plane") return s.transformToCar();
-      if (s.nearbyLab) {
-        const [district, lab] = s.nearbyLab.split(":") as [DistrictId, string];
-        set({ phase: "panel", openDistrict: district, openLab: lab, openPoi: null });
+    if (s.vehicleState === "floating") {
+      // Moored at a pier → the point of interest; sailing inside a dock zone → dock.
+      if (s.mooredAt) {
+        const poi = pointsOfInterest.find((p) => p.harbor === s.mooredAt);
+        if (!poi) return false;
+        set({ phase: "panel", openPoi: poi.id, openDistrict: null, openLab: null });
         return true;
       }
-      if (s.nearbyDistrict) {
-        set({ phase: "panel", openDistrict: s.nearbyDistrict, openLab: null, openPoi: null });
-        return true;
-      }
-      if (s.nearbyPad) return s.transformToPlane();
-      return s.boardBoat();
+      return s.dockBoat();
     }
-    // Boat: moored at a pier → the point of interest; sailing inside a dock zone → dock.
-    if (s.mooredAt) {
-      const poi = pointsOfInterest.find((p) => p.harbor === s.mooredAt);
-      if (!poi) return false;
-      set({ phase: "panel", openPoi: poi.id, openDistrict: null, openLab: null });
+    if (s.vehicleState !== "car") return false;
+    if (s.nearbyLab) {
+      const [district, lab] = s.nearbyLab.split(":") as [DistrictId, string];
+      set({ phase: "panel", openDistrict: district, openLab: lab, openPoi: null });
       return true;
     }
-    return s.dockBoat();
-  },
-  boardBoat: () => {
-    const s = get();
-    if (s.phase !== "playing" || s.activeVehicle !== "car" || s.transition || !s.nearbyHarbor || s.carForm !== "car" || s.flight !== "ground") return false;
-    if (!canBoard(poseOf("car").speed, s.nearbyHarbor)) return false;
-    set({ transition: makeTransition("board", s.nearbyHarbor) });
-    return true;
+    if (s.nearbyDistrict) {
+      set({ phase: "panel", openDistrict: s.nearbyDistrict, openLab: null, openPoi: null });
+      return true;
+    }
+    return false;
   },
   dockBoat: () => {
     const s = get();
-    if (s.phase !== "playing" || s.activeVehicle !== "boat" || s.transition || s.mooredAt || !s.nearbyDock) return false;
-    if (!canDock(poseOf("boat").speed, s.nearbyDock)) return false;
-    const car = poseOf("car");
-    const kind = carAvailableAt(s.nearbyDock, car.x, car.z) ? "disembark" : "moor";
-    set({ transition: makeTransition(kind, s.nearbyDock) });
+    if (s.phase !== "playing" || s.vehicleState !== "floating" || s.transition || s.mooredAt || !s.nearbyDock) return false;
+    if (!canDock(poseOf("floating").speed, s.nearbyDock)) return false;
+    set({ transition: makeTransition("moor", s.nearbyDock) });
     return true;
   },
   castOff: () => {
     const s = get();
-    if (s.phase !== "playing" || s.activeVehicle !== "boat" || s.transition || !s.mooredAt) return false;
+    if (s.phase !== "playing" || s.vehicleState !== "floating" || s.transition || !s.mooredAt) return false;
     set({ transition: makeTransition("cast-off", s.mooredAt) });
     return true;
   },
@@ -241,8 +197,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   cancelTransition: () => {
     const s = get();
     if (!s.transition) return;
-    // Land on the side the player was leaving from, never in limbo.
-    set({ transition: null, activeVehicle: s.transition.from, mooredAt: s.transition.kind === "cast-off" ? s.mooredAt : null });
+    set({ transition: null, mooredAt: s.transition.kind === "cast-off" ? s.mooredAt : null });
   },
   closePanel: () => set({ phase: "playing", openDistrict: null, openLab: null, openPoi: null }),
   openMenu: () => set({ phase: "menu" }),
@@ -254,7 +209,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
   },
 }));
 
-/** True when the active vehicle should respond to input. */
-export const selectDrivingEnabled = (s: GameState): boolean => s.phase === "playing" && s.transition === null && !TRANSFORMING.has(s.flight);
+/** True when the vehicle should respond to input. */
+export const selectDrivingEnabled = (s: GameState): boolean => s.phase === "playing" && s.transition === null && s.mooredAt === null;
 
-export type { VehicleId, VehicleTransition };
+export type { VehicleTransition };

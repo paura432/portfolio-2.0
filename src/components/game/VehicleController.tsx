@@ -2,25 +2,22 @@
 
 import { useFrame } from "@react-three/fiber";
 import { getHarbor } from "@/data/archipelago";
-import { SKYPORT } from "@/data/skyport";
 import { liveBoat } from "@/game/vehicle/boatState";
-import { createCarState } from "@/game/vehicle/carPhysics";
-import { liveCar } from "@/game/vehicle/carState";
-import { createPlaneState } from "@/game/vehicle/planePhysics";
-import { livePlane } from "@/game/vehicle/planeState";
-import { TRANSFORM_DURATION } from "@/game/vehicle/transform";
-import { transformClock, TRANSFORMING, transitionClock } from "@/game/vehicle/vehicleManager";
+import { liveVehicle } from "@/game/vehicle/liveVehicle";
+import { DURATION, isTransforming, partsProgress, type VehicleState } from "@/game/vehicle/transformer";
+import { transitionClock } from "@/game/vehicle/vehicleManager";
 import { useGameStore } from "@/stores/gameStore";
 
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /**
- * Advances the running vehicle transition (paused with the game), glides the
- * boat into its mooring while it docks, runs the car ⇄ aircraft
- * transformation clock (V7) and synchronises the two live states at the
- * transformation instants, and tells the store when each sequence is over.
- * Runs before the vehicles (-4) so the frame they read a completed sequence
- * is the frame they regain control.
+ * Times the two kinds of sequences PAU TRANSFORMER-X runs (paused with the
+ * game): the pier glide (moor / cast off) and the transformation clock the
+ * parts animate from. When a transformation's clock runs out the state
+ * machine moves on (floats out → floating, wheels down → car, wings folded →
+ * car); the wings-out sequence keeps its state until the lip launches or the
+ * ramp rule aborts. Runs before the vehicle (-4) so the frame a sequence
+ * completes is the frame the vehicle reads the new state.
  */
 export function VehicleController() {
   useFrame((_, delta) => {
@@ -45,74 +42,56 @@ function stepTransition(store: Store, delta: number) {
     transitionClock.t = 0;
   }
   if (store.phase !== "playing") return;
-  // Wall-clock within reason: a transition is a short cinematic, so a slow frame still advances it by up to
-  // 0.4 s (software renderers would otherwise need a dozen frames for a one-second hand-over).
+  // Wall-clock within reason: a glide is a short cinematic, so a slow frame still advances it by up to 0.4 s.
   transitionClock.t += Math.min(delta, 0.4);
-
-  // Docking: the hull eases onto the mooring so the parked boat always sits neatly alongside the pier.
-  if (t.kind === "moor" || t.kind === "disembark") {
+  if (t.kind === "moor") {
     const m = getHarbor(t.harbor).mooring;
     const s = transitionClock.progress();
     const b = liveBoat.state;
     const dh = wrap(m.heading - b.heading);
     const k = Math.min(1, delta * 4 + s * 0.08);
-    liveBoat.state = {
-      ...b,
-      x: b.x + (m.position[0] - b.x) * k,
-      z: b.z + (m.position[1] - b.z) * k,
-      heading: b.heading + dh * k,
-      vx: b.vx * (1 - k),
-      vz: b.vz * (1 - k),
-      yawRate: 0,
-      throttle: 0,
-      bump: 0,
-    };
+    liveBoat.state = { ...b, x: b.x + (m.position[0] - b.x) * k, z: b.z + (m.position[1] - b.z) * k, heading: b.heading + dh * k, vx: b.vx * (1 - k), vz: b.vz * (1 - k), yawRate: 0, throttle: 0, bump: 0 };
   }
-
   if (transitionClock.t >= t.duration) store.completeTransition();
 }
 
+/** Where a sequence ends on its own (the wings-out sequence ends by launch or abort instead). */
+const COMPLETES_TO: Partial<Record<VehicleState, VehicleState>> = {
+  "transforming-to-car": "car",
+  "transforming-to-boat": "floating",
+  "exiting-water": "car",
+};
+
 function stepTransform(store: Store, delta: number) {
-  const f = store.flight;
-  if (!TRANSFORMING.has(f)) {
-    transformClock.phase = f;
-    transformClock.t = 0;
-    transformClock.duration = 0;
+  const s = store.vehicleState;
+  const clock = liveVehicle.clock;
+  if (!isTransforming(s)) {
+    if (clock.state !== s) {
+      clock.state = s;
+      clock.t = 0;
+      clock.duration = 0;
+    }
     return;
   }
-  if (transformClock.phase !== f) {
-    transformClock.phase = f;
-    transformClock.t = 0;
-    transformClock.duration = f === "transforming-to-plane" ? TRANSFORM_DURATION.toPlane : TRANSFORM_DURATION.toCar;
-    if (f === "transforming-to-plane") {
-      // Car → aircraft: the aircraft starts exactly where the car stopped, on the runway surface.
-      const c = liveCar.state;
-      livePlane.state = createPlaneState(c.x, SKYPORT.runway.y, c.z, c.heading);
-    }
+  if (clock.state !== s) {
+    // A new sequence: when it reverses a running one the parts continue from where they are instead of snapping.
+    const prev = partsProgress(clock.state, clock.t, clock.duration);
+    const duration = DURATION[s as keyof typeof DURATION];
+    let t0 = 0;
+    if (s === "transforming-to-car" && clock.state === "transforming-to-plane") t0 = duration * (1 - prev.wings);
+    if (s === "exiting-water" && clock.state === "transforming-to-boat") t0 = duration * (1 - prev.floats);
+    if (s === "transforming-to-boat" && clock.state === "exiting-water") t0 = duration * prev.floats;
+    clock.state = s;
+    clock.t = t0;
+    clock.duration = duration;
   }
   if (store.phase !== "playing") return;
-  transformClock.t += Math.min(delta, 0.4);
-  const s = transformClock.progress();
-
-  if (f === "transforming-to-plane") {
-    // While the wings come out the vehicle settles on the pad centre and lines up with the runway.
-    const p = livePlane.state;
-    const k = Math.min(1, delta * 2.5 + s * 0.05);
-    livePlane.state = {
-      ...p,
-      x: p.x + (SKYPORT.pad.x - p.x) * k,
-      z: p.z + (SKYPORT.pad.z - p.z) * k,
-      heading: p.heading + wrap(SKYPORT.runway.heading - p.heading) * k,
-      speed: 0,
-    };
-  }
-
-  if (transformClock.t >= transformClock.duration) {
-    if (f === "transforming-to-car") {
-      // Aircraft → car: the car appears where the aircraft rolled to a stop, same heading.
-      const p = livePlane.state;
-      liveCar.state = createCarState(p.x, p.z, p.heading);
+  clock.t += Math.min(delta, 0.4);
+  if (clock.t >= clock.duration) {
+    const next = COMPLETES_TO[s];
+    if (next) {
+      liveVehicle.sinceTransform = 0;
+      store.setVehicleState(next);
     }
-    store.completeTransform();
   }
 }

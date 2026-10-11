@@ -2,50 +2,54 @@
 
 import { useFrame } from "@react-three/fiber";
 import { harbors } from "@/data/archipelago";
-import { insideSkyportPad, SKYPORT } from "@/data/skyport";
 import { resolveActiveZone, type Zone } from "@/game/interaction/proximity";
 import { interactionZones, labZones } from "@/game/interaction/zones";
 import { liveBoat } from "@/game/vehicle/boatState";
 import { liveCar } from "@/game/vehicle/carState";
 import { livePlane } from "@/game/vehicle/planeState";
-import { landingZoneDetected } from "@/game/vehicle/transform";
-import { usesPlanePose } from "@/game/vehicle/vehicleManager";
+import { authorityOf } from "@/game/vehicle/transformer";
 import { useGameStore } from "@/stores/gameStore";
+import { landingAhead } from "@/game/vehicle/landing";
 
-/** Harbor boarding zones (car side) and docking zones (boat side), from the archipelago data. */
-export const boardingZones: Zone<(typeof harbors)[number]["id"]>[] = harbors.filter((h) => h.landVehicles.includes("car")).map((h) => ({ id: h.id, ...h.boardingZone }));
+/** Pier docking zones, from the archipelago data. */
 export const dockingZones: Zone<(typeof harbors)[number]["id"]>[] = harbors.map((h) => ({ id: h.id, ...h.dockingZone }));
 
-/** Fastest approach speed at which the runway still reads as a landing zone. */
+/** Fastest approach speed at which open ground still reads as a landing zone. */
 export const LANDING_ZONE_MAX_SPEED = 22;
+/** Altitude above the ground under which open ground reads as a landing zone. */
+export const LANDING_ZONE_ALTITUDE = 30;
 
 /**
- * Checks the car against district zones, the harbor boarding zones and the
- * Skyport pad, the boat against the docking zones, and the aircraft against
- * the runway approach, every frame; the store only updates on transitions.
+ * Checks the car against the district and lab zones, the hull against the
+ * pier docking zones, and the aircraft against the ground ahead (open,
+ * flat, built ground or water), every frame; the store only updates on
+ * transitions. Ramps and beaches are sensed by the vehicle itself (it has
+ * the ground sample).
  */
 export function ProximitySensor() {
   useFrame(() => {
     const store = useGameStore.getState();
-    const planeForm = usesPlanePose(store);
-    const car = liveCar.state;
-    if (planeForm) {
-      // The car's zones do not apply to its flight form; the aircraft watches the runway instead.
-      store.setNearby(null);
-      store.setNearbyLab(null);
-      store.setNearbyHarbor(null);
-      store.setNearbyPad(false);
-      const p = livePlane.state;
-      store.setLandingZone(!p.onGround && landingZoneDetected(SKYPORT.runway, p.x, p.y, p.z, p.speed, LANDING_ZONE_MAX_SPEED));
-    } else {
+    const authority = authorityOf(store.vehicleState);
+    if (authority === "car") {
+      const car = liveCar.state;
       store.setNearby(resolveActiveZone(interactionZones, car.x, car.z, store.nearbyDistrict));
       store.setNearbyLab(resolveActiveZone(labZones, car.x, car.z, store.nearbyLab));
-      store.setNearbyHarbor(resolveActiveZone(boardingZones, car.x, car.z, store.nearbyHarbor));
-      store.setNearbyPad(insideSkyportPad(car.x, car.z));
+      store.setNearbyDock(null);
       store.setLandingZone(false);
+    } else if (authority === "boat") {
+      const boat = liveBoat.state;
+      store.setNearby(null);
+      store.setNearbyLab(null);
+      store.setNearbyDock(resolveActiveZone(dockingZones, boat.x, boat.z, store.nearbyDock));
+      store.setLandingZone(false);
+    } else {
+      const p = livePlane.state;
+      store.setNearby(null);
+      store.setNearbyLab(null);
+      store.setNearbyDock(null);
+      // Landing zone: low, slow, and the ground a few lengths ahead may be landed on.
+      store.setLandingZone(!p.onGround && p.speed <= LANDING_ZONE_MAX_SPEED && p.y < LANDING_ZONE_ALTITUDE && landingAhead(p.x, p.z, p.heading));
     }
-    const boat = liveBoat.state;
-    store.setNearbyDock(resolveActiveZone(dockingZones, boat.x, boat.z, store.nearbyDock));
   }, -2);
   return null;
 }

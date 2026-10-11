@@ -3,32 +3,33 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { PerspectiveCamera, Vector3 } from "three";
-import { SKYPORT } from "@/data/skyport";
 import { blendConfigs, configForAspect, damp, desiredCamera, profilesFor, SWELL_TO_CAMERA, type FollowConfig } from "@/game/camera/followCamera";
 import { photoMode } from "@/game/camera/photoMode";
-import { generationOf, poseOf, TRANSFORMING, transitionClock, usesPlanePose } from "@/game/vehicle/vehicleManager";
+import { authorityOf, bodyModeOf, isTransforming } from "@/game/vehicle/transformer";
+import { generationOf, poseOf, transitionClock } from "@/game/vehicle/vehicleManager";
+import { groundHeightAt } from "@/game/world/ground";
 import { impactBus } from "@/game/world/impactBus";
 import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
 
-/** Altitude above the runway at which the framing is fully the flight profile. */
+/** Altitude above the ground at which the framing is fully the flight profile. */
 const FLIGHT_BLEND_ALTITUDE = 8;
 
 /**
- * Smooth third-person camera for the active vehicle; damping is exponential so
- * it is frame-rate independent. During a vehicle transition the camera glides
- * from where it was to the destination vehicle's framing (eased), then the
- * normal damping takes over without a seam. In the car's flight form (V7) the
- * framing blends continuously from the car profile to the flight profile with
- * altitude, so takeoff and landing need no separate camera mode; the
- * transformation uses a pulled-back car framing.
+ * Smooth third-person camera for PAU TRANSFORMER-X; damping is exponential so
+ * it is frame-rate independent. One camera, four framings: the car profile on
+ * the ground, the boat profile on the water, the flight profile in the air
+ * (reached by a continuous blend with altitude, so lips and touchdowns need
+ * no cut), and a pulled-back framing while parts move. Mode changes
+ * interpolate position, target and field of view; a pier glide eases from the
+ * current framing; resets snap.
  */
 export function FollowCamera() {
   const target = useRef(new Vector3());
-  const seenVehicle = useRef<string>("");
   const seenGeneration = useRef(-1);
   const blendFrom = useRef<{ position: Vector3; target: Vector3; fov: number } | null>(null);
   const blendKey = useRef<object | null>(null);
+  const transformMix = useRef(0);
 
   useFrame(({ camera, size, clock }, delta) => {
     const photo = photoMode.camera;
@@ -41,45 +42,47 @@ export function FollowCamera() {
         persp.fov = photo.fov;
         persp.updateProjectionMatrix();
       }
-      // Next frame without photo mode snaps back to the vehicle.
       seenGeneration.current = -1;
       return;
     }
 
     const store = useGameStore.getState();
-    const transition = store.transition;
-    // While a transition runs the camera already frames the destination vehicle.
-    const vehicle = transition ? transition.to : store.activeVehicle;
+    const state = store.vehicleState;
+    const authority = authorityOf(state);
+    const mode = bodyModeOf(state);
     const aspect = size.width / Math.max(1, size.height);
-    const planeForm = vehicle === "car" && usesPlanePose(store);
-    let config: FollowConfig;
-    let pose = poseOf(vehicle, planeForm);
-    let yFollow = SWELL_TO_CAMERA;
-    let pitch = 0;
-    if (planeForm) {
-      yFollow = 1;
-      pitch = pose.pitch;
-      if (TRANSFORMING.has(store.flight)) {
-        const p = profilesFor("transform");
-        config = configForAspect(aspect, p.landscape, p.portrait);
-      } else {
-        const car = profilesFor("car");
-        const air = profilesFor("plane");
-        const t = Math.max(0, Math.min(1, (pose.y - SKYPORT.runway.y) / FLIGHT_BLEND_ALTITUDE));
-        config = blendConfigs(configForAspect(aspect, car.landscape, car.portrait), configForAspect(aspect, air.landscape, air.portrait), t);
-      }
-    } else {
-      const profiles = profilesFor(vehicle);
-      config = configForAspect(aspect, profiles.landscape, profiles.portrait);
-      pose = poseOf(vehicle);
-    }
-    const want = desiredCamera(pose.x, pose.z, pose.heading, pose.speed, config, pose.y, yFollow, pitch);
     const dt = Math.min(delta, 0.1);
+    const pose = poseOf(state);
+    const pick = (v: Parameters<typeof profilesFor>[0]) => {
+      const p = profilesFor(v);
+      return configForAspect(aspect, p.landscape, p.portrait);
+    };
+    let config: FollowConfig;
+    let yFollow = 1;
+    let pitch = 0;
+    let baseY = pose.y;
+    if (authority === "plane") {
+      pitch = pose.pitch;
+      const ground = groundHeightAt(pose.x, pose.z);
+      const t = Math.max(0, Math.min(1, (pose.y - ground) / FLIGHT_BLEND_ALTITUDE));
+      config = blendConfigs(pick("car"), pick("plane"), t);
+    } else if (authority === "boat") {
+      yFollow = SWELL_TO_CAMERA;
+      baseY = pose.y - 0.5;
+      config = pick("boat");
+    } else {
+      // Ground body: the car profile; wings out (deploying up a ramp, rolling out) lean toward the flight profile.
+      config = mode === "plane" ? blendConfigs(pick("car"), pick("plane"), 0.35) : pick("car");
+      pitch = pose.pitch * 0.5;
+    }
+    // Pulled back while parts move, eased in and out so nothing jumps.
+    transformMix.current = damp(transformMix.current, isTransforming(state) ? 1 : 0, 3, dt);
+    if (transformMix.current > 0.01) config = blendConfigs(config, pick("transform"), transformMix.current * 0.6);
+    const want = desiredCamera(pose.x, pose.z, pose.heading, pose.speed, config, baseY, yFollow, pitch);
 
-    const generation = generationOf(vehicle);
-    const key = `${vehicle}:${generation}`;
-    if (transition && transition.from !== transition.to) {
-      // Vehicle change: ease from the camera's current framing to the new vehicle's.
+    const generation = generationOf();
+    const transition = store.transition;
+    if (transition) {
       if (blendKey.current !== transition) {
         blendKey.current = transition;
         blendFrom.current = { position: camera.position.clone(), target: target.current.clone(), fov: persp?.fov ?? config.fov };
@@ -92,13 +95,11 @@ export function FollowCamera() {
         persp.fov = from.fov + (config.fov - from.fov) * s;
         persp.updateProjectionMatrix();
       }
-      seenVehicle.current = key;
       seenGeneration.current = generation;
-    } else if (seenVehicle.current !== key || seenGeneration.current !== generation) {
-      // First frame and every vehicle reset: snap instead of gliding across the map.
+    } else if (seenGeneration.current !== generation) {
+      // First frame and every reset / teleport: snap instead of gliding across the map.
       camera.position.set(want.position.x, want.position.y, want.position.z);
       target.current.set(want.target.x, want.target.y, want.target.z);
-      seenVehicle.current = key;
       seenGeneration.current = generation;
       blendKey.current = null;
       if (persp) {
@@ -119,7 +120,6 @@ export function FollowCamera() {
       }
     }
     camera.lookAt(target.current);
-    // Tiny nudge on impacts (never a full shake); off under reduced motion.
     const j = treeWorld.reducedMotion ? 0 : impactBus.jolt.strength;
     if (j > 0) {
       const t = clock.elapsedTime;

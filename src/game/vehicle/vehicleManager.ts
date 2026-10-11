@@ -1,141 +1,72 @@
-import { getHarbor, type HarborId, type VehicleId } from "@/data/archipelago";
+import { getHarbor, type HarborId } from "@/data/archipelago";
 import type { GamePhase } from "@/stores/gameStore";
 import { boatSpeed } from "./boatPhysics";
 import { liveBoat } from "./boatState";
 import { liveCar } from "./carState";
+import { liveVehicle } from "./liveVehicle";
 import { livePlane } from "./planeState";
-import type { CarForm, FlightPhase } from "./transform";
+import { authorityOf, type Authority, type VehicleState } from "./transformer";
 
-export type { VehicleId };
+export type { Authority, VehicleState };
 
 /**
- * Vehicle manager (V6). One vehicle receives the controls at a time; the
- * others stay exactly where they were left. The explicit vehicle mode is a
- * *derived* view of the game store (phase + vehicle fields), so there is one
- * state machine, not two: the store decides, this module reads.
+ * Vehicle manager (V8). One vehicle, three bodies: the explicit state lives
+ * in the game store (`vehicleState`), the physics model that owns the
+ * position is derived from it (`authorityOf`), and this module is the single
+ * place that reads the live pose for the camera, sensors, HUD and minimap.
+ * Piers keep the V6 mooring (dock, explore, cast off) as a short glide.
  */
-export type VehicleMode =
-  | "driving-car"
-  | "approaching-dock"
-  | "boarding"
-  | "driving-boat"
-  | "docking"
-  | "disembarking"
-  | "vehicle-paused"
-  // V7: the car's flight form.
-  | "transforming-to-plane"
-  | "plane-ready"
-  | "flying"
-  | "landing"
-  | "transforming-to-car";
-
-export type TransitionKind = "board" | "disembark" | "moor" | "cast-off";
+export type TransitionKind = "moor" | "cast-off";
 
 export interface VehicleTransition {
   kind: TransitionKind;
-  from: VehicleId;
-  to: VehicleId;
   harbor: HarborId;
   /** Seconds. */
   duration: number;
 }
 
-export const TRANSITION_DURATION: Record<TransitionKind, number> = {
-  board: 1.5,
-  disembark: 1.5,
-  moor: 1.0,
-  "cast-off": 0.6,
-};
+export const TRANSITION_DURATION: Record<TransitionKind, number> = { moor: 1.0, "cast-off": 0.6 };
 
 /** The vehicle-related slice of the store (serialisable, no live state). */
 export interface VehicleSnapshot {
-  activeVehicle: VehicleId;
+  vehicleState: VehicleState;
   transition: VehicleTransition | null;
-  /** Boat tied up at a pier without a land vehicle: the player is "on the pier". */
+  /** Hull tied up at a pier: the player is "on the pier". */
   mooredAt: HarborId | null;
-  /** Car inside a harbor's boarding zone. */
-  nearbyHarbor: HarborId | null;
-  /** Boat inside a harbor's docking zone. */
+  /** Hull inside a pier's docking zone. */
   nearbyDock: HarborId | null;
-  /** V7: which body the car has, and its flight phase (`ground` for the plain car). */
-  carForm: CarForm;
-  flight: FlightPhase;
 }
 
-export const TRANSFORMING: ReadonlySet<FlightPhase> = new Set(["transforming-to-plane", "transforming-to-car"]);
+export type VehicleMode = VehicleState | "paused" | "docking" | "moored";
 
-export const BOARDING_MAX_SPEED = 2.5;
 export const DOCKING_MAX_SPEED = 4;
-/** The car counts as parked at a harbor when it is within this distance of the pier root. */
-export const CAR_AT_HARBOR_RADIUS = 26;
 
 export function resolveVehicleMode(phase: GamePhase, v: VehicleSnapshot): VehicleMode {
-  if (phase !== "playing") return "vehicle-paused";
-  if (v.transition) {
-    if (v.transition.kind === "board") return "boarding";
-    if (v.transition.kind === "disembark") return "disembarking";
-    return v.transition.kind === "moor" ? "docking" : "driving-boat";
-  }
-  if (v.activeVehicle === "car") {
-    if (v.flight !== "ground") return v.flight;
-    return v.nearbyHarbor ? "approaching-dock" : "driving-car";
-  }
-  if (v.mooredAt) return "docking";
-  return v.nearbyDock ? "docking" : "driving-boat";
+  if (phase !== "playing") return "paused";
+  if (v.transition) return v.transition.kind === "moor" ? "docking" : "floating";
+  if (v.mooredAt) return "moored";
+  if (v.vehicleState === "floating" && v.nearbyDock) return "docking";
+  return v.vehicleState;
 }
 
-/** Only the active vehicle, while playing, outside transitions and not moored, answers to the controls. */
-export function canControl(vehicle: VehicleId, phase: GamePhase, v: VehicleSnapshot): boolean {
-  return (
-    phase === "playing" &&
-    v.activeVehicle === vehicle &&
-    v.transition === null &&
-    !(vehicle === "boat" && v.mooredAt !== null) &&
-    !(vehicle === "car" && TRANSFORMING.has(v.flight))
-  );
-}
-
-/** True while the car is in (or turning into / out of) its flight form: its pose comes from the aircraft state. */
-export function usesPlanePose(v: Pick<VehicleSnapshot, "carForm" | "flight">): boolean {
-  return v.carForm === "plane" || v.flight !== "ground";
-}
-
-/** Slow enough, inside the zone: the "Press E to board" prompt is allowed. */
-export function canBoard(carSpeed: number, nearbyHarbor: HarborId | null): boolean {
-  return nearbyHarbor !== null && Math.abs(carSpeed) <= BOARDING_MAX_SPEED;
+/** The vehicle answers to the controls while playing, outside a pier glide and not tied up. Transformations never lock the controls. */
+export function canControl(phase: GamePhase, v: VehicleSnapshot): boolean {
+  return phase === "playing" && v.transition === null && v.mooredAt === null;
 }
 
 export function canDock(speed: number, nearbyDock: HarborId | null): boolean {
   return nearbyDock !== null && speed <= DOCKING_MAX_SPEED;
 }
 
-/** Whether the car is parked at this harbor (so docking there hands the controls back to it). */
-export function carAvailableAt(harbor: HarborId, carX: number, carZ: number): boolean {
-  const h = getHarbor(harbor);
-  if (!h.landVehicles.includes("car")) return false;
-  return Math.hypot(carX - h.pierRoot[0], carZ - h.pierRoot[1]) <= CAR_AT_HARBOR_RADIUS;
-}
-
 export function makeTransition(kind: TransitionKind, harbor: HarborId): VehicleTransition {
-  const from: VehicleId = kind === "board" ? "car" : "boat";
-  const to: VehicleId = kind === "disembark" ? "car" : "boat";
-  return { kind, from, to, harbor, duration: TRANSITION_DURATION[kind] };
+  return { kind, harbor, duration: TRANSITION_DURATION[kind] };
 }
 
-/** What the store becomes when a transition completes. */
-export function applyTransition(v: VehicleSnapshot): Pick<VehicleSnapshot, "activeVehicle" | "transition" | "mooredAt"> {
+/** What the store becomes when a pier glide completes. */
+export function applyTransition(v: VehicleSnapshot): Pick<VehicleSnapshot, "transition" | "mooredAt"> {
   const t = v.transition;
-  if (!t) return { activeVehicle: v.activeVehicle, transition: null, mooredAt: v.mooredAt };
-  switch (t.kind) {
-    case "board":
-      return { activeVehicle: "boat", transition: null, mooredAt: null };
-    case "disembark":
-      return { activeVehicle: "car", transition: null, mooredAt: null };
-    case "moor":
-      return { activeVehicle: "boat", transition: null, mooredAt: t.harbor };
-    case "cast-off":
-      return { activeVehicle: "boat", transition: null, mooredAt: null };
-  }
+  if (!t) return { transition: null, mooredAt: v.mooredAt };
+  return { transition: null, mooredAt: t.kind === "moor" ? t.harbor : null };
 }
 
 export interface Pose {
@@ -143,45 +74,40 @@ export interface Pose {
   y: number;
   z: number;
   heading: number;
-  /** Ground speed magnitude. */
+  /** Ground / air speed magnitude. */
   speed: number;
-  /** Nose pitch (aircraft only; 0 otherwise). */
+  /** Nose pitch (aircraft; the car body's ground pitch otherwise). */
   pitch: number;
 }
 
-/**
- * Live pose of a vehicle (position, height and heading) for the camera, sensors
- * and minimap. The car reports the aircraft state while it is in flight form.
- */
-export function poseOf(vehicle: VehicleId, planeForm = false): Pose {
-  if (vehicle === "car") {
-    if (planeForm) {
+/** The authoritative live pose: read from whichever physics model owns the position in this state. */
+export function poseOf(state: VehicleState): Pose {
+  switch (authorityOf(state)) {
+    case "plane": {
       const p = livePlane.state;
       return { x: p.x, y: p.y, z: p.z, heading: p.heading, speed: p.speed, pitch: p.pitch };
     }
-    const s = liveCar.state;
-    return { x: s.x, y: 0, z: s.z, heading: s.heading, speed: Math.abs(s.speed), pitch: 0 };
+    case "boat": {
+      const b = liveBoat.state;
+      return { x: b.x, z: b.z, y: liveBoat.visual.y, heading: b.heading, speed: boatSpeed(b), pitch: 0 };
+    }
+    default: {
+      const c = liveCar.state;
+      return { x: c.x, y: liveVehicle.y, z: c.z, heading: c.heading, speed: Math.abs(c.speed), pitch: liveVehicle.groundPitch };
+    }
   }
-  const s = liveBoat.state;
-  return { x: s.x, y: liveBoat.visual.y, z: s.z, heading: s.heading, speed: boatSpeed(s), pitch: 0 };
 }
 
-export function generationOf(vehicle: VehicleId): number {
-  return vehicle === "car" ? liveCar.generation + livePlane.generation : liveBoat.generation;
+export function generationOf(): number {
+  return liveVehicle.generation;
 }
 
-/** Live transformation progress (car ⇄ plane), advanced by the VehicleController while playing. */
-export const transformClock = {
-  phase: "ground" as FlightPhase,
-  t: 0,
-  duration: 0,
-  progress(): number {
-    return this.duration > 0 ? Math.max(0, Math.min(1, this.t / this.duration)) : 1;
-  },
-};
+export function mooringOf(harbor: HarborId) {
+  return getHarbor(harbor).mooring;
+}
 
 /**
- * Live transition progress, advanced by the VehicleController each frame
+ * Live pier-glide progress, advanced by the VehicleController each frame
  * (paused with the game). `current` is the store's transition object: a new
  * reference restarts the clock.
  */
