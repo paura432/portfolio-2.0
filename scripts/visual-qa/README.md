@@ -1,4 +1,4 @@
-# Visual QA scripts (V3 + V4 + V5 + V6)
+# Visual QA scripts (V3 → V8)
 
 All scripts drive a production build with Playwright's Chromium + SwiftShader and the in-page probe `window.__pauWorld` (photo mode, teleport, quality lock, renderer stats, fps sampler). Start the build first:
 
@@ -24,5 +24,11 @@ pnpm build && pnpm exec next start -p 3101
 | `v4perf.mjs [base] [--label name] [--base-only]` | V4: five performance scenarios (world, one tree, several trees, prolonged driving, repeated restorations); `--base-only` for a build without destructible trees |
 | `v6shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V6: island in the sea, west coast, harbor approach/quay/pier, boarding prompt, moored boat, boarding transition, boat turnaround (rear/side/three-quarter/top), sailing, turning, wake, second island ahead, docking prompt, moored, POI panel, island aerial; every vehicle change goes through the real E key |
 | `v6perf.mjs [base] [--label name]` | V6: city driving (3 tiers, comparable with v4perf "world"), harbor view, open-sea sailing with wake (3 tiers), a transition round trip with counters before/after, and quality cycles while sailing |
+
+| `v7shots.mjs`, `v7perf.mjs` | V7 (Skyport pad flight form). **Historical:** they use the pre-V8 probe (`carForm`, `flight`, the pad prompt) and no longer run against a V8 build; kept with the V7 report. The same applies to the V6 harbor-boarding steps of `v6shots.mjs` / `v6perf.mjs`. |
+| `v8probe.mjs <outDir> [base]` | V8: drives the West City Ramp (deploy, lip launch, flight, descent) and South Beach (car → hull → sail → turn → wheels down) with real keys and logs every state change |
+| `v8shots.mjs <outDir> [base] [--quality q] [--mobile] [--only a,b]` | V8: ramp structure and approach, wings deploying on the slope, lip launch, climb, bank, city from the air, approach, touchdown, roll-out, beach structure, car on the sand, hull deploying, afloat, wake, hull side/rear, wheels down at East Beach, back on land, East Beach aerial + `*-stats.json` |
+| `v8perf.mjs [base] [--label name]` | V8: city driving (3 tiers, comparable with the V4–V7 "city" scenario), the ramp from its entry, the hull off South Beach, flight over the city (3 tiers each), a real ramp → flight → splashdown → beach-exit loop with counters, quality cycles afloat |
+| `cityab.mjs <base> [label]` | the "city" scenario alone against any served build (same-machine A/B between branches) |
 
 SwiftShader numbers are software rendering: use them for relative comparisons only, never as hardware performance.
