@@ -1,0 +1,443 @@
+{
+ "01-aerial-island": {
+  "calls": 502,
+  "triangles": 115572,
+  "geometries": 367,
+  "textures": 31,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "02-aerial-west-coast": {
+  "calls": 478,
+  "triangles": 112262,
+  "geometries": 367,
+  "textures": 31,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "03-harbor-approach": {
+  "calls": 286,
+  "triangles": 97682,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "04-harbor-quay": {
+  "calls": 259,
+  "triangles": 96270,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "05-pier-from-sea": {
+  "calls": 422,
+  "triangles": 109400,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "06-boarding-prompt": {
+  "calls": 284,
+  "triangles": 97568,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "approaching-dock",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "07-boat-moored": {
+  "calls": 198,
+  "triangles": 88112,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "approaching-dock",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "08-boarding-transition": {
+  "calls": 244,
+  "triangles": 96090,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "09-boat-active": {
+  "calls": 244,
+  "triangles": 96090,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "10-boat-rear": {
+  "calls": 232,
+  "triangles": 91576,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "11-boat-side": {
+  "calls": 212,
+  "triangles": 89460,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "12-boat-three-quarter": {
+  "calls": 189,
+  "triangles": 85694,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "13-boat-top": {
+  "calls": 202,
+  "triangles": 92562,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 27,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "14-sailing": {
+  "calls": 231,
+  "triangles": 91400,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "15-turning": {
+  "calls": 182,
+  "triangles": 90086,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "driving-boat",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": null
+  }
+ },
+ "16-wake": {
+  "calls": 158,
+  "triangles": 82975,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "driving-boat",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": null
+  }
+ },
+ "17-island-ahead": {
+  "calls": 189,
+  "triangles": 83795,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "driving-boat",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": null
+  }
+ },
+ "18-docking-prompt": {
+  "calls": 188,
+  "triangles": 83519,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "creative-lab-pier"
+  }
+ },
+ "19-moored": {
+  "calls": 491,
+  "triangles": 114527,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": "creative-lab-pier",
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "creative-lab-pier"
+  }
+ },
+ "20-poi-panel": {
+  "calls": 491,
+  "triangles": 114527,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "vehicle-paused",
+   "transition": null,
+   "mooredAt": "creative-lab-pier",
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "creative-lab-pier"
+  }
+ },
+ "21-island-aerial": {
+  "calls": 186,
+  "triangles": 80183,
+  "geometries": 379,
+  "textures": 32,
+  "programs": 28,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": "creative-lab-pier",
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "creative-lab-pier"
+  }
+ }
+}

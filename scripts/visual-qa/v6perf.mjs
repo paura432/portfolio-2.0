@@ -26,7 +26,7 @@ const teleport = (x, z, h) => page.evaluate(([x, z, h]) => window.__pauWorld.tel
 const teleportBoat = (x, z, h) => page.evaluate(([x, z, h]) => window.__pauWorld.teleportBoat(x, z, h), [x, z, h]);
 const round = (v) => Math.round(v * 10) / 10;
 const measure = async (ms = 4000) => { const f = await fps(ms); return { fps: round(f), frameMs: round(1000 / f), ...(await stats()) }; };
-const waitVehicle = (pred, timeout = 20000) => page.waitForFunction(pred, null, { timeout });
+const waitVehicle = (pred, timeout = 120000) => page.waitForFunction(pred, null, { timeout });
 
 // 1. City driving (same scenario as V4/V5 for comparison).
 out.scenarios.city = {};

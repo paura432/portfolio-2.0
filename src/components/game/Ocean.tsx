@@ -68,5 +68,7 @@ export function Ocean() {
     oceanUniforms.uWakeCount.value = boatWake.count;
   }, -5);
 
-  return <mesh geometry={geometry} material={getOceanMaterial()} position={[0, WATER_LEVEL, 0]} frustumCulled={false} receiveShadow />;
+  // Drawn after the rest of the opaque world: the sea under the islands then fails the depth test before its
+  // fragment shader runs (software renderers otherwise shade the whole hidden surface and overdraw it).
+  return <mesh geometry={geometry} material={getOceanMaterial()} position={[0, WATER_LEVEL, 0]} frustumCulled={false} receiveShadow renderOrder={1} />;
 }

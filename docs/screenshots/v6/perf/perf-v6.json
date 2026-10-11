@@ -1,0 +1,221 @@
+{
+  "label": "v6",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstFrameMs": 1351,
+  "introMs": 594,
+  "scenarios": {
+    "city": {
+      "high": {
+        "fps": 3,
+        "frameMs": 328.8,
+        "calls": 371,
+        "triangles": 104943,
+        "geometries": 295,
+        "textures": 25,
+        "programs": 25,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "medium": {
+        "fps": 2.4,
+        "frameMs": 410.5,
+        "calls": 371,
+        "triangles": 82671,
+        "geometries": 295,
+        "textures": 25,
+        "programs": 25,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "low": {
+        "fps": 2.8,
+        "frameMs": 354.3,
+        "calls": 229,
+        "triangles": 40230,
+        "geometries": 292,
+        "textures": 23,
+        "programs": 40,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      }
+    },
+    "harbor": {
+      "high": {
+        "fps": 7.3,
+        "frameMs": 136.8,
+        "calls": 284,
+        "triangles": 97568,
+        "geometries": 357,
+        "textures": 29,
+        "programs": 45,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "medium": {
+        "fps": 4.1,
+        "frameMs": 246.2,
+        "calls": 284,
+        "triangles": 75296,
+        "geometries": 357,
+        "textures": 29,
+        "programs": 45,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "low": {
+        "fps": 4.8,
+        "frameMs": 208.3,
+        "calls": 131,
+        "triangles": 32671,
+        "geometries": 343,
+        "textures": 27,
+        "programs": 46,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      }
+    },
+    "sea": {
+      "high": {
+        "fps": 5,
+        "frameMs": 199,
+        "calls": 200,
+        "triangles": 84920,
+        "geometries": 357,
+        "textures": 29,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "medium": {
+        "fps": 6.6,
+        "frameMs": 150.8,
+        "calls": 190,
+        "triangles": 61859,
+        "geometries": 357,
+        "textures": 29,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "low": {
+        "fps": 7,
+        "frameMs": 143.5,
+        "calls": 54,
+        "triangles": 21781,
+        "geometries": 343,
+        "textures": 27,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      }
+    },
+    "transitions": {
+      "before": {
+        "calls": 190,
+        "triangles": 83811,
+        "geometries": 349,
+        "textures": 29,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "after": {
+        "calls": 284,
+        "triangles": 97568,
+        "geometries": 379,
+        "textures": 32,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "delta": {
+        "calls": 94,
+        "triangles": 13757,
+        "geometries": 30,
+        "textures": 3,
+        "programs": 0,
+        "dpr": 0,
+        "width": 0,
+        "height": 0,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      }
+    },
+    "qualityCycles": {
+      "before": {
+        "calls": 245,
+        "triangles": 96114,
+        "geometries": 379,
+        "textures": 32,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "after": {
+        "calls": 204,
+        "triangles": 86644,
+        "geometries": 371,
+        "textures": 32,
+        "programs": 47,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0
+      },
+      "geometriesDelta": -8,
+      "texturesDelta": 0,
+      "programsDelta": 0
+    }
+  }
+}

@@ -26,7 +26,9 @@ export function VehicleController() {
       transitionClock.t = 0;
     }
     if (store.phase !== "playing") return;
-    transitionClock.t += Math.min(delta, 0.1);
+    // Wall-clock within reason: a transition is a short cinematic, so a slow frame still advances it by up to
+    // 0.4 s (software renderers would otherwise need a dozen frames for a one-second hand-over).
+    transitionClock.t += Math.min(delta, 0.4);
 
     // Docking: the hull eases onto the mooring so the parked boat always sits neatly alongside the pier.
     if (t.kind === "moor" || t.kind === "disembark") {

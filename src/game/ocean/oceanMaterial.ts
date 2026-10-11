@@ -124,7 +124,7 @@ float wakeSegment(vec2 p, vec3 a, vec3 b, float sa, float sb) {
 }
 float wakeFoam(vec2 p) {
   // Early out far from the boat: the trail is at most a few dozen units long.
-  if (distance(p, uBoat.xy) > 80.0) return 0.0;
+  if (distance(p, uBoat.xy) > 48.0) return 0.0;
   float foam = 0.0;
   for (int i = 1; i < ${WAKE_POINTS}; i++) {
     if (i >= uWakeCount) break;

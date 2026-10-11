@@ -1,0 +1,107 @@
+{
+ "01-aerial-island": {
+  "calls": 350,
+  "triangles": 50691,
+  "geometries": 354,
+  "textures": 29,
+  "programs": 42,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "05-pier-from-sea": {
+  "calls": 275,
+  "triangles": 44599,
+  "geometries": 354,
+  "textures": 29,
+  "programs": 42,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "car",
+   "mode": "driving-car",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": null,
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "12-boat-three-quarter": {
+  "calls": 47,
+  "triangles": 22069,
+  "geometries": 365,
+  "textures": 30,
+  "programs": 42,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "pau-harbor"
+  }
+ },
+ "16-wake": {
+  "calls": 11,
+  "triangles": 16592,
+  "geometries": 365,
+  "textures": 30,
+  "programs": 42,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "driving-boat",
+   "transition": null,
+   "mooredAt": null,
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": null
+  }
+ },
+ "21-island-aerial": {
+  "calls": 51,
+  "triangles": 18169,
+  "geometries": 365,
+  "textures": 30,
+  "programs": 42,
+  "dpr": 1,
+  "width": 1280,
+  "height": 800,
+  "dynamicTrees": 0,
+  "fallenTrees": 0,
+  "particles": 0,
+  "vehicle": {
+   "active": "boat",
+   "mode": "docking",
+   "transition": null,
+   "mooredAt": "creative-lab-pier",
+   "nearbyHarbor": "pau-harbor",
+   "nearbyDock": "creative-lab-pier"
+  }
+ }
+}
