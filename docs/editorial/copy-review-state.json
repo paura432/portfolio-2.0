@@ -71,8 +71,8 @@
     "typecheck": "clean",
     "lint": "0 problems",
     "unitTests": "221/221",
-    "build": "pending (V8 capture running)",
-    "browser": "pending"
+    "build": "clean (18 routes)",
+    "browser": "copycheck.mjs: 18 screens (intro, projects, duplex, ovi, contact, 4geeks, menu, hub panel, HUD) at 1280 and 390 px, no text overflow; screenshots in docs/editorial/screens"
   },
   "consecutiveCleanPasses": 0,
   "status": "IN_PROGRESS"

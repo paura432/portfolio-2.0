@@ -83,6 +83,6 @@ Three readings, second pass: recruiter — nothing new; senior engineer — OVI 
 
 Open items: O1 (phone hints) closed as accepted: on phones the legend is hidden by design to keep the horizon clear; the intro names the ramp and beach mechanics, the mode badge and the transformation banners stay visible, and the touch buttons are named per body. O2 (CV PDFs) and O3 (Spanish UI) unchanged.
 
-Validation: typecheck, lint and unit tests (see state); build and a browser check of the intro and the hub panel at desktop and phone widths: run in this iteration once the V8 capture on the same machine ends (recorded below when done).
+Validation: typecheck clean, lint 0 problems, 221/221 unit tests, build clean (18 routes). Browser (`scripts/visual-qa/copycheck.mjs`, SwiftShader): intro, /projects, /projects/duplex, /projects/ovi, /contact, /education/4geeks, the projects menu, the hub panel and the car HUD at 1280 px and 390 px: no element with overflowing text on any of the 18 screens; full-page screenshots in `docs/editorial/screens/`.
 
 Decision: one more pass is required by the stop rule (two consecutive passes without important findings); iteration 2 found one P1 of its own making (E13). Continue.
