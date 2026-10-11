@@ -67,3 +67,22 @@ typecheck, lint, unit tests: see state file. Build: pending (run after the V8 pe
 - Iteration 2: re-read every edited text cold; phone viewport check of the HUD legends; project pages end to end in the browser.
 
 Decision: continue (iteration 2).
+
+## Iteration 2 · 2026-10-11
+
+Cold re-read of every text edited in iteration 1 (profile, DUPLEX, OVI, TrustOS, intro line, island panel, pier and Skyport signs, touch names) and of the texts left as they were.
+
+| id | sev | where | before → after | why |
+|---|---|---|---|---|
+| E13 | P1 | OVI summary (iteration 1 wording) | "A private system in production use; public description is conceptual." → "A private, current system; this public description stays conceptual." | "in production use" was not in any source; the CV says current work, nothing about production. Kept the verifiable wording. |
+| E14 | P2 | HUD mode badge | "Flight mode" while the wings are still deploying on the ground (and "Car mode" while they fold) → "Transforming" during the four transformation states | the capture `high-04-wings-deploying` shows "FLIGHT MODE · 65 km/h · alt 0 m" on the approach; the badge now names what is happening (HUD-only change, no mechanic touched) |
+
+Kept after the re-read: the first-person summary (natural under the name on a personal site; the meta description inherits it after "Pau Ramos, Full Stack Product Engineer." and still reads), the Education list, the DUPLEX and TrustOS summaries, the capabilities (LangChain is a CV skill, not a project claim: no project text mentions it), the intro's ramp/beach line, the 4Geeks lab texts (per-claim evidence already in `docs/education/4geeks-content-audit.md`; status wording explicit).
+
+Three readings, second pass: recruiter — nothing new; senior engineer — OVI no longer implies a production claim; UX editor — the badge no longer contradicts the altitude readout.
+
+Open items: O1 (phone hints) closed as accepted: on phones the legend is hidden by design to keep the horizon clear; the intro names the ramp and beach mechanics, the mode badge and the transformation banners stay visible, and the touch buttons are named per body. O2 (CV PDFs) and O3 (Spanish UI) unchanged.
+
+Validation: typecheck, lint and unit tests (see state); build and a browser check of the intro and the hub panel at desktop and phone widths: run in this iteration once the V8 capture on the same machine ends (recorded below when done).
+
+Decision: one more pass is required by the stop rule (two consecutive passes without important findings); iteration 2 found one P1 of its own making (E13). Continue.

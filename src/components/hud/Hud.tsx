@@ -118,8 +118,8 @@ export function Hud() {
         <div className="min-w-0">
           <p className="text-[0.7rem] tracking-[0.35em] text-cyan uppercase whitespace-nowrap">
             Pau World
-            <span className={`ml-2 ${body === "car" ? "text-muted" : "text-amber"}`} data-testid="mode-badge" data-mode={body}>
-              · {MODE_LABEL[body]} mode
+            <span className={`ml-2 ${body === "car" && !transforming ? "text-muted" : "text-amber"}`} data-testid="mode-badge" data-mode={body}>
+              · {transforming ? "Transforming" : `${MODE_LABEL[body]} mode`}
             </span>
           </p>
           <p className="hidden text-sm text-muted sm:block" data-testid="hud-legend">

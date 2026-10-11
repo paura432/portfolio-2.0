@@ -115,7 +115,7 @@ export const projects: Project[] = [
     role: "Full Stack Product Engineer",
     tagline: "Conversational assistant for Microsoft 365: mail, meetings, files and documents from one chat.",
     summary:
-      "OVI lets people work with Microsoft 365 from a chat: check email, meetings and conversations, work with SharePoint and OneDrive files, and create Word, Excel and PowerPoint documents without switching applications. Each request is routed to an explicit action with the context it needs; Microsoft Graph connects the assistant to Microsoft 365 and Gamma is used for presentation generation. A private system in production use; public description is conceptual.",
+      "OVI lets people work with Microsoft 365 from a chat: check email, meetings and conversations, work with SharePoint and OneDrive files, and create Word, Excel and PowerPoint documents without switching applications. Each request is routed to an explicit action with the context it needs; Microsoft Graph connects the assistant to Microsoft 365 and Gamma is used for presentation generation. A private, current system; this public description stays conceptual.",
     challenge: "Turn work requests into reliable actions across Microsoft 365 context.",
     highlights: [
       "Microsoft Graph surfaces: Outlook, Teams, Calendar, OneDrive and SharePoint",
