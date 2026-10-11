@@ -3,6 +3,8 @@ import type { GamePhase } from "@/stores/gameStore";
 import { boatSpeed } from "./boatPhysics";
 import { liveBoat } from "./boatState";
 import { liveCar } from "./carState";
+import { livePlane } from "./planeState";
+import type { CarForm, FlightPhase } from "./transform";
 
 export type { VehicleId };
 
@@ -12,7 +14,20 @@ export type { VehicleId };
  * *derived* view of the game store (phase + vehicle fields), so there is one
  * state machine, not two: the store decides, this module reads.
  */
-export type VehicleMode = "driving-car" | "approaching-dock" | "boarding" | "driving-boat" | "docking" | "disembarking" | "vehicle-paused";
+export type VehicleMode =
+  | "driving-car"
+  | "approaching-dock"
+  | "boarding"
+  | "driving-boat"
+  | "docking"
+  | "disembarking"
+  | "vehicle-paused"
+  // V7: the car's flight form.
+  | "transforming-to-plane"
+  | "plane-ready"
+  | "flying"
+  | "landing"
+  | "transforming-to-car";
 
 export type TransitionKind = "board" | "disembark" | "moor" | "cast-off";
 
@@ -42,7 +57,12 @@ export interface VehicleSnapshot {
   nearbyHarbor: HarborId | null;
   /** Boat inside a harbor's docking zone. */
   nearbyDock: HarborId | null;
+  /** V7: which body the car has, and its flight phase (`ground` for the plain car). */
+  carForm: CarForm;
+  flight: FlightPhase;
 }
+
+export const TRANSFORMING: ReadonlySet<FlightPhase> = new Set(["transforming-to-plane", "transforming-to-car"]);
 
 export const BOARDING_MAX_SPEED = 2.5;
 export const DOCKING_MAX_SPEED = 4;
@@ -56,14 +76,28 @@ export function resolveVehicleMode(phase: GamePhase, v: VehicleSnapshot): Vehicl
     if (v.transition.kind === "disembark") return "disembarking";
     return v.transition.kind === "moor" ? "docking" : "driving-boat";
   }
-  if (v.activeVehicle === "car") return v.nearbyHarbor ? "approaching-dock" : "driving-car";
+  if (v.activeVehicle === "car") {
+    if (v.flight !== "ground") return v.flight;
+    return v.nearbyHarbor ? "approaching-dock" : "driving-car";
+  }
   if (v.mooredAt) return "docking";
   return v.nearbyDock ? "docking" : "driving-boat";
 }
 
 /** Only the active vehicle, while playing, outside transitions and not moored, answers to the controls. */
 export function canControl(vehicle: VehicleId, phase: GamePhase, v: VehicleSnapshot): boolean {
-  return phase === "playing" && v.activeVehicle === vehicle && v.transition === null && !(vehicle === "boat" && v.mooredAt !== null);
+  return (
+    phase === "playing" &&
+    v.activeVehicle === vehicle &&
+    v.transition === null &&
+    !(vehicle === "boat" && v.mooredAt !== null) &&
+    !(vehicle === "car" && TRANSFORMING.has(v.flight))
+  );
+}
+
+/** True while the car is in (or turning into / out of) its flight form: its pose comes from the aircraft state. */
+export function usesPlanePose(v: Pick<VehicleSnapshot, "carForm" | "flight">): boolean {
+  return v.carForm === "plane" || v.flight !== "ground";
 }
 
 /** Slow enough, inside the zone: the "Press E to board" prompt is allowed. */
@@ -111,21 +145,40 @@ export interface Pose {
   heading: number;
   /** Ground speed magnitude. */
   speed: number;
+  /** Nose pitch (aircraft only; 0 otherwise). */
+  pitch: number;
 }
 
-/** Live pose of a vehicle (position, height and heading) for the camera, sensors and minimap. */
-export function poseOf(vehicle: VehicleId): Pose {
+/**
+ * Live pose of a vehicle (position, height and heading) for the camera, sensors
+ * and minimap. The car reports the aircraft state while it is in flight form.
+ */
+export function poseOf(vehicle: VehicleId, planeForm = false): Pose {
   if (vehicle === "car") {
+    if (planeForm) {
+      const p = livePlane.state;
+      return { x: p.x, y: p.y, z: p.z, heading: p.heading, speed: p.speed, pitch: p.pitch };
+    }
     const s = liveCar.state;
-    return { x: s.x, y: 0, z: s.z, heading: s.heading, speed: Math.abs(s.speed) };
+    return { x: s.x, y: 0, z: s.z, heading: s.heading, speed: Math.abs(s.speed), pitch: 0 };
   }
   const s = liveBoat.state;
-  return { x: s.x, y: liveBoat.visual.y, z: s.z, heading: s.heading, speed: boatSpeed(s) };
+  return { x: s.x, y: liveBoat.visual.y, z: s.z, heading: s.heading, speed: boatSpeed(s), pitch: 0 };
 }
 
 export function generationOf(vehicle: VehicleId): number {
-  return vehicle === "car" ? liveCar.generation : liveBoat.generation;
+  return vehicle === "car" ? liveCar.generation + livePlane.generation : liveBoat.generation;
 }
+
+/** Live transformation progress (car ⇄ plane), advanced by the VehicleController while playing. */
+export const transformClock = {
+  phase: "ground" as FlightPhase,
+  t: 0,
+  duration: 0,
+  progress(): number {
+    return this.duration > 0 ? Math.max(0, Math.min(1, this.t / this.duration)) : 1;
+  },
+};
 
 /**
  * Live transition progress, advanced by the VehicleController each frame

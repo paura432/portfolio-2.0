@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyTransition, BOARDING_MAX_SPEED, canBoard, canControl, canDock, carAvailableAt, DOCKING_MAX_SPEED, makeTransition, resolveVehicleMode, transitionClock, type VehicleSnapshot } from "./vehicleManager";
 import { getHarbor } from "@/data/archipelago";
 
-const base: VehicleSnapshot = { activeVehicle: "car", transition: null, mooredAt: null, nearbyHarbor: null, nearbyDock: null };
+const base: VehicleSnapshot = { activeVehicle: "car", transition: null, mooredAt: null, nearbyHarbor: null, nearbyDock: null, carForm: "car", flight: "ground" };
 
 describe("vehicle modes (derived from the single store state machine)", () => {
   it("names every state explicitly", () => {
@@ -84,5 +84,20 @@ describe("transitions", () => {
     expect(transitionClock.progress()).toBe(1);
     transitionClock.current = null;
     expect(transitionClock.progress()).toBe(0);
+  });
+});
+
+describe("flight form (V7)", () => {
+  it("derives the flight phases as modes and locks the controls during transformations", () => {
+    for (const flight of ["transforming-to-plane", "plane-ready", "flying", "landing", "transforming-to-car"] as const) {
+      expect(resolveVehicleMode("playing", { ...base, carForm: flight === "transforming-to-plane" ? "car" : "plane", flight })).toBe(flight);
+    }
+    expect(canControl("car", "playing", { ...base, flight: "transforming-to-plane" })).toBe(false);
+    expect(canControl("car", "playing", { ...base, carForm: "plane", flight: "transforming-to-car" })).toBe(false);
+    expect(canControl("car", "playing", { ...base, carForm: "plane", flight: "flying" })).toBe(true);
+    expect(canControl("car", "panel", { ...base, carForm: "plane", flight: "flying" })).toBe(false);
+    // The boat is unaffected by the car's form.
+    expect(canControl("boat", "playing", { ...base, activeVehicle: "boat", carForm: "plane", flight: "flying" })).toBe(true);
+    expect(resolveVehicleMode("playing", { ...base, activeVehicle: "boat", carForm: "plane", flight: "flying" })).toBe("driving-boat");
   });
 });

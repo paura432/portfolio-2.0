@@ -138,3 +138,64 @@ describe("vehicle transitions (V6)", () => {
     expect(useGameStore.getState().mooredAt).toBe("creative-lab-pier");
   });
 });
+
+describe("car ⇄ aircraft transformation (V7)", () => {
+  const reset = () =>
+    useGameStore.setState({ phase: "playing", activeVehicle: "car", transition: null, mooredAt: null, nearbyHarbor: null, nearbyDock: null, nearbyDistrict: null, nearbyLab: null, openPoi: null, openDistrict: null, carForm: "car", flight: "ground", nearbyPad: false, landingZone: false, flightNotice: null });
+
+  it("transforms only on the pad with the car stopped, and E routes there", async () => {
+    const { liveCar } = await import("@/game/vehicle/carState");
+    reset();
+    liveCar.state = { ...liveCar.state, speed: 0 };
+    expect(useGameStore.getState().transformToPlane()).toBe(false);
+    expect(useGameStore.getState().flightNotice?.text).toContain("Skyport pad");
+    useGameStore.getState().setNearbyPad(true);
+    liveCar.state = { ...liveCar.state, speed: 8 };
+    expect(useGameStore.getState().interact()).toBe(false);
+    expect(useGameStore.getState().flightNotice?.text).toContain("Stop on the pad");
+    expect(useGameStore.getState().flight).toBe("ground");
+    liveCar.state = { ...liveCar.state, speed: 0 };
+    expect(useGameStore.getState().interact()).toBe(true);
+    expect(useGameStore.getState().flight).toBe("transforming-to-plane");
+    // Locked while transforming: E and boarding do nothing.
+    expect(useGameStore.getState().interact()).toBe(false);
+    expect(useGameStore.getState().boardBoat()).toBe(false);
+    useGameStore.getState().completeTransform();
+    const s = useGameStore.getState();
+    expect(s.carForm).toBe("plane");
+    expect(s.flight).toBe("plane-ready");
+  });
+
+  it("flight phases, landing and the way back to the car", async () => {
+    const { livePlane } = await import("@/game/vehicle/planeState");
+    reset();
+    useGameStore.setState({ carForm: "plane", flight: "plane-ready" });
+    useGameStore.getState().setFlightPhase("flying");
+    livePlane.state = { ...livePlane.state, onGround: false, speed: 24 };
+    // In the air E cannot fold back.
+    expect(useGameStore.getState().interact()).toBe(false);
+    expect(useGameStore.getState().flightNotice?.text).toContain("Land");
+    expect(useGameStore.getState().carForm).toBe("plane");
+    useGameStore.getState().setFlightPhase("landing");
+    livePlane.state = { ...livePlane.state, onGround: true, speed: 6 };
+    expect(useGameStore.getState().transformToCar()).toBe(false);
+    livePlane.state = { ...livePlane.state, speed: 0 };
+    expect(useGameStore.getState().interact()).toBe(true);
+    expect(useGameStore.getState().flight).toBe("transforming-to-car");
+    useGameStore.getState().completeTransform();
+    expect(useGameStore.getState().carForm).toBe("car");
+    expect(useGameStore.getState().flight).toBe("ground");
+  });
+
+  it("panels pause the aircraft, reset cancels any flight state, and no notice is written while paused", () => {
+    reset();
+    useGameStore.setState({ carForm: "plane", flight: "flying" });
+    useGameStore.getState().openMenu();
+    expect(useGameStore.getState().transformToCar()).toBe(false);
+    expect(useGameStore.getState().flightNotice).toBeNull();
+    useGameStore.getState().closeMenu();
+    useGameStore.getState().resetFlight();
+    expect(useGameStore.getState().carForm).toBe("car");
+    expect(useGameStore.getState().flight).toBe("ground");
+  });
+});
