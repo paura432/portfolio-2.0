@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type PointerEvent } from "react";
 import { inputState, type Action } from "@/game/controls/input";
+import { bodyModeOf } from "@/game/vehicle/transformer";
+import { useGameStore } from "@/stores/gameStore";
 
 export function useIsCoarsePointer(): boolean {
   const [coarse, setCoarse] = useState(false);
@@ -45,6 +47,9 @@ function HoldButton({ action, label, title }: { action: Action; label: string; t
  */
 export function TouchControls({ enabled }: { enabled: boolean }) {
   const coarse = useIsCoarsePointer();
+  // The same four buttons drive every body; their names follow it so a screen reader says what the thumb does.
+  const body = bodyModeOf(useGameStore((s) => s.vehicleState));
+  const names = body === "plane" ? { left: "Bank left", right: "Bank right", forward: "Climb", backward: "Descend" } : body === "boat" ? { left: "Steer left", right: "Steer right", forward: "Throttle", backward: "Reverse" } : { left: "Steer left", right: "Steer right", forward: "Accelerate", backward: "Reverse" };
   useEffect(() => {
     if (!enabled) inputState.clear();
   }, [enabled]);
@@ -52,12 +57,12 @@ export function TouchControls({ enabled }: { enabled: boolean }) {
   return (
     <div className={`pointer-events-none absolute inset-x-3 bottom-3 flex items-end justify-between ${enabled ? "" : "opacity-40"}`} data-testid="touch-controls">
       <div className="pointer-events-auto flex gap-2">
-        <HoldButton action="left" label="◀" title="Steer left" />
-        <HoldButton action="right" label="▶" title="Steer right" />
+        <HoldButton action="left" label="◀" title={names.left} />
+        <HoldButton action="right" label="▶" title={names.right} />
       </div>
       <div className="pointer-events-auto flex flex-col gap-2">
-        <HoldButton action="forward" label="▲" title="Accelerate" />
-        <HoldButton action="backward" label="▼" title="Reverse" />
+        <HoldButton action="forward" label="▲" title={names.forward} />
+        <HoldButton action="backward" label="▼" title={names.backward} />
       </div>
     </div>
   );

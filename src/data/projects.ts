@@ -62,10 +62,10 @@ export const projects: Project[] = [
     chapter: "AI technical operations",
     organisation: "Performanze",
     period: "2026 — now",
-    role: "Technical leadership on SAT module",
-    tagline: "Technical operations software for diagnosis, documentation and field context.",
+    role: "Technical lead, SAT module",
+    tagline: "Field-service (SAT) module that helps elevator technicians diagnose and track faults.",
     summary:
-      "Technical service (SAT) workflows that join equipment context, retrieval and traceable assisted diagnosis. A system, not a chatbot: assistance needs evidence.",
+      "The SAT (technical service) module of DUPLEX supports elevator technicians while they diagnose and track faults. Diagnosis adapts to the type of equipment in front of the technician and draws on the manuals, diagnostic steps and case history relevant to that intervention, retrieved through RAG with embeddings and a vector database. A system, not a chatbot: every assisted answer carries its sources.",
     challenge:
       "Keep technical diagnosis grounded in equipment context and traceable sources.",
     highlights: [
@@ -73,6 +73,7 @@ export const projects: Project[] = [
       "Manuals, checklists and case history are retrieved as evidence before an answer",
       "Each assisted answer carries the sources it relies on",
       "Escalation keeps the gathered context",
+      "Client meetings and live demos feed each product iteration",
     ],
     flow: [
       { id: "equipment", label: "Equipment context", note: "active during the session" },
@@ -82,7 +83,7 @@ export const projects: Project[] = [
       { id: "escalation", label: "Escalation", note: "context preserved" },
     ],
     delivered: ["SAT assistant workflow", "Source-backed diagnosis", "Escalation context"],
-    technologies: ["TypeScript", "React", "Next.js", "Supabase", "PostgreSQL", "RAG"],
+    technologies: ["TypeScript", "React", "Next.js", "Supabase", "PostgreSQL", "RAG", "Embeddings", "Vector database"],
     decisions: [
       {
         decision: "Evidence before diagnosis",
@@ -112,14 +113,14 @@ export const projects: Project[] = [
     organisation: "Performanze",
     period: "2026 — now",
     role: "Full Stack Product Engineer",
-    tagline: "AI-assisted productivity system on Microsoft 365 context.",
+    tagline: "Conversational assistant for Microsoft 365: mail, meetings, files and documents from one chat.",
     summary:
-      "Private current system for AI-assisted productivity workflows. Context from Microsoft 365 becomes product work: requests are routed to explicit actions with the context they need.",
+      "OVI lets people work with Microsoft 365 from a chat: check email, meetings and conversations, work with SharePoint and OneDrive files, and create Word, Excel and PowerPoint documents without switching applications. Each request is routed to an explicit action with the context it needs; Microsoft Graph connects the assistant to Microsoft 365 and Gamma is used for presentation generation. A private, current system; this public description stays conceptual.",
     challenge: "Turn work requests into reliable actions across Microsoft 365 context.",
     highlights: [
       "Microsoft Graph surfaces: Outlook, Teams, Calendar, OneDrive and SharePoint",
       "Structured routing: every action has explicit intent and context",
-      "Semantic retrieval (embeddings) brings related knowledge in when relevant",
+      "Short- and long-term conversation memory plus semantic retrieval (embeddings) recover what earlier messages and conversations established",
       "Artifact generation integrated into the workflow, including presentations through Gamma",
     ],
     flow: [
@@ -142,8 +143,8 @@ export const projects: Project[] = [
         tradeOff: "More contracts than a pure chat interface.",
       },
       {
-        decision: "Conversation state stays bounded",
-        why: "Follow-up work needs current context without treating every interaction as permanent memory.",
+        decision: "Conversation memory is selective",
+        why: "Follow-ups need the current context; earlier conversations are recovered by meaning when they matter, not replayed wholesale.",
         tradeOff: "Useful context must be selected rather than retained indiscriminately.",
       },
       {
@@ -210,7 +211,7 @@ export const projects: Project[] = [
       {
         decision: "Legacy transition as a parallel, audited track",
         why: "Existing records and flows must keep operational meaning until each operation is proven at parity.",
-        tradeOff: "Audit, normalization and dual operation add delivery complexity.",
+        tradeOff: "Audit, normalisation and dual operation add delivery complexity.",
       },
     ],
     quality: ["Husky pre-commit gate", "Unit, integration and E2E coverage", "Offline smoke checks"],
@@ -227,7 +228,7 @@ export const projects: Project[] = [
     role: "Software Developer",
     tagline: "Verifiable credential infrastructure across issuance, wallets and verification.",
     summary:
-      "TrustOS VCS Core API: a unified layer for credential lifecycle operations, provider integration, wallet flows and verification. Identity as a system of trust.",
+      "TrustOS issues and verifies digital credentials that people store and present from different wallets. Frontend and backend work on the VCS Core API: a unified REST layer for the credential lifecycle, provider integration, wallet flows and QR verification.",
     challenge: "Provide a coherent credential lifecycle across identity providers.",
     highlights: [
       "Unified REST API documented with OpenAPI",
@@ -265,7 +266,7 @@ export const projects: Project[] = [
     slug: "42-madrid",
     title: "42 Madrid",
     chapter: "Engineering foundations",
-    organisation: "42 Madrid",
+    organisation: "42 Madrid (Fundación Telefónica)",
     period: "2023 — now",
     role: "Student",
     tagline: "C, C++, UNIX, graphics, concurrency and networking foundations.",

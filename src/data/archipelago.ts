@@ -257,7 +257,7 @@ export const harbors: HarborDefinition[] = [
     id: "pau-harbor",
     island: "main",
     name: "PAU Harbor",
-    tagline: "Boats to the archipelago",
+    tagline: "Pier and moorings",
     pierRoot: [QUAY.x0, 0],
     pierHeading: -Math.PI / 2,
     pierLength: 16,
@@ -286,7 +286,7 @@ export const harbors: HarborDefinition[] = [
     id: "skyport-pier",
     island: "skyport",
     name: "Skyport Pier",
-    tagline: "Boats to the aerial district",
+    tagline: "Moorings at the aerial district",
     // Leaves the island's south shore; heading 0 = +Z (south).
     pierRoot: [SKYPORT.center[0], SKYPORT.slab.maxZ + 4],
     pierHeading: 0,

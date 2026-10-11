@@ -13,7 +13,7 @@ import type { Runway } from "@/game/vehicle/transform";
 export const SKYPORT = {
   id: "skyport" as const,
   name: "Skyport",
-  tagline: "Transform for flight",
+  tagline: "Runway · launch ramp · landing strip",
   /** Island slab (flat top at y = 0). */
   slab: { minX: 104, maxX: 202, minZ: -36, maxZ: 36 },
   center: [153, 0] as Point,

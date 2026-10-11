@@ -6,7 +6,7 @@ import { SiteFrame } from "@/components/portfolio/SiteFrame";
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "Projects and experience of Pau Ramos: DUPLEX, OVI, BROKI, TrustOS and 42 Madrid, readable without the 3D city.",
+  description: "Pau Ramos's work (DUPLEX, OVI, BROKI, TrustOS) and training (42 Madrid, the 4Geeks AI campus), readable without the 3D city.",
   alternates: { canonical: "/projects" },
 };
 
