@@ -2,10 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import { harbors, islands, pointsOfInterest, QUAY } from "@/data/archipelago";
+import { beaches, beachOuterCorners } from "@/data/beaches";
+import { rampPoint, ramps } from "@/data/ramps";
 import { districts } from "@/data/districts";
 import { SKYPORT } from "@/data/skyport";
 import { PLATFORM, PLAZA, ROADS } from "@/data/world";
-import { poseOf, usesPlanePose } from "@/game/vehicle/vehicleManager";
+import { bodyModeOf } from "@/game/vehicle/transformer";
+import { poseOf } from "@/game/vehicle/vehicleManager";
 import { accentHex } from "@/lib/palette";
 import { useGameStore } from "@/stores/gameStore";
 
@@ -27,28 +30,23 @@ const mapper =
  * with the harbors, the islands and both vehicles. Markers update outside React.
  */
 export function Minimap() {
-  const activeVehicle = useGameStore((s) => s.activeVehicle);
-  const carForm = useGameStore((s) => s.carForm);
-  const flight = useGameStore((s) => s.flight);
-  const air = activeVehicle === "car" && usesPlanePose({ carForm, flight });
-  const boat = activeVehicle === "boat" || air;
+  const state = useGameStore((s) => s.vehicleState);
+  const body = bodyModeOf(state);
+  const air = body === "plane";
+  const boat = body !== "car";
   const active = useRef<SVGGElement>(null);
-  const other = useRef<SVGGElement>(null);
   const toMap = mapper(boat ? SEA : CITY);
 
   useEffect(() => {
     let raf = 0;
     const tick = () => {
       const st = useGameStore.getState();
-      const v = st.activeVehicle;
-      const place = (g: SVGGElement | null, vehicle: "car" | "boat") => {
-        if (!g) return;
-        const { x, z, heading } = poseOf(vehicle, vehicle === "car" && usesPlanePose(st));
+      const g = active.current;
+      if (g) {
+        const { x, z, heading } = poseOf(st.vehicleState);
         const [mx, mz] = toMap(x, z);
         g.setAttribute("transform", `translate(${mx.toFixed(2)} ${mz.toFixed(2)}) rotate(${(-(heading * 180) / Math.PI + 180).toFixed(1)})`);
-      };
-      place(active.current, v);
-      place(other.current, v === "car" ? "boat" : "car");
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -59,7 +57,7 @@ export function Minimap() {
   const poly = (pts: readonly [number, number][]) => pts.map(([x, z]) => toMap(x, z).map((v) => v.toFixed(1)).join(",")).join(" ");
 
   return (
-    <svg className="minimap" viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={air ? "Map of the archipelago with the aircraft position" : boat ? "Map of the archipelago with the boat position" : "Map of the city with the car position"} data-testid="minimap" data-mode={air ? "air" : boat ? "sea" : "city"}>
+    <svg className="minimap" viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={air ? "Map of the archipelago with the aircraft position" : boat ? "Map of the archipelago with the boat position" : "Map of the city with the car position"} data-testid="minimap" data-mode={air ? "air" : boat ? "sea" : "city"} data-body={body}>
       <rect x="1" y="1" width={SIZE - 2} height={SIZE - 2} rx="6" fill={boat ? "#0B2240" : "#142538"} />
       {boat && (
         <>
@@ -87,6 +85,11 @@ export function Minimap() {
           {pointsOfInterest.map((p) => {
             const [px, pz] = toMap(p.position[0], p.position[1]);
             return <rect key={p.id} x={px - 1.6} y={pz - 1.6} width="3.2" height="3.2" rx="0.6" fill={accentHex.cyan} opacity="0.9" />;
+          })}
+          {/* Beaches (V8): where the hull may come ashore */}
+          {beaches.map((b) => {
+            const [c0, c1] = beachOuterCorners(b);
+            return <polygon key={b.id} points={poly([b.edge.from, b.edge.to, c1, c0])} fill="#C9B27A" opacity="0.8" data-beach={b.id} />;
           })}
         </>
       )}
@@ -123,6 +126,18 @@ export function Minimap() {
               </rect>
             );
           })}
+          {/* Ramps and beaches (V8) */}
+          {ramps
+            .filter((r) => r.id !== "skyport-ramp")
+            .map((r) => (
+              <polygon key={r.id} points={poly([rampPoint(r, -r.approach, -r.width / 2), rampPoint(r, r.length, -r.width / 2), rampPoint(r, r.length, r.width / 2), rampPoint(r, -r.approach, r.width / 2)])} fill={accentHex.amber} opacity="0.8" data-ramp={r.id} />
+            ))}
+          {beaches
+            .filter((b) => b.island === "main")
+            .map((b) => {
+              const [c0, c1] = beachOuterCorners(b);
+              return <polygon key={b.id} points={poly([b.edge.from, b.edge.to, c1, c0])} fill="#C9B27A" opacity="0.8" data-beach={b.id} />;
+            })}
           {/* Harbor marker at the edge of the city map */}
           {harbors
             .filter((h) => h.island === "main")
@@ -132,12 +147,9 @@ export function Minimap() {
             })}
         </>
       )}
-      {/* The parked / moored vehicle, then the active one on top */}
-      <g ref={other} data-testid="minimap-other">
-        {activeVehicle === "boat" ? <circle r="1.6" fill="#FF7A3D" opacity="0.8" /> : <polygon points="0,-2.4 1.6,2 0,1.2 -1.6,2" fill="#7FE2E9" opacity="0.8" />}
-      </g>
+      {/* The one vehicle: orange on land and in the air, cyan on the water */}
       <g ref={active} data-testid="minimap-active">
-        <polygon points="0,-3.2 2.4,2.6 0,1.4 -2.4,2.6" fill={activeVehicle === "boat" ? "#7FE2E9" : "#FF7A3D"} stroke="#080F1D" strokeWidth="0.6" />
+        <polygon points="0,-3.2 2.4,2.6 0,1.4 -2.4,2.6" fill={body === "boat" ? "#7FE2E9" : "#FF7A3D"} stroke="#080F1D" strokeWidth="0.6" />
       </g>
     </svg>
   );

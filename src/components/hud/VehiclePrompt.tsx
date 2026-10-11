@@ -2,53 +2,39 @@
 
 import { useEffect, useState } from "react";
 import { getHarbor } from "@/data/archipelago";
-import { canBoard, canDock, carAvailableAt, poseOf } from "@/game/vehicle/vehicleManager";
+import { canDock, poseOf } from "@/game/vehicle/vehicleManager";
 import { useGameStore } from "@/stores/gameStore";
 
-type Action = "board" | "dock" | "drive";
-
 /**
- * Contextual vehicle action (V6): "Press E to board" when the slow car is in a
- * harbor's boarding zone, "Press E to dock" / "Press E to drive" when the slow
- * boat is in a docking zone. Speed lives outside React, so the prompt polls it
- * once per animation frame and only re-renders on a change.
+ * Contextual pier action (V6, kept in V8): "Press E to dock" when the slow
+ * hull is in a pier's docking zone. Speed lives outside React, so the prompt
+ * polls it once per animation frame and only re-renders on a change.
  */
 export function VehiclePrompt() {
   const interact = useGameStore((s) => s.interact);
   const transition = useGameStore((s) => s.transition);
-  const activeVehicle = useGameStore((s) => s.activeVehicle);
+  const state = useGameStore((s) => s.vehicleState);
   const mooredAt = useGameStore((s) => s.mooredAt);
-  const nearbyHarbor = useGameStore((s) => s.nearbyHarbor);
   const nearbyDock = useGameStore((s) => s.nearbyDock);
-  // The computed action is keyed by (vehicle, harbor) so a stale value from a previous zone is never shown.
-  const [computed, setComputed] = useState<{ key: string; action: Action | null }>({ key: "", action: null });
+  const [computed, setComputed] = useState<{ key: string; ok: boolean }>({ key: "", ok: false });
 
-  const harbor = activeVehicle === "car" ? nearbyHarbor : nearbyDock;
-  const eligible = !transition && !mooredAt && harbor !== null;
-  const key = eligible ? `${activeVehicle}:${harbor}` : "";
+  const eligible = !transition && !mooredAt && state === "floating" && nearbyDock !== null;
+  const key = eligible ? `dock:${nearbyDock}` : "";
 
   useEffect(() => {
-    if (!eligible || !harbor) return;
+    if (!eligible || !nearbyDock) return;
     let raf = 0;
     const tick = () => {
-      let next: Action | null = null;
-      if (activeVehicle === "car") {
-        if (canBoard(poseOf("car").speed, harbor)) next = "board";
-      } else if (canDock(poseOf("boat").speed, harbor)) {
-        const car = poseOf("car");
-        next = carAvailableAt(harbor, car.x, car.z) ? "drive" : "dock";
-      }
-      setComputed((prev) => (prev.key === key && prev.action === next ? prev : { key, action: next }));
+      const ok = canDock(poseOf("floating").speed, nearbyDock);
+      setComputed((prev) => (prev.key === key && prev.ok === ok ? prev : { key, ok }));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [eligible, harbor, activeVehicle, key]);
+  }, [eligible, nearbyDock, key]);
 
-  const action = computed.key === key ? computed.action : null;
-  if (!eligible || !harbor || !action) return null;
-  const h = getHarbor(harbor);
-  const label = action === "board" ? "Board the boat" : action === "drive" ? "Dock and drive" : "Dock";
+  if (!eligible || !nearbyDock || computed.key !== key || !computed.ok) return null;
+  const h = getHarbor(nearbyDock);
   return (
     <button
       type="button"
@@ -56,12 +42,12 @@ export function VehiclePrompt() {
       onClick={() => interact()}
       onPointerDown={(e) => e.stopPropagation()}
       data-testid="vehicle-prompt"
-      data-action={action}
-      data-harbor={harbor}
+      data-action="dock"
+      data-harbor={nearbyDock}
     >
       <span className="kbd text-base">E</span>
       <span>
-        <span className="eyebrow block">{label}</span>
+        <span className="eyebrow block">Dock</span>
         <span className="block text-lg font-semibold leading-tight">{h.name}</span>
       </span>
     </button>
