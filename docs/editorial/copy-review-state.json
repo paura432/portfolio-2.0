@@ -1,5 +1,5 @@
 {
-  "iteration": 2,
+  "iteration": 3,
   "maxIterations": 6,
   "initialSha": "4445ce0",
   "baseBranch": "feat/v8-seamless-transformations",
@@ -49,7 +49,9 @@
     "E11",
     "E12",
     "E13",
-    "E14"
+    "E14",
+    "E15",
+    "E16"
   ],
   "open": [
     {
@@ -71,9 +73,9 @@
     "typecheck": "clean",
     "lint": "0 problems",
     "unitTests": "221/221",
-    "build": "clean (18 routes)",
-    "browser": "copycheck.mjs: 18 screens (intro, projects, duplex, ovi, contact, 4geeks, menu, hub panel, HUD) at 1280 and 390 px, no text overflow; screenshots in docs/editorial/screens"
+    "build": "clean at iteration 2; re-run pending for iteration 3 (V8 capture running)",
+    "browser": "iteration 2: 18 screens, no overflow; re-run pending"
   },
-  "consecutiveCleanPasses": 0,
+  "consecutiveCleanPasses": 1,
   "status": "IN_PROGRESS"
 }

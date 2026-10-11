@@ -86,3 +86,20 @@ Open items: O1 (phone hints) closed as accepted: on phones the legend is hidden 
 Validation: typecheck clean, lint 0 problems, 221/221 unit tests, build clean (18 routes). Browser (`scripts/visual-qa/copycheck.mjs`, SwiftShader): intro, /projects, /projects/duplex, /projects/ovi, /contact, /education/4geeks, the projects menu, the hub panel and the car HUD at 1280 px and 390 px: no element with overflowing text on any of the 18 screens; full-page screenshots in `docs/editorial/screens/`.
 
 Decision: one more pass is required by the stop rule (two consecutive passes without important findings); iteration 2 found one P1 of its own making (E13). Continue.
+
+## Iteration 3 · 2026-10-11
+
+Pass over the texts not yet critiqued in depth: the three focus cards (intro and hub), the /projects listing description, the HUD legends per state, the 4Geeks lab texts (grammar and attribution spot-check), the page metadata.
+
+| id | sev | where | before → after | why |
+|---|---|---|---|---|
+| E15 | P2 | Focus cards (`profile.focus`, intro + hub) | "Retrieval, embeddings and source-traceable assistance for technical and productivity work." → "Assistants that retrieve manuals, case history and Microsoft 365 context and answer with their sources: elevator fault diagnosis (DUPLEX), work from one chat (OVI)."; "Supabase, PostgreSQL, Edge Functions and realtime interfaces for real operations." → "Airport ground operations in one system (fleet, equipment, people, planning, incidents), migrated off a legacy stack with parity audits and runbooks (BROKI)."; "Verifiable credential lifecycle APIs across identity providers." → "Issuing and verifying credentials that live in wallets, through one REST API over several identity providers (TrustOS)." | the cards listed technologies, not what the systems do; each new line names the system that proves it (CV, AUDIT-S2 for BROKI's parity audits and runbooks) |
+| E16 | P2 | /projects meta description | "...DUPLEX, OVI, BROKI, TrustOS and 42 Madrid, readable..." → "Pau Ramos's work (DUPLEX, OVI, BROKI, TrustOS) and training (42 Madrid, the 4Geeks AI campus), readable without the 3D city." | 42 Madrid was listed as a project; the 4Geeks campus was missing |
+
+No P0 or P1 found in this pass. HUD legends: each names a key and a real outcome of the base branch (deploy speed and takeoff speed are read from the rules, not typed). 4Geeks labs: attribution stays explicit (template vs student work, "author-run" checks, nothing deployed or certified).
+
+Three readings: recruiter — the focus cards now say what was built and for whom; senior engineer — no new claim beyond the CV and the earlier audits; UX editor — the listing description matches the page's grouping.
+
+Validation: typecheck clean, lint 0 problems, 221/221 unit tests. Build and browser re-check: deferred to the next tick (the V8 capture is using the machine); the changed texts are two short strings in places already checked for overflow with longer text.
+
+Decision: first pass without P0/P1 findings (1 of the 2 required). Continue.

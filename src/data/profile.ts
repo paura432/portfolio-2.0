@@ -73,17 +73,17 @@ export const profile = {
   focus: [
     {
       title: "AI-assisted workflows",
-      detail: "Retrieval, embeddings and source-traceable assistance for technical and productivity work.",
+      detail: "Assistants that retrieve manuals, case history and Microsoft 365 context and answer with their sources: elevator fault diagnosis (DUPLEX), work from one chat (OVI).",
       projects: ["duplex", "ovi"],
     },
     {
       title: "Operational platforms",
-      detail: "Supabase, PostgreSQL, Edge Functions and realtime interfaces for real operations.",
+      detail: "Airport ground operations in one system (fleet, equipment, people, planning, incidents), migrated off a legacy stack with parity audits and runbooks (BROKI).",
       projects: ["broki"],
     },
     {
       title: "Digital identity",
-      detail: "Verifiable credential lifecycle APIs across identity providers.",
+      detail: "Issuing and verifying credentials that live in wallets, through one REST API over several identity providers (TrustOS).",
       projects: ["trustos"],
     },
   ],
