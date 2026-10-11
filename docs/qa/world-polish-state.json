@@ -3,8 +3,8 @@
   "branch": "feat/v9-world-physics-destruction",
   "baseSha": "9f93b38",
   "v9Iteration1Sha": "7123491",
-  "lastValidatedSha": "7123491",
-  "iteration": 0,
+  "lastValidatedSha": "4501f2c",
+  "iteration": 1,
   "maxIterations": 12,
   "phase": "V9.1 gameplay foundation",
   "status": "IN_PROGRESS",
@@ -176,16 +176,17 @@
       ]
     },
     "rootCauseHypothesis": "turn authority = min(1, |speed| / 9) and a blocked sub-step sets speed = -0.2 · speed: between two rigid bodies the car never reaches the speed it needs to steer out; tree trunks and furniture are rigid below their topple speeds, so sidewalk pockets beside building padding (1.0) + a trunk or bench trap it",
-    "status": "REPRODUCED (simulation) — fix in iteration 1 of this loop, then re-run the sweep as a regression test"
+    "status": "FIXED in iteration 1: carPhysics low-speed steering floor (0.35 of the turn rate while the throttle is held) + glancing contacts slide instead of reversing; sweep now 0 wedges (two-stage trial: 2.5 u in 3 s, else 4 u in 6 s; the simulations advance and are restored per trial); e2e/navigation.spec.ts 1/1"
   },
   "defects": {
     "P0": [
       {
         "id": "NAV-01",
         "title": "wedge points: car cannot escape pockets between rigid bodies (295 points)",
-        "status": "OPEN",
+        "status": "FIXED",
         "evidence": "sweep above",
-        "plan": "low-speed steering floor + tangential slide on glancing contacts + stuck recovery nudge; level fixes for trees/furniture inside building forecourt corners; sweep becomes a unit test with 0 stuck points"
+        "plan": "low-speed steering floor + tangential slide on glancing contacts + stuck recovery nudge; level fixes for trees/furniture inside building forecourt corners; sweep becomes a unit test with 0 stuck points",
+        "iteration": 1
       }
     ],
     "P1": [
@@ -275,10 +276,14 @@
     {
       "id": "COL-05",
       "iteration": "v9-it1"
+    },
+    {
+      "id": "NAV-01",
+      "iteration": "polish-it1"
     }
   ],
   "tests": {
-    "unit": 270,
+    "unit": 272,
     "e2eSpecs": [
       "smoke",
       "campus",
@@ -287,10 +292,13 @@
       "trees",
       "transformer",
       "world",
-      "mobile"
+      "mobile",
+      "navigation"
     ],
     "fullRuns": [
-      "20/21"
+      "20/21 (v9 it1)",
+      "21/22 (polish it1, run 1)",
+      "22/22 (polish it1, run 2)"
     ]
   },
   "captures": "docs/screenshots/v9/ (iteration-1 set); before/after sets per fix to follow",
@@ -298,16 +306,21 @@
   "regressions": [],
   "blockers": [],
   "nextIteration": [
-    "NAV-01 root-cause fix in carPhysics/obstacles + sweep test",
     "CAM-01 camera obstacle avoidance",
     "COL-02/03 activate remaining prop categories",
-    "level audit plan (docs/design/v9-level-design.md): circulation map"
+    "level audit: circulation map (docs/design/v9-level-design.md)",
+    "ramps/beach browser coverage"
   ],
   "history": [
     {
       "iteration": 0,
       "date": "2026-10-11",
       "summary": "loop re-based on the V9.1–V9.3 brief; V9 iteration 1 kept (7123491); P0 wedge points reproduced by a physics sweep"
+    },
+    {
+      "iteration": 1,
+      "date": "2026-10-11",
+      "summary": "NAV-01 fixed at the root (car model) and guarded by the wedge sweep test and a real-key navigation E2E"
     }
   ]
 }

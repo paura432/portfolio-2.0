@@ -62,10 +62,10 @@ test.describe("4Geeks AI Engineering Campus", () => {
     await page.keyboard.press("Escape");
     await expect(panel).toBeHidden();
     const before = await car(page);
-    await page.keyboard.down("KeyS");
-    await page.waitForTimeout(1200);
-    await page.keyboard.up("KeyS");
-    expect(Math.hypot((await car(page)).x - before.x, (await car(page)).z - before.z)).toBeGreaterThan(0.5);
+    // Condition-based, like the V8.1 smoke check: under software rendering the first test of a run gets few frames
+    // per wall-clock second, so a fixed 1.2 s budget measured frame count, not whether driving resumed.
+    const resumed = await holdKeyUntil(page, "KeyS", async () => Math.hypot((await car(page)).x - before.x, (await car(page)).z - before.z) > 0.5, 10_000);
+    expect(resumed, "driving resumes after the panel closes").toBe(true);
 
     // Secondary zone: standing in front of Lab 01 on the plaza opens that lab directly.
     await page.evaluate(() => window.__pauWorld!.teleport(15, -48.5, Math.PI));

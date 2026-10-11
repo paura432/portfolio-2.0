@@ -41,6 +41,8 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | C6 | Rotated pieces collide in their drawn orientation | PASS | `collision.test.ts` oriented box; `propWorld.test.ts` "collides along its drawn orientation" (bench turned along the road) |
 | C7 | Drivable zones keep their accesses (districts, labs, harbor, Skyport, beaches, ramps) | PASS | `data.test.ts` (entrances by road), `rampRuns` corridors, `beachRuns`, spawns free (audit) |
 | C8 | Collisions reliable at different frame rates | PASS | `carCollision.test.ts` (no tunnelling at 0.1 s frames), `propWorld.test.ts` "frame-rate independent" (30 vs 120 fps, same rest pose) |
+| C10 | No pose on drivable land from which the car cannot drive away (invisible wedges) | PASS (iteration 2) | `wedgeSweep.ts` / `wedge.test.ts`: 736 tight spots, 0 wedges; before the fix 295 points failed. Root cause and fix in `world-polish-report.md` iteration 1 |
+| C11 | The worst former wedges driven out in the browser with real keys | PASS | `e2e/navigation.spec.ts` 1/1 |
 | C9 | Debug tooling to see colliders and contacts, hidden from visitors | PASS | `DebugColliders.tsx`: static colliders, drive areas, ramps, beaches, trunks, live prop colliders (red solid / grey down), the car's circle, the last 24 contact points; switched on only by the probe (`__pauWorld.debug.colliders`) or `?debug=colliders` in development builds; captures `13`–`15` |
 
 ### D. Destructible furniture

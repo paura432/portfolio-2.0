@@ -73,6 +73,7 @@ Static collider set: 1 round + 25 boxes (V9: 23 boxes before the hangar split an
 
 | Id | Severity | Finding | Evidence | Status |
 |---|---|---|---|---|
+| NAV-01 | P0 | The car could get wedged on sidewalks between a building's padding box and a trunk or a bench (295 grid points, incl. Duplex and TrustOS forecourt corners): turn authority ∝ speed and every bump reversed the speed | `wedgeSweep.ts` (iteration 2) | **fixed, iteration 2** (car model: low-speed steering floor, sliding contacts; `wedge.test.ts` 0 wedges; `navigation.spec.ts`) |
 | COL-01 | P1 | 75 lamps, 27 benches and 4 planters had no collider: the car drove through them | audit script (`reachable`, `collider: []`), V8 `obstacles.ts` | **fixed, iteration 1** (`propWorld`, active categories lamp / planter / bench; E2E `world.spec.ts`) |
 | COL-02 | P1 | 16 bollards, 110 bushes, 4 signposts have no collider | same | open → iteration 2 (categories exist in the catalogue; not yet active) |
 | COL-03 | P1 | Skyport pad masts (4), ramp gate masts (6), ramp sign posts (3), hangar sign post, harbor gate sign post have no collider | §4 | open → iteration 2 (`mast` / `signpost` categories; positions to be shared between the components and the simulation) |

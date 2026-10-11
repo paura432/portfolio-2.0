@@ -84,8 +84,17 @@ export interface ConstrainResult {
  */
 export type Constrain = (x: number, z: number, step?: StepInfo) => ConstrainResult;
 
-/** Fraction of speed kept (and reversed) on a blocked sub-step: a soft bump. */
+/** Fraction of speed kept (and reversed) on a head-on blocked sub-step: a soft bump. */
 export const BUMP_RESTITUTION = 0.2;
+/** Contacts flatter than this (|forward · normal|) slide along the surface instead of bouncing back. */
+export const HEAD_ON_DOT = 0.6;
+/** Least fraction of the speed kept while sliding along an obstacle. */
+export const SLIDE_MIN = 0.3;
+/**
+ * Steering authority a crawling car keeps while the throttle is held (fraction of the full turn rate).
+ * V9: without it a car wedged between two rigid bodies never gains the speed it needs to turn out.
+ */
+export const LOW_SPEED_STEER = 0.35;
 
 /**
  * Advance the car by `dt` seconds. Large `dt` values are split into sub-steps
@@ -110,11 +119,30 @@ export function stepCar(
     s = integrate(s, input, h, config);
     if (constrain) {
       const c = constrain(s.x, s.z, { prevX: prev.x, prevZ: prev.z, speed: s.speed, heading: s.heading, dt: h });
-      if (c.blocked) s = { ...s, x: c.x, z: c.z, speed: -s.speed * BUMP_RESTITUTION };
+      if (c.blocked) s = { ...s, x: c.x, z: c.z, speed: bumpSpeed(s, c.x, c.z) };
       else if (c.speed !== undefined || c.x !== s.x || c.z !== s.z) s = { ...s, x: c.x, z: c.z, speed: c.speed ?? s.speed };
     }
   }
   return s;
+}
+
+/**
+ * Speed after a blocked sub-step. The push-out direction (from the proposed
+ * position to the resolved one) is the contact normal: a head-on contact
+ * bounces back softly, a glancing one keeps most of the speed so the car
+ * slides along the wall / kerb / trunk instead of stopping dead (V9).
+ */
+function bumpSpeed(s: CarState, rx: number, rz: number): number {
+  const px = rx - s.x;
+  const pz = rz - s.z;
+  const len = Math.hypot(px, pz);
+  if (len < 1e-9) return -s.speed * BUMP_RESTITUTION;
+  const [fx, fz] = forwardVector(s.heading);
+  // Motion direction along the heading (reversing flips it); dot < 0 = moving into the obstacle.
+  const dir = s.speed >= 0 ? 1 : -1;
+  const dot = ((fx * px + fz * pz) / len) * dir;
+  if (dot < -HEAD_ON_DOT) return -s.speed * BUMP_RESTITUTION;
+  return s.speed * Math.max(SLIDE_MIN, 1 - Math.abs(dot));
 }
 
 function integrate(s: CarState, input: DriveInput, dt: number, c: CarConfig): CarState {
@@ -135,9 +163,11 @@ function integrate(s: CarState, input: DriveInput, dt: number, c: CarConfig): Ca
   const steer = Math.max(-1, Math.min(1, input.steer));
   const steerAngle = approach(s.steerAngle, -steer * c.maxSteerAngle, c.maxSteerAngle * 8 * dt);
 
-  // Turn authority grows with speed and flips when reversing (like a real car).
-  const speedFactor = Math.min(1, Math.abs(speed) / (c.maxSpeed * 0.45));
-  const direction = speed >= 0 ? 1 : -1;
+  // Turn authority grows with speed and flips when reversing (like a real car). With the throttle held a
+  // crawling car keeps a floor of authority (arcade pivot), so it can steer out of a tight spot (V9).
+  const floor = throttle !== 0 ? LOW_SPEED_STEER * Math.abs(throttle) : 0;
+  const speedFactor = Math.max(floor, Math.min(1, Math.abs(speed) / (c.maxSpeed * 0.45)));
+  const direction = Math.abs(speed) > 0.05 ? (speed >= 0 ? 1 : -1) : throttle < 0 ? -1 : 1;
   const heading = s.heading - steer * c.turnRate * speedFactor * direction * dt;
 
   // Integrate displacement along the mid-step heading (midpoint rule) so the

@@ -4,9 +4,9 @@
   "baseSha": "9f93b38",
   "baseBranch": "integration/v8-editorial-final-qa",
   "headSha": "pending",
-  "iteration": 1,
+  "iteration": 2,
   "maxIterations": 12,
-  "phase": "4-vertical-slice",
+  "phase": "5-correction-cycle",
   "status": "IN_PROGRESS",
   "updatedAt": "2026-10-11",
   "preflight": {
@@ -218,7 +218,15 @@
     }
   },
   "defects": {
-    "P0": [],
+    "P0": [
+      {
+        "id": "NAV-01",
+        "title": "wedge points: car could not escape pockets between rigid bodies (295 points in the physics sweep)",
+        "status": "FIXED",
+        "iteration": 2,
+        "evidence": "carPhysics: low-speed steering floor + sliding contacts; wedgeSweep.ts + wedge.test.ts (0 wedges on a 1.5 u grid, 8 headings, two-stage trial); e2e/navigation.spec.ts drives out of the five worst poses with real keys"
+      }
+    ],
     "P1": [
       {
         "id": "COL-01",
@@ -310,21 +318,21 @@
     "lint": "PASS",
     "typecheck": "PASS",
     "unit": {
-      "files": 43,
-      "tests": 270,
+      "files": 45,
+      "tests": 272,
       "new": [
-        "collision.test.ts (obb)",
-        "propWorld.test.ts",
-        "beachRuns.test.ts",
-        "rampRuns.test.ts",
-        "landing.test.ts (roof)"
+        "wedge.test.ts (sweep + Duplex/TrustOS/plaza poses)"
       ]
     },
     "build": "PASS",
     "e2e": {
       "worldSpec": "3/3 PASS",
-      "fullRun1": "20/21 (campus keeps-driving fixed-time check failed under load; 2/2 in isolation)",
-      "fullRun2": "not run in iteration 1"
+      "fullRun1": "20/21 (it1)",
+      "fullRun2": "not run in iteration 1",
+      "navigationSpec": "1/1 PASS",
+      "it2FullRun1": "21/22 (campus fixed-time check as first test of the run; converted to condition-based)",
+      "it2FullRun2": "22/22 PASS (desktop + mobile, 7.4 min)",
+      "consecutiveGreen": 1
     }
   },
   "evidence": {
@@ -367,7 +375,7 @@
     "mast and sign-post props from shared positions (ramp gates, pad, hangar sign, harbor gate sign)",
     "e2e/ramps.spec.ts: Campus Ramp and Skyport Ramp flown for real; Skyport Beach in the browser",
     "furniture particles (DES-02); GEO-01 bench placement; COL-08 hop clamp",
-    "docs/architecture/v9-collision-system.md, docs/gameplay/v9-*.md"
+    "camera obstacle avoidance (CAM-01, from the V9.1 brief)"
   ],
   "history": [
     {
@@ -375,6 +383,13 @@
       "date": "2026-10-11",
       "summary": "preflight, branch, inventory, audit, collision primitives (obb, compound), prop simulation + renderer + HUD, shore rule from topography, ramp step extraction, debug overlay, 48 unit tests, world E2E",
       "commit": "see git log (first V9 commit)"
+    },
+    {
+      "iteration": 2,
+      "date": "2026-10-11",
+      "summary": "P0 NAV-01: wedge points reproduced by a physics sweep (295), root cause in the car model (turn authority ∝ speed, bumps reverse speed); fixed with a low-speed steering floor and sliding contacts; sweep is a regression test (0 wedges); navigation E2E with real keys",
+      "commit": "pending"
     }
-  ]
+  ],
+  "lastValidatedSha": "4501f2c"
 }
