@@ -79,7 +79,7 @@ export const districts: District[] = [
     id: "duplex",
     category: "experience",
     name: "DUPLEX",
-    tagline: "AI technical operations · SAT diagnosis",
+    tagline: "Elevator field service · assisted diagnosis",
     kind: "project",
     projectSlug: "duplex",
     position: [-28, -17],

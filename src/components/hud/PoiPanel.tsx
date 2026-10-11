@@ -46,8 +46,8 @@ export function PoiPanel() {
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li>Status: experimental, content pending.</li>
-          <li>Reachable only by boat, from {getHarbor("pau-harbor").name}.</li>
-          <li>No land vehicle lives here: cast off to sail back to the city.</li>
+          <li>Reachable only by sea: drive into the water off any beach and the car becomes a boat.</li>
+          <li>No beach to drive out on: cast off and sail back to the city.</li>
         </ul>
       </div>
     </Dialog>

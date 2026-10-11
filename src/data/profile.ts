@@ -10,7 +10,7 @@ export const profile = {
   github: "https://github.com/paura432",
   linkedin: "https://www.linkedin.com/in/pau-ramos-sim%C3%B3-520751202/",
   summary:
-    "Product engineering across AI-assisted workflows, operational platforms and digital identity infrastructure.",
+    "I take B2B products from definition to production across frontend, backend, data and integrations, and work directly with clients to shape and validate each iteration. Lately: AI-assisted workflows, operational platforms and digital identity.",
   experience: [
     {
       period: "2026 — now",
@@ -24,11 +24,26 @@ export const profile = {
       role: "Software Developer",
       note: "TrustOS and digital identity infrastructure.",
     },
+  ],
+  /** Learning, kept apart from professional experience. */
+  education: [
+    {
+      period: "2026 — now",
+      organisation: "4Geeks Academy",
+      role: "AI Engineering programme",
+      note: "In progress: context engineering for coding agents, containerised stacks, verification-first delivery.",
+    },
     {
       period: "2023 — now",
-      organisation: "42 Madrid",
-      role: "Engineering foundations",
-      note: "C, C++, UNIX, graphics, concurrency and networking.",
+      organisation: "42 Madrid (Fundación Telefónica)",
+      role: "Project-based systems programming",
+      note: "C, C++, UNIX, processes, concurrency, graphics and networking.",
+    },
+    {
+      period: "2020 — 2022",
+      organisation: "ITEP",
+      role: "Advanced Diploma in Networked Computer Systems Administration (ASIR)",
+      note: "",
     },
   ],
   capabilities: [
@@ -38,7 +53,7 @@ export const profile = {
       items:
         "Node.js · Express · Supabase · PostgreSQL · MongoDB · Edge Functions · Realtime · RLS",
     },
-    { area: "AI & knowledge", items: "RAG · document retrieval · embeddings · LLM integration" },
+    { area: "AI & retrieval", items: "RAG · embeddings · vector databases · semantic retrieval · LangChain · LLM integration" },
     {
       area: "APIs & integrations",
       items:
@@ -50,6 +65,7 @@ export const profile = {
     },
     { area: "Systems", items: "C · C++ · UNIX · processes · threads · networking" },
     { area: "Delivery", items: "Docker · Vercel · Git · Linux · Postman" },
+    { area: "Languages", items: "Spanish and Catalan (native) · English (intermediate)" },
   ],
   /**
    * What Pau builds, for the intro. Each line is backed by a verified project.

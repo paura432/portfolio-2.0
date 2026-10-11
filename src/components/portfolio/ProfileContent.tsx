@@ -53,6 +53,21 @@ export function ProfileContent({ headingLevel = 2, showHeader = true }: Props) {
       </section>
 
       <section className="mt-7">
+        <h3 className="eyebrow">Education</h3>
+        <ul className="mt-2 space-y-3 text-[0.95rem]">
+          {profile.education.map((e) => (
+            <li key={e.organisation} className="grid gap-0.5 sm:grid-cols-[7.5rem_1fr]">
+              <span className="text-muted">{e.period}</span>
+              <span>
+                <span className="font-medium">{e.organisation}</span> · {e.role}
+                {e.note && <span className="block text-muted">{e.note}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-7">
         <h3 className="eyebrow">Capabilities</h3>
         <ul className="mt-2 space-y-2 text-[0.95rem]">
           {profile.capabilities.map((c) => (

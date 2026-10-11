@@ -78,7 +78,7 @@ export function IntroScreen({ checking }: { checking: boolean }) {
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-bg/95 via-bg/60 to-transparent p-4 pt-10 sm:p-5">
               <p className="eyebrow text-cyan">A small city, one district per project</p>
-              <p className="mt-1 text-base font-medium">Drive the orange car. Reach a building. Press E to open its case study.</p>
+              <p className="mt-1 text-base font-medium">Drive the orange car to a building and press E to open its case study. Speed up a ramp to fly; drive into the sea off a beach to sail.</p>
               <p className="mt-1 text-sm text-muted">
                 Built now: {builtDistricts.map((d) => d.name).join(" · ")}. WASD or arrows; touch controls on phones.
               </p>
