@@ -1,5 +1,7 @@
 import { SEA_BOUNDS, harbors, islands, pierBox, polygonDistance, type Point } from "@/data/archipelago";
+import { beachAt, beachLocal } from "@/data/beaches";
 import { SKYPORT } from "@/data/skyport";
+import { waterDepthAt } from "./ground";
 import { resolveCircleBox, type Box } from "../physics/collision";
 import type { Constrain } from "../vehicle/carPhysics";
 
@@ -83,10 +85,17 @@ export const pierBoxes: Box[] = [
   { id: "causeway", minX: SKYPORT.causeway.fromX, maxX: SKYPORT.causeway.toX, minZ: SKYPORT.causeway.z - SKYPORT.causeway.width / 2, maxZ: SKYPORT.causeway.z + SKYPORT.causeway.width / 2 },
 ];
 
+/** The hull may not sit in water shallower than this (u); the shore pushes it back out. */
+export const HULL_MIN_DEPTH = 0.12;
+
 export function resolveSeaCollisions(circle: { x: number; z: number; r: number }, polygons = coastPolygons, boxes = pierBoxes, bounds = SEA_BOUNDS): SeaResult {
   let { x, z } = circle;
   const hits: string[] = [];
+  // Beaches (V8) are gaps in the coast: inside a beach footprint the land polygon does not apply,
+  // the sand itself does (see `shorePush`).
+  const beach = beachAt(x, z, 1);
   for (const p of polygons) {
+    if (beach && beach.island === p.id) continue;
     const out = resolveCirclePolygon({ x, z, r: circle.r }, p.poly);
     if (out) {
       x = out.x;
@@ -108,9 +117,27 @@ export function resolveSeaCollisions(circle: { x: number; z: number; r: number }
   return { x: cx, z: cz, hits, boundary };
 }
 
+/** On a beach, water shallower than `HULL_MIN_DEPTH` pushes the hull back toward the sea along the beach's seaward axis. */
+export function shorePush(x: number, z: number): { x: number; z: number } | null {
+  const b = beachAt(x, z, 1);
+  if (!b) return null;
+  if (waterDepthAt(x, z) >= HULL_MIN_DEPTH) return null;
+  // Walk seaward until deep enough (the beach is a plane strip, so a short search along `seaward` is exact enough).
+  let px = x;
+  let pz = z;
+  for (let i = 0; i < 40 && waterDepthAt(px, pz) < HULL_MIN_DEPTH; i++) {
+    px += b.seaward[0] * 0.25;
+    pz += b.seaward[1] * 0.25;
+  }
+  const l = beachLocal(b, px, pz);
+  return l.along > 0 ? { x: px, z: pz } : null;
+}
+
 /** Constraint used by the boat each sub-step. */
 export const constrainBoat: Constrain = (x, z) => {
   const r = resolveSeaCollisions({ x, z, r: BOAT_RADIUS }, coastPolygons, pierBoxes);
+  const shore = shorePush(r.x, r.z);
+  if (shore) return { x: shore.x, z: shore.z, blocked: true };
   return { x: r.x, z: r.z, blocked: r.hits.length > 0 || r.boundary };
 };
 

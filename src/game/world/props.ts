@@ -1,5 +1,7 @@
 import { allPlots } from "@/data/districts";
 import { PLATFORM, PLAZA, ROADS, distanceToRoad, insidePavedArea } from "@/data/world";
+import { beachDriveRect, beaches } from "@/data/beaches";
+import { insideRampCorridor, ramps } from "@/data/ramps";
 import { seededRandom } from "@/lib/seededRandom";
 import { insideParkingPad, roadsideExtent } from "./urban";
 
@@ -69,6 +71,9 @@ export function isFreeGround(x: number, z: number, roadMargin = 3.2): boolean {
   if (onPlot(x, z, 4)) return false;
   if (insideParkingPad(x, z, 1.5)) return false;
   if (insidePavedArea(x, z, 1.5)) return false;
+  // V8: ramp corridors (with their lip run-out) and beaches stay clear.
+  if (ramps.some((r) => insideRampCorridor(r, x, z, 3) || Math.hypot(x - r.start[0], z - r.start[1]) < 0)) return false;
+  if (beaches.some((b) => { const d = beachDriveRect(b); return x > d.minX - 2 && x < d.maxX + 2 && z > d.minZ - 2 && z < d.maxZ + 2; })) return false;
   return true;
 }
 

@@ -1,4 +1,6 @@
 import { QUAY_DRIVE } from "@/data/archipelago";
+import { beachDriveRect, beaches } from "@/data/beaches";
+import { rampPoint, ramps } from "@/data/ramps";
 import { allPlots, districts } from "@/data/districts";
 import { SKYPORT_DRIVE_RECTS, SKYPORT_OBSTACLES } from "@/data/skyport";
 import { PLATFORM } from "@/data/world";
@@ -32,6 +34,14 @@ export const obstacles: Obstacle[] = [
   { kind: "box", ...boxFromFootprint(HARBOR_CABIN.id, HARBOR_CABIN.position, HARBOR_CABIN.footprint, 0.6) },
   // Skyport buildings (V7).
   ...SKYPORT_OBSTACLES.map((b): Obstacle => ({ kind: "box", ...boxFromFootprint(b.id, b.position, b.footprint, 0.8) })),
+  // Ramp side rails (V8): the slope can only be climbed from its approach. Axis-aligned ramps only (all three are).
+  ...ramps.flatMap((r): Obstacle[] =>
+    [-1, 1].map((side): Obstacle => {
+      const a = rampPoint(r, 0, side * (r.width / 2 + 0.25));
+      const b = rampPoint(r, r.length, side * (r.width / 2 + 0.25));
+      return { kind: "box", id: `${r.id}-rail-${side > 0 ? "r" : "l"}`, minX: Math.min(a[0], b[0]) - 0.2, maxX: Math.max(a[0], b[0]) + 0.2, minZ: Math.min(a[1], b[1]) - 0.2, maxZ: Math.max(a[1], b[1]) + 0.2 };
+    }),
+  ),
 ];
 
 export interface DriveRect {
@@ -49,6 +59,8 @@ export const DRIVE_AREAS: DriveRect[] = [
   { minX: QUAY_DRIVE.minX, maxX: QUAY_DRIVE.maxX + 2 * CAR_RADIUS + 2, minZ: QUAY_DRIVE.minZ, maxZ: QUAY_DRIVE.maxZ },
   // Causeway and Skyport Island (V7); each rectangle overlaps its neighbour by more than a car diameter.
   ...SKYPORT_DRIVE_RECTS,
+  // Beaches (V8): from a little inside the island edge down the sand and into the shallows.
+  ...beaches.map(beachDriveRect),
 ];
 
 /**

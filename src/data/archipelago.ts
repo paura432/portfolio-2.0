@@ -7,6 +7,7 @@
  * Headings follow the vehicles: forward = (sin h, 0, cos h); -PI/2 faces west.
  */
 import { seededRandom } from "@/lib/seededRandom";
+import { beachLocal, beachOuterCorners, beaches, BEACH_RUNOUT, type BeachDefinition } from "./beaches";
 import { SKYPORT, skyportCoastline } from "./skyport";
 import { PLATFORM } from "./world";
 
@@ -166,6 +167,60 @@ function roundIsland(center: Point, radius: number, segments: number, jitter: nu
   return pts;
 }
 
+/**
+ * Beaches (V8) bulge the coastline outward: the polygon vertices inside the
+ * beach band are replaced by the beach's two outer corners, so the skirt, the
+ * shore damping, the minimap and the sea colliders all see the sand reaching
+ * out under the water (the boat colliders additionally open the band, see
+ * `seaObstacles`).
+ */
+export function withBeaches(coast: Point[], island: BeachDefinition["island"]): Point[] {
+  let pts = coast;
+  for (const b of beaches) {
+    if (b.island !== island) continue;
+    const inBand = (p: Point) => {
+      const l = beachLocal(b, p[0], p[1]);
+      return l.across >= -0.5 && l.across <= l.width + 0.5 && l.along >= -3 && l.along <= b.length + BEACH_RUNOUT + 6;
+    };
+    const [cFrom, cTo] = beachOuterCorners(b);
+    // Shoulders: the bay returns to the original waterline right beside the sand, so the bulge never cuts a diagonal across a pier.
+    const sFrom: Point = [b.edge.from[0] + b.seaward[0] * 5, b.edge.from[1] + b.seaward[1] * 5];
+    const sTo: Point = [b.edge.to[0] + b.seaward[0] * 5, b.edge.to[1] + b.seaward[1] * 5];
+    const n = pts.length;
+    const inside = pts.map(inBand);
+    const count = inside.filter(Boolean).length;
+    if (count > 0) {
+      // Contiguous run (possibly wrapping): find its first index, then rebuild.
+      let first = inside.findIndex((v, i) => v && !inside[(i - 1 + n) % n]);
+      if (first < 0) first = 0;
+      const run: Point[] = [];
+      const rest: Point[] = [];
+      for (let k = 0; k < n; k++) {
+        const i = (first + k) % n;
+        (inside[i] ? run : rest).push(pts[i]!);
+      }
+      const firstAcross = beachLocal(b, run[0]![0], run[0]![1]).across;
+      const lastAcross = beachLocal(b, run[run.length - 1]![0], run[run.length - 1]![1]).across;
+      const corners: Point[] = firstAcross <= lastAcross ? [sFrom, cFrom, cTo, sTo] : [sTo, cTo, cFrom, sFrom];
+      pts = [...corners, ...rest];
+    } else {
+      // No vertex in the band (a straight edge): insert the corners on the edge that spans the band.
+      for (let i = 0; i < n; i++) {
+        const a = pts[i]!;
+        const c = pts[(i + 1) % n]!;
+        const la = beachLocal(b, a[0], a[1]);
+        const lc = beachLocal(b, c[0], c[1]);
+        const spans = Math.min(la.across, lc.across) <= 0 && Math.max(la.across, lc.across) >= la.width && Math.abs(la.along) < b.length + BEACH_RUNOUT + 8 && Math.abs(lc.along) < b.length + BEACH_RUNOUT + 8;
+        if (!spans) continue;
+        const corners: Point[] = la.across <= lc.across ? [sFrom, cFrom, cTo, sTo] : [sTo, cTo, cFrom, sFrom];
+        pts = [...pts.slice(0, i + 1), ...corners, ...pts.slice(i + 1)];
+        break;
+      }
+    }
+  }
+  return pts;
+}
+
 export const CREATIVE_LAB_CENTER: Point = [-178, 30];
 export const CREATIVE_LAB_RADIUS = 24;
 
@@ -174,7 +229,7 @@ export const islands: IslandDefinition[] = [
     id: "main",
     name: "PAU City",
     center: [0, 0],
-    coastline: mainCoastline(),
+    coastline: withBeaches(mainCoastline(), "main"),
     landHeight: 0,
     harbors: ["pau-harbor"],
   },
@@ -191,7 +246,7 @@ export const islands: IslandDefinition[] = [
     id: "skyport",
     name: "Skyport Island",
     center: SKYPORT.center,
-    coastline: skyportCoastline(),
+    coastline: withBeaches(skyportCoastline(), "skyport"),
     landHeight: 0,
     harbors: ["skyport-pier"],
   },
