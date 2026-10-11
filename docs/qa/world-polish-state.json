@@ -1,0 +1,313 @@
+{
+  "version": "v9.1-v9.3 world polish",
+  "branch": "feat/v9-world-physics-destruction",
+  "baseSha": "9f93b38",
+  "v9Iteration1Sha": "7123491",
+  "lastValidatedSha": "7123491",
+  "iteration": 0,
+  "maxIterations": 12,
+  "phase": "V9.1 gameplay foundation",
+  "status": "IN_PROGRESS",
+  "updatedAt": "2026-10-11",
+  "brief": "docs/qa/world-polish-brief.md (verbatim master brief; supersedes the V9 bootstrap brief)",
+  "carriedFrom": "docs/qa/v9-world-audit-state.json (V9 iteration 1: inventory, destructible slice, colliders, debug overlay, tests)",
+  "preflight": {
+    "gitClean": true,
+    "worktrees": [
+      "portfolio-2.0 (this branch)",
+      "portfolio-editorial (editorial/copy-review, untouched)"
+    ],
+    "devServer3000": "user's next dev, untouched",
+    "baseline": {
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "unit": 270,
+      "build": "PASS",
+      "e2eFull": "20/21 run 1 (campus fixed-time check under load; 2/2 isolated)"
+    }
+  },
+  "mapInventory": {
+    "roads": 15,
+    "plaza": "inner 7.5 / outer 14.5",
+    "parkingPads": 4,
+    "districts": 8,
+    "campusLabs": 4,
+    "beaches": 3,
+    "ramps": 3,
+    "piers": 3,
+    "driveRects": 7,
+    "trees": 140,
+    "lamps": 75,
+    "bushes": 110,
+    "benches": 27,
+    "planters": 4,
+    "bollards": 16,
+    "signposts": 4,
+    "spawns": [
+      "car (0,27)",
+      "skyport (124,-9)",
+      "beach tops x3"
+    ]
+  },
+  "p0Investigation": {
+    "title": "car wedged beside a building, a planter/bench and the sidewalk",
+    "method": "src sweep with the real stepCar + constrainVehicle: every 1.5 u grid point on drivable land that is free and has a collider within 2.6 u in ≥ 2 directions, 8 headings, 6 constant inputs for 3 s; stuck = never 2.5 u away",
+    "result": {
+      "tightSpots": 736,
+      "stuckPoses": 732,
+      "distinctStuckPoints": 295,
+      "pointsInvolvingABuilding": 127,
+      "worst": [
+        {
+          "x": -44,
+          "z": -53,
+          "headingsStuck": 8,
+          "near": [
+            "tree",
+            "tree",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -36.5,
+          "z": 49,
+          "headingsStuck": 6,
+          "near": [
+            "tree",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -32,
+          "z": 47.5,
+          "headingsStuck": 6,
+          "near": [
+            "prop",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -29,
+          "z": 52,
+          "headingsStuck": 6,
+          "near": [
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -6.5,
+          "z": 17.5,
+          "headingsStuck": 6,
+          "near": [
+            "tree",
+            "prop"
+          ]
+        },
+        {
+          "x": 46,
+          "z": 13,
+          "headingsStuck": 6,
+          "near": [
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": 13,
+          "z": 26.5,
+          "headingsStuck": 5,
+          "near": [
+            "tree",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -53,
+          "z": -54.5,
+          "headingsStuck": 4,
+          "near": [
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -53,
+          "z": -15.5,
+          "headingsStuck": 4,
+          "near": [
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -51.5,
+          "z": -15.5,
+          "headingsStuck": 4,
+          "near": [
+            "tree",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -48.5,
+          "z": -51.5,
+          "headingsStuck": 4,
+          "near": [
+            "tree",
+            "tree",
+            "tree"
+          ]
+        },
+        {
+          "x": -48.5,
+          "z": -44,
+          "headingsStuck": 4,
+          "near": [
+            "tree",
+            "tree"
+          ]
+        }
+      ]
+    },
+    "rootCauseHypothesis": "turn authority = min(1, |speed| / 9) and a blocked sub-step sets speed = -0.2 · speed: between two rigid bodies the car never reaches the speed it needs to steer out; tree trunks and furniture are rigid below their topple speeds, so sidewalk pockets beside building padding (1.0) + a trunk or bench trap it",
+    "status": "REPRODUCED (simulation) — fix in iteration 1 of this loop, then re-run the sweep as a regression test"
+  },
+  "defects": {
+    "P0": [
+      {
+        "id": "NAV-01",
+        "title": "wedge points: car cannot escape pockets between rigid bodies (295 points)",
+        "status": "OPEN",
+        "evidence": "sweep above",
+        "plan": "low-speed steering floor + tangential slide on glancing contacts + stuck recovery nudge; level fixes for trees/furniture inside building forecourt corners; sweep becomes a unit test with 0 stuck points"
+      }
+    ],
+    "P1": [
+      {
+        "id": "COL-02",
+        "title": "bollards, bushes, signposts have no collider",
+        "status": "OPEN"
+      },
+      {
+        "id": "COL-03",
+        "title": "pad masts, ramp masts, sign posts have no collider",
+        "status": "OPEN"
+      },
+      {
+        "id": "DES-01",
+        "title": "bollard/bush/signpost/mast not destructible",
+        "status": "OPEN"
+      },
+      {
+        "id": "CAM-01",
+        "title": "no camera obstacle avoidance (buildings fill the frame / clip)",
+        "status": "OPEN (V9.1 §2.2)"
+      },
+      {
+        "id": "HUD-01",
+        "title": "HUD legibility and layout (brief §1, §3.4)",
+        "status": "OPEN (V9.2)"
+      },
+      {
+        "id": "VEH-01",
+        "title": "folded wings and floats read as side pieces in car form",
+        "status": "OPEN (V9.2)"
+      }
+    ],
+    "P2": [
+      {
+        "id": "COL-06",
+        "title": "runway lights no collider",
+        "status": "OPEN"
+      },
+      {
+        "id": "COL-07",
+        "title": "approach piles not boat colliders",
+        "status": "OPEN"
+      },
+      {
+        "id": "COL-08",
+        "title": "slow hop off the Skyport lip pulled back by the clamp",
+        "status": "OPEN"
+      },
+      {
+        "id": "GEO-01",
+        "title": "4 benches overlap a trunk",
+        "status": "OPEN"
+      },
+      {
+        "id": "GEO-03",
+        "title": "2 lamps inside the runway strip",
+        "status": "OPEN"
+      },
+      {
+        "id": "DES-02",
+        "title": "no furniture particles",
+        "status": "OPEN"
+      },
+      {
+        "id": "V8-P2-01",
+        "title": "stale impact toast",
+        "status": "OPEN"
+      },
+      {
+        "id": "QA-01",
+        "title": "v9perf knock loop stages two targets on a trunk",
+        "status": "OPEN"
+      }
+    ]
+  },
+  "fixed": [
+    {
+      "id": "COL-01",
+      "iteration": "v9-it1"
+    },
+    {
+      "id": "COL-04",
+      "iteration": "v9-it1"
+    },
+    {
+      "id": "COL-05",
+      "iteration": "v9-it1"
+    }
+  ],
+  "tests": {
+    "unit": 270,
+    "e2eSpecs": [
+      "smoke",
+      "campus",
+      "dialog",
+      "context-loss",
+      "trees",
+      "transformer",
+      "world",
+      "mobile"
+    ],
+    "fullRuns": [
+      "20/21"
+    ]
+  },
+  "captures": "docs/screenshots/v9/ (iteration-1 set); before/after sets per fix to follow",
+  "performance": "docs/screenshots/v9/perf/perf-v9.json (baseline for V9.1; city HIGH 424 calls / 127 616 tris)",
+  "regressions": [],
+  "blockers": [],
+  "nextIteration": [
+    "NAV-01 root-cause fix in carPhysics/obstacles + sweep test",
+    "CAM-01 camera obstacle avoidance",
+    "COL-02/03 activate remaining prop categories",
+    "level audit plan (docs/design/v9-level-design.md): circulation map"
+  ],
+  "history": [
+    {
+      "iteration": 0,
+      "date": "2026-10-11",
+      "summary": "loop re-based on the V9.1–V9.3 brief; V9 iteration 1 kept (7123491); P0 wedge points reproduced by a physics sweep"
+    }
+  ]
+}
