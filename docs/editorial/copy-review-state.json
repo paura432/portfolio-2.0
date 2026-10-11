@@ -1,5 +1,5 @@
 {
-  "iteration": 4,
+  "iteration": 5,
   "maxIterations": 6,
   "initialSha": "4445ce0",
   "baseBranch": "feat/v8-seamless-transformations",
@@ -74,9 +74,10 @@
     "typecheck": "clean",
     "lint": "0 problems",
     "unitTests": "221/221",
-    "build": "clean at iteration 2; final re-run pending",
-    "browser": "iteration 2: 18 screens, no overflow; final re-run pending"
+    "build": "clean (18 routes), iteration 5",
+    "browser": "copycheck.mjs iteration 5: 18 screens at 1280 and 390 px, no text overflow"
   },
   "consecutiveCleanPasses": 2,
-  "status": "PENDING_FINAL_VALIDATION"
+  "status": "SATISFACTORY",
+  "finalSha": "see git log on editorial/copy-review (the commit that records iteration 5)"
 }

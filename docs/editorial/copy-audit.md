@@ -119,3 +119,13 @@ Three readings: recruiter — nothing new; senior engineer — nothing new; UX e
 Validation: typecheck clean, lint 0 problems, 221/221 unit tests. Build and browser re-check for iterations 3–4: still deferred (the V8 capture is using the machine); they are the only open validation before the loop can stop.
 
 Decision: the copy criteria are met (two clean passes, no open P0/P1, no contradiction with the CVs or the audits, no removed mechanic described, CTAs and game messages checked). The final build and browser check run on the next tick; if clean, the loop stops as SATISFACTORY.
+
+## Iteration 5 · 2026-10-11 · final validation
+
+No text changed. Build clean (18 routes). Browser (`scripts/visual-qa/copycheck.mjs`, SwiftShader): the same 18 screens as iteration 2 (intro, /projects, /projects/duplex, /projects/ovi, /contact, /education/4geeks, projects menu, hub panel, car HUD, at 1280 px and 390 px) with the iteration 3–4 texts: no element with overflowing text; screenshots refreshed in `docs/editorial/screens/`.
+
+Stop criteria, checked one by one: no open P0; no open P1 resolvable with the available evidence; no contradiction between the public copy and the CVs or the earlier audits; projects attributed as in the CV (Performanze, Telefónica Tech, independent BROKI, 4Geeks template vs student work); no removed or unimplemented mechanic described; Spanish and English consistent (the site is English-only, the CVs agree with it); CTAs clear; game messages tied to real mechanics of the base branch; no spelling or grammar defect found in two scans; two consecutive passes (iterations 3 and 4) without new important findings; lint, typecheck, build green; no known regression (221/221 unit tests on the branch).
+
+Open, outside the loop's scope: O2 CV PDFs (NEEDS USER INPUT: publish `cv-es.pdf` / `cv-en.pdf` from `~/pau/portfolio-pau/public` and flip `profile.cv.*.available`); O3 Spanish UI (BLOCKED: no translation layer exists; adding one is component and routing work).
+
+Decision: SATISFACTORY. Loop stopped (cron job deleted).
