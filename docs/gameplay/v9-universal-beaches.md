@@ -14,8 +14,12 @@ Adding a beach is therefore one entry in `beaches.ts` (edge, seaward, length, dr
 
 ## Inventory and verification
 
-Three drivable beaches exist (South, East, Skyport); no other shore stretch is reachable by car (quay face, railings and skirt margins elsewhere). Each is verified at 12 %, 50 % and 88 % of its width in both directions by `beachRuns.test.ts`, driving the real car and boat models against the real colliders; South → East is driven in the browser by `e2e/transformer.spec.ts`.
+Three drivable beaches exist (South, East, Skyport); no other shore stretch is reachable by car (quay face, railings and skirt margins elsewhere). Each is verified at 12 %, 50 % and 88 % of its width in both directions by `beachRuns.test.ts`, driving the real car and boat models against the real colliders; in the browser, `e2e/transformer.spec.ts` drives South in and East out, and `e2e/beaches.spec.ts` (iteration 5) East in, Skyport out and in, and South out at its west third.
 
-## Still to do
+## The hull against the coast
 
-A browser pass over East Beach in and Skyport Beach both ways (A7); sand particles at the waterline (carried from V8's list).
+A hull scraping the coast keeps its helm (iteration 5): the yaw rate is damped only on a hard head-on hit, so the bow can turn away from a wall (`beachRuns.test.ts`). A hull driven full-throttle into the 90° corner between a bay wall and the coast stays there while the throttle is held, like a car against two walls; reversing frees it (SEA-02, recorded as a P2 note).
+
+## Not done
+
+Sand particles at the waterline (carried from V8's optional list).

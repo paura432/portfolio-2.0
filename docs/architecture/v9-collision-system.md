@@ -43,3 +43,7 @@ The hangar's three walls let the car drive in. The aircraft must still not land 
 ## Open points (see the inventory §6)
 
 Bollards, bushes, signposts, masts and sign posts are catalogued but not yet active (COL-02, COL-03); runway lights and approach piles are P2.
+
+## Camera occlusion (iteration 6, CAM-01)
+
+`src/game/camera/cameraClip.ts` casts the segment from the car to the follow camera's wanted position against the static occluders (every static collider except the ramp rails, as vertical prisms: boxes, the round hub, oriented boxes) and returns the fraction of the segment the camera may use, minus 0.8 u of clearance, never below 8 %. `FollowCamera` pulls the wanted position in along that line (eased in with λ 14, let out with λ 2.5, snapped on resets and teleports), and lifts it by up to 3.5 u while pulled in so the car stays in view over the facade. The aircraft above 8 u of ground clearance is exempt. The probe reports the live camera and whether it sits inside an occluder (`debug.camera()`).

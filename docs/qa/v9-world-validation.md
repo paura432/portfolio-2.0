@@ -45,6 +45,7 @@ Branch `feat/v9-world-physics-destruction`, created from `9f93b38` (`integration
 | C11 | The worst former wedges driven out in the browser with real keys, in car mode, with every contact a real object and no position jump; the Duplex corridor driven 8 u forward and 3 u back | PASS | `e2e/navigation.spec.ts` 2/2 (iteration 3, telemetry-backed) |
 | C12 | Multi-contact resolution: corners and touching boxes never leave the car inside a body; unresolvable pockets end outside the building | PASS | `contacts.test.ts` (iteration 3), `resolveCollisions` iterative passes |
 | C13 | Debug telemetry on demand (vehicle samples, contacts with before/after position and speed, normals, blocking reason), never per frame | PASS | `debugLog.ts`, probe `debug.telemetry/samples/contactLog`, overlay normals |
+| C14 | The follow camera never enters a building (pulled in along the car→camera line with clearance, lifted while pulled in, snap on resets, eased otherwise; high flight exempt) | PASS (iteration 6) | `cameraClip.test.ts` (wall, hub, oriented box, the Duplex corner against the real colliders), `navigation.spec.ts` camera assertions, `docs/screenshots/v9/cam01/before-*` vs `after-*` |
 | C9 | Debug tooling to see colliders and contacts, hidden from visitors | PASS | `DebugColliders.tsx`: static colliders, drive areas, ramps, beaches, trunks, live prop colliders (red solid / grey down), the car's circle, the last 24 contact points; switched on only by the probe (`__pauWorld.debug.colliders`) or `?debug=colliders` in development builds; captures `13`–`15` |
 
 ### D. Destructible furniture
@@ -148,9 +149,30 @@ Reading: the destructible furniture costs the city scene +1 006 triangles and 0 
 
 Navigation evidence (iteration 3, `scripts/visual-qa/v9nav.mjs`, HIGH, real keys): `nav-01-duplex-corner-overlay` (the former wedge pose on the sidewalk between the Duplex padding box and a boulevard trunk, overlay on), `nav-02-duplex-corner-contact-normals` (reversing into the facade padding: contact dots and normals, log entries `duplex`, depth 0.018 u), `nav-03-duplex-corner-pivot-out` (W + A pivots the nose along the facade; contacts `tree` below topple speed), `nav-04-duplex-sidewalk-corridor` (the car 19 u down the sidewalk after knocking a boulevard tree at 12 u/s, "Tree knocked down"), `nav-05-duplex-corner-follow-camera` (the follow camera's own framing of the pose: the facade fills the frame and the car is hidden — CAM-01 evidence, also `evidence/cam-01-duplex-corner-camera-inside-building.png`), `nav-06/07-plaza-exit-pocket` (the plaza south exit pocket, out with S + A; contacts `prop`). `nav-log.json` keeps the car pose and the last contacts per frame.
 
+Camera evidence (iteration 6, `docs/screenshots/v9/cam01`): `before-duplex-corner-follow-camera` (V8/V9 it5: the camera inside the Duplex block, the facade fills the frame, the car hidden) vs `after-duplex-corner-follow-camera` (the camera pulled in along its line of sight to 0.9 u behind the car and lifted 3.3 u: a steep view with the whole car in frame and no wall). In this 1.5 u pocket the steep angle is the only placement that does not clip; with more room the pull-in is partial and the view stays low.
+
 Ramp evidence (iteration 5, `scripts/visual-qa/v9ramps.mjs`, HIGH, real keys from the campus plaza strip): `ramps-01-campus-ramp-from-the-plaza` (the moved slope and its entry beside the AI Workflow lab), `ramps-02-campus-ramp-lip-and-cross-road` (the lip 2 u short of the east cross road's asphalt), `ramps-03-campus-wings-deploying-on-the-approach`, `ramps-04-campus-lip-launch`, `ramps-05-campus-climb-over-the-city`; `ramps-log.json` keeps the vehicle state per frame.
 
 Observation for V9.2 (from `04`): in car form the folded wings and floats read as side pieces along the flanks; the new brief lists this and it is queued there, not changed here.
+
+## 6. Final delivery (iteration 6, 2026-10-12) · status COMPLETE
+
+| Item | Value |
+|---|---|
+| Branch | `feat/v9-world-physics-destruction` (local only; nothing pushed, merged or deployed; worktrees kept) |
+| Initial SHA | `9f93b38` (integration/v8-editorial-final-qa) |
+| Final SHA | the commit of this section (see `git log -1`) |
+| Inventory | 3 beaches, 3 ramps, 8 districts + 4 labs, Skyport (slab, runway, hangar 3 walls, tower shaft, terminal), harbor (quay, pier, cabin), causeway, 3 piers, 140 trees, 75 lamps, 110 bushes, 27 benches, 4 planters, 16 bollards, 9 signposts / sign posts, 10 light masts; bins and crates: none exist (`v9-world-object-inventory.md`) |
+| Beaches verified | South, East, Skyport: car → boat and boat → car at three points each (unit, real models and colliders) and in the browser in every direction (`transformer.spec.ts`, `beaches.spec.ts`); the rule reads the height field, not a beach list |
+| Ramps verified | West City, Campus, Skyport: corridor clear, real slope, deploy, launch at ≥ 14 u/s, flight, landing, car, in unit drive-throughs and in the browser (`transformer.spec.ts`, `ramps.spec.ts`); Campus geometry and takeoff margin corrected (RMP-01, RMP-02) |
+| Destructible categories | lamp, planter, bench, bollard, bush, signpost / sign post, light mast (V9) + trees (V4): 251 props with colliders, per-category reactions (rattle / shove / knock-over / flatten), particles, restore and Reset world; buildings, roads, terrain, ramps, piers, causeway never break |
+| Colliders | oriented boxes, compound hangar, tower shaft, height field, iterative multi-contact resolution, buildings win pockets; 0 wedge points on the city grid (`wedge.test.ts`); car physics: low-speed steering floor, sliding contacts; boat helm on contact; camera occlusion clipping |
+| Defects fixed | NAV-01 (P0 wedge), NAV-02, PHY-01, RMP-01, RMP-02, SEA-01, CAM-01, COL-01..05, DES-01, DES-02 |
+| Open (P2/P3, documented) | SEA-02 (held throttle into a 90° wall corner), COL-06 (runway lights no collider), COL-07 (approach piles not boat colliders), COL-08 (slow hop off the Skyport lip clamped), GEO-01 (4 benches overlap a trunk), GEO-03 (2 lamps inside the runway strip), GEO-04 (lamp beside each exit bollard pair), QA-01 (perf knock loop stages two targets on trunks), V8-P2-01 (stale toast), GEO-02 accepted |
+| Tests | lint 0 / typecheck 0 / unit 298 (49 files) / build 18 routes / E2E 27 tests (desktop + mobile) green twice consecutively at iterations 4, 5 and 6 (latest: 27/27, 27/27) |
+| Captures | `docs/screenshots/v9/`: high-01..24 (furniture before/after, overlay, hangar), nav-01..07 (wedge poses, contact normals, corridor), ramps-01..05 (Campus Ramp and a real launch), cam01 before/after, evidence/cam-01 |
+| Performance | SwiftShader, relative: city HIGH 429 draw calls / 127 176 tris vs V8 424 / 126 610; plaza at rest 311 / 120 946; 8 props down → 424 calls; overlay +10 calls (`perf-v9-final.json`; the machine was shared with other sessions, so FPS is not comparable run to run) |
+| Not done (optional in the briefs) | audio; sand particles at the waterline; a capsule body for the car (recorded as a level-design item for V10) |
 
 ## 5. Known limitations after iteration 1
 

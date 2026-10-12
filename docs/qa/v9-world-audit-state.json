@@ -4,11 +4,11 @@
   "baseSha": "9f93b38",
   "baseBranch": "integration/v8-editorial-final-qa",
   "headSha": "pending",
-  "iteration": 5,
+  "iteration": 6,
   "maxIterations": 12,
-  "phase": "5-correction-cycle",
-  "status": "IN_PROGRESS",
-  "updatedAt": "2026-10-11",
+  "phase": "7-delivery",
+  "status": "COMPLETE",
+  "updatedAt": "2026-10-12",
   "preflight": {
     "gitClean": true,
     "worktrees": [
@@ -263,9 +263,10 @@
       {
         "id": "CAM-01",
         "title": "follow camera enters building volumes: at the Duplex forecourt corner the facade fills the frame and the car is hidden",
-        "status": "OPEN",
-        "evidence": "docs/screenshots/v9/evidence/cam-01-duplex-corner-camera-inside-building.png (navigation E2E frame)",
-        "plan": "camera obstacle avoidance (brief V9.1 §2.2): ray/sphere test camera↔car against the static colliders, pull in, recover smoothly"
+        "status": "FIXED",
+        "evidence": "cameraClip.ts (segment car→camera vs the static occluders, rails excluded; fast pull-in, slow recovery, lift while pulled in, snap on resets); cameraClip.test.ts incl. the Duplex corner; navigation.spec asserts the camera is never inside a building at the corner and after the drive; docs/screenshots/v9/cam01 before/after",
+        "plan": "camera obstacle avoidance (brief V9.1 §2.2): ray/sphere test camera↔car against the static colliders, pull in, recover smoothly",
+        "iteration": 6
       },
       {
         "id": "NAV-02",
@@ -370,12 +371,10 @@
     "lint": "PASS",
     "typecheck": "PASS",
     "unit": {
-      "files": 48,
-      "tests": 292,
+      "files": 49,
+      "tests": 298,
       "new": [
-        "beachRuns.test.ts SEA-01 helm tests",
-        "rampRuns from the free lane with centre-line steering",
-        "rampColliders lip sweep"
+        "cameraClip.test.ts"
       ]
     },
     "build": "PASS",
@@ -383,7 +382,7 @@
       "worldSpec": "4/4 PASS (lamp, planter, bench, bollard+bush+signpost)",
       "fullRun1": "20/21 (it1)",
       "fullRun2": "not run in iteration 1",
-      "navigationSpec": "2/2 PASS (telemetry-backed escapes; Duplex corridor route)",
+      "navigationSpec": "2/2 PASS (+ camera outside buildings)",
       "it2FullRun1": "21/22 (campus fixed-time check as first test of the run; converted to condition-based)",
       "it2FullRun2": "22/22 PASS (desktop + mobile, 7.4 min)",
       "consecutiveGreen": 2,
@@ -405,12 +404,14 @@
       "it5FullRunD": "26/27 (bush pass-through 8 s budget → suite default)",
       "it5FullRunE": "26/27 (signpost step under load 15 min; diagnostics added)",
       "it5FullRunF": "27/27 (14.4 min, two other sessions sharing the machine)",
-      "it5FullRunG": "27/27 (14.6 min)"
+      "it5FullRunG": "27/27 (14.6 min)",
+      "it6FullRun1": "27/27 (14.4 min)",
+      "it6FullRun2": "27/27 (14.5 min)"
     }
   },
   "evidence": {
-    "captures": "docs/screenshots/v9/high-01..15 (it1), nav-01..07 + nav-log.json (it3), evidence/cam-01-*.png",
-    "perf": "docs/screenshots/v9/perf/perf-v9.json",
+    "captures": "docs/screenshots/v9/high-01..24, nav-01..07, ramps-01..05, cam01/before+after, evidence/cam-01; stats and logs beside them",
+    "perf": "docs/screenshots/v9/perf/perf-v9.json (it1), perf-v9-it4.json, perf-v9-final.json",
     "docs": [
       "docs/qa/v9-world-validation.md",
       "docs/qa/v9-world-object-inventory.md",
@@ -421,11 +422,12 @@
     ]
   },
   "metrics": {
-    "renderer": "SwiftShader (relative only)",
+    "renderer": "SwiftShader (relative only; the machine was shared with other sessions)",
+    "final": "docs/screenshots/v9/perf/perf-v9-final.json",
     "cityHigh": {
-      "calls": 424,
-      "triangles": 127616,
-      "geometries": 336,
+      "calls": 429,
+      "triangles": 127176,
+      "geometries": 341,
       "programs": 28,
       "v8": {
         "calls": 424,
@@ -433,21 +435,17 @@
       }
     },
     "plazaHigh": {
-      "calls": 307,
-      "triangles": 121402
+      "calls": 311,
+      "triangles": 120946
     },
     "knockLoop": {
-      "knocked": "6/8 (2 staging misses on trees)",
-      "callsAfterReset": 426
+      "knocked": "6/8 (2 staging misses on trunks, QA-01)",
+      "callsAfterReset": 431
     },
-    "overlayExtraCalls": 9
+    "overlayCalls": 441
   },
   "blockers": [],
-  "nextIteration": [
-    "CAM-01 camera obstacle avoidance (P1)",
-    "captures of the moved Campus Ramp and the Skyport launch",
-    "boat-side wedge sweep (SEA-02), P2 collision notes"
-  ],
+  "nextIteration": [],
   "history": [
     {
       "iteration": 1,
@@ -478,7 +476,20 @@
       "date": "2026-10-11",
       "summary": "browser coverage closed for every ramp (Campus, Skyport) and every beach direction (East in, Skyport out/in, South west third out); Campus Ramp approach lengthened (RMP-01); boat helm works on coast contact (SEA-01); shared e2e/flight.ts helpers; telemetry gained beach/ramp/depth; under load the suite also found: bank overshoot in the shared flight helm (roll-damped), the Campus takeoff margin (lead zone + clock seeding, RMP-02), toast races (event log)",
       "commit": "see git log (iteration 5)"
+    },
+    {
+      "iteration": 6,
+      "date": "2026-10-12",
+      "summary": "CAM-01 fixed: camera occlusion clipping along the line of sight (pure module + tests), probe camera(), navigation E2E camera assertions, before/after captures",
+      "commit": "see git log (iteration 6)"
+    },
+    {
+      "iteration": 6,
+      "date": "2026-10-12",
+      "summary": "gate held (27/27 twice); no open P0/P1; every A–G criterion evidenced; status COMPLETE; final report in docs/qa/v9-world-validation.md §6; recurring loop cancelled",
+      "commit": "same commit"
     }
   ],
-  "lastValidatedSha": "3ab048b"
+  "lastValidatedSha": "5c710e8",
+  "finalReport": "docs/qa/v9-world-validation.md §6"
 }

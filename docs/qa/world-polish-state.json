@@ -3,11 +3,11 @@
   "branch": "feat/v9-world-physics-destruction",
   "baseSha": "9f93b38",
   "v9Iteration1Sha": "7123491",
-  "lastValidatedSha": "e4d954a",
-  "iteration": 3,
+  "lastValidatedSha": "5c710e8",
+  "iteration": 5,
   "maxIterations": 12,
   "phase": "V9.1 gameplay foundation",
-  "status": "IN_PROGRESS",
+  "status": "IN_PROGRESS (V9.1 done; V9.2/V9.3 and the V10 rebuild proceed in ~/pau/portfolio-v10)",
   "updatedAt": "2026-10-11",
   "brief": "docs/qa/world-polish-brief.md (verbatim master brief; supersedes the V9 bootstrap brief)",
   "carriedFrom": "docs/qa/v9-world-audit-state.json (V9 iteration 1: inventory, destructible slice, colliders, debug overlay, tests)",
@@ -208,7 +208,7 @@
       {
         "id": "CAM-01",
         "title": "no camera obstacle avoidance (buildings fill the frame / clip)",
-        "status": "OPEN (evidence: docs/screenshots/v9/evidence/cam-01-duplex-corner-camera-inside-building.png)"
+        "status": "FIXED (v9 it6)"
       },
       {
         "id": "HUD-01",
@@ -296,10 +296,14 @@
     {
       "id": "DES-02",
       "iteration": "v9-it4"
+    },
+    {
+      "id": "CAM-01",
+      "iteration": "v9-it6"
     }
   ],
   "tests": {
-    "unit": 288,
+    "unit": 298,
     "e2eSpecs": [
       "smoke",
       "campus",
@@ -347,6 +351,16 @@
       "iteration": 3,
       "date": "2026-10-11",
       "summary": "remaining prop categories and fixtures destructible; furniture particles"
+    },
+    {
+      "iteration": 5,
+      "date": "2026-10-12",
+      "summary": "camera occlusion avoidance (CAM-01); iteration 4 covered ramps/beaches in the browser"
+    },
+    {
+      "iteration": 5,
+      "date": "2026-10-12",
+      "summary": "V9 loop closed COMPLETE at this commit; the polish brief's V9.1 items are done (wedge, colliders, camera); V9.2 (art direction, HUD) and the V10 four-districts rebuild continue in the V10 worktree"
     }
   ]
 }

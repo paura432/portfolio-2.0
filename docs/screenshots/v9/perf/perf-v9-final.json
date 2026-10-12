@@ -1,0 +1,419 @@
+{
+  "label": "v9",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "firstFrameMs": 1395,
+  "introMs": 529,
+  "scenarios": {
+    "city": {
+      "high": {
+        "fps": 2,
+        "frameMs": 488.5,
+        "calls": 429,
+        "triangles": 127176,
+        "geometries": 341,
+        "textures": 27,
+        "programs": 28,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      },
+      "medium": {
+        "fps": 0.9,
+        "frameMs": 1159.5,
+        "calls": 434,
+        "triangles": 98282,
+        "geometries": 341,
+        "textures": 27,
+        "programs": 28,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      },
+      "low": {
+        "fps": 1.8,
+        "frameMs": 554,
+        "calls": 274,
+        "triangles": 46750,
+        "geometries": 337,
+        "textures": 25,
+        "programs": 43,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      }
+    },
+    "plaza": {
+      "high": {
+        "fps": 3.4,
+        "frameMs": 290.8,
+        "calls": 311,
+        "triangles": 120946,
+        "geometries": 377,
+        "textures": 28,
+        "programs": 48,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      },
+      "medium": {
+        "fps": 2.9,
+        "frameMs": 344.7,
+        "calls": 311,
+        "triangles": 91382,
+        "geometries": 377,
+        "textures": 28,
+        "programs": 48,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      },
+      "low": {
+        "fps": 3.6,
+        "frameMs": 276.1,
+        "calls": 151,
+        "triangles": 39434,
+        "geometries": 374,
+        "textures": 26,
+        "programs": 49,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      }
+    },
+    "knockLoop": {
+      "before": {
+        "fps": 4.3,
+        "frameMs": 232.1,
+        "calls": 311,
+        "triangles": 120946,
+        "geometries": 377,
+        "textures": 28,
+        "programs": 49,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 0,
+          "phases": {
+            "standing": 251
+          }
+        }
+      },
+      "hits": [
+        {
+          "id": 50,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 2240
+        },
+        {
+          "id": 51,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 3782
+        },
+        {
+          "id": 48,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 4242
+        },
+        {
+          "id": 49,
+          "category": "lamp",
+          "knocked": true,
+          "ms": 4428
+        },
+        {
+          "id": 75,
+          "category": "planter",
+          "knocked": true,
+          "ms": 7511
+        },
+        {
+          "id": 102,
+          "category": "bench",
+          "knocked": false,
+          "ms": 12095
+        },
+        {
+          "id": 83,
+          "category": "bench",
+          "knocked": true,
+          "ms": 3927
+        },
+        {
+          "id": 76,
+          "category": "planter",
+          "knocked": false,
+          "ms": 12104
+        }
+      ],
+      "during": {
+        "fps": 1.8,
+        "frameMs": 548.8,
+        "calls": 424,
+        "triangles": 127402,
+        "geometries": 557,
+        "textures": 38,
+        "programs": 51,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 8,
+          "phases": {
+            "standing": 243,
+            "down": 8
+          }
+        }
+      },
+      "afterSettle": {
+        "fps": 1.8,
+        "frameMs": 561.6,
+        "calls": 426,
+        "triangles": 127426,
+        "geometries": 557,
+        "textures": 38,
+        "programs": 51,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 0,
+          "down": 8,
+          "phases": {
+            "standing": 243,
+            "down": 8
+          }
+        }
+      },
+      "afterReset": {
+        "fps": 1.9,
+        "frameMs": 526.3,
+        "calls": 431,
+        "triangles": 127390,
+        "geometries": 557,
+        "textures": 38,
+        "programs": 51,
+        "dpr": 1,
+        "width": 1280,
+        "height": 800,
+        "dynamicTrees": 0,
+        "fallenTrees": 0,
+        "particles": 0,
+        "props": {
+          "count": 251,
+          "active": [
+            "lamp",
+            "planter",
+            "bench",
+            "bollard",
+            "bush",
+            "signpost",
+            "mast"
+          ],
+          "dynamic": 8,
+          "down": 0,
+          "phases": {
+            "standing": 243,
+            "restoring": 8
+          }
+        }
+      }
+    },
+    "overlayOn": {
+      "fps": 2.9,
+      "frameMs": 342.5,
+      "calls": 441,
+      "triangles": 127402,
+      "geometries": 563,
+      "textures": 38,
+      "programs": 54,
+      "dpr": 1,
+      "width": 1280,
+      "height": 800,
+      "dynamicTrees": 0,
+      "fallenTrees": 0,
+      "particles": 0,
+      "props": {
+        "count": 251,
+        "active": [
+          "lamp",
+          "planter",
+          "bench",
+          "bollard",
+          "bush",
+          "signpost",
+          "mast"
+        ],
+        "dynamic": 0,
+        "down": 0,
+        "phases": {
+          "standing": 251
+        }
+      }
+    }
+  }
+}

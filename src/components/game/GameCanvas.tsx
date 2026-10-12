@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import { ACESFilmicToneMapping, Vector2 } from "three";
-import { photoMode, probeState, type PhotoCamera } from "@/game/camera/photoMode";
+import { cameraState, photoMode, probeState, type PhotoCamera } from "@/game/camera/photoMode";
+import { cameraOccluders } from "@/game/camera/cameraClip";
+import { resolveCollisions } from "@/game/physics/collision";
 import type { LightingPresetId } from "@/game/render/lighting";
 import { QUALITY_PROFILES, lowerQuality } from "@/game/render/quality";
 import { particleStats } from "@/game/fx/particles";
@@ -128,6 +130,8 @@ declare global {
         obstacles: () => { kind: string; id: string }[];
         contacts: () => { x: number; z: number; what: string }[];
         /** Telemetry ring buffers: on/off, then read the last n vehicle samples or contact samples on demand. */
+        /** Follow camera: position, clip fraction (1 = unclipped) and whether it sits inside a building occluder. */
+        camera: () => { x: number; y: number; z: number; clip: number; insideBuilding: boolean };
         telemetry: (on: boolean) => void;
         samples: (n?: number) => VehicleSample[];
         contactLog: (n?: number) => ContactSample[];
@@ -258,6 +262,7 @@ function Probe() {
         colliders: (on) => useGameStore.getState().setDebugColliders(on),
         obstacles: () => obstacles.map((o) => ({ kind: o.kind, id: o.id })),
         contacts: () => contactLog.items.map((c) => ({ x: c.x, z: c.z, what: c.what })),
+        camera: () => ({ x: cameraState.x, y: cameraState.y, z: cameraState.z, clip: cameraState.clip, insideBuilding: resolveCollisions({ x: cameraState.x, z: cameraState.z, r: 0.2 }, cameraOccluders(obstacles), Infinity).hits.length > 0 }),
         telemetry: (on) => {
           debugLog.enabled = on;
           if (!on) debugLog.clear();

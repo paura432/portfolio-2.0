@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { PerspectiveCamera, Vector3 } from "three";
 import { blendConfigs, configForAspect, damp, desiredCamera, profilesFor, SWELL_TO_CAMERA, type FollowConfig } from "@/game/camera/followCamera";
-import { photoMode } from "@/game/camera/photoMode";
+import { cameraOccluders, clipFraction } from "@/game/camera/cameraClip";
+import { cameraState, photoMode } from "@/game/camera/photoMode";
 import { authorityOf, bodyModeOf, isTransforming } from "@/game/vehicle/transformer";
 import { generationOf, poseOf, transitionClock } from "@/game/vehicle/vehicleManager";
 import { groundHeightAt } from "@/game/world/ground";
 import { impactBus } from "@/game/world/impactBus";
+import { obstacles } from "@/game/world/obstacles";
 import { treeWorld } from "@/game/world/treeWorld";
 import { useGameStore } from "@/stores/gameStore";
 
@@ -30,6 +32,9 @@ export function FollowCamera() {
   const blendFrom = useRef<{ position: Vector3; target: Vector3; fov: number } | null>(null);
   const blendKey = useRef<object | null>(null);
   const transformMix = useRef(0);
+  /** Occlusion clip fraction, eased: pulled in fast when a wall appears, let out slowly (CAM-01). */
+  const clip = useRef(1);
+  const occluders = useMemo(() => cameraOccluders(obstacles), []);
 
   useFrame(({ camera, size, clock }, delta) => {
     const photo = photoMode.camera;
@@ -79,6 +84,20 @@ export function FollowCamera() {
     transformMix.current = damp(transformMix.current, isTransforming(state) ? 1 : 0, 3, dt);
     if (transformMix.current > 0.01) config = blendConfigs(config, pick("transform"), transformMix.current * 0.6);
     const want = desiredCamera(pose.x, pose.z, pose.heading, pose.speed, config, baseY, yFollow, pitch);
+    // Occlusion (CAM-01): on the ground and on the water, never let the camera into a building. The wanted
+    // position is pulled in along the car→camera line (fast in, slow out) and lifted a little while pulled in,
+    // so the car stays in view over the facade instead of the facade filling the frame.
+    const highFlight = authority === "plane" && pose.y - groundHeightAt(pose.x, pose.z) > 8;
+    const wantedClip = highFlight ? 1 : clipFraction({ x: pose.x, z: pose.z }, { x: want.position.x, z: want.position.z }, occluders);
+    // Snap with the camera on resets and teleports (the generation changed); ease otherwise.
+    clip.current = seenGeneration.current !== generationOf() ? wantedClip : damp(clip.current, wantedClip, wantedClip < clip.current ? 14 : 2.5, dt);
+    if (clip.current < 0.999) {
+      const f = clip.current;
+      want.position.x = pose.x + (want.position.x - pose.x) * f;
+      want.position.z = pose.z + (want.position.z - pose.z) * f;
+      want.position.y += (1 - f) * 3.5;
+    }
+    cameraState.clip = clip.current;
 
     const generation = generationOf();
     const transition = store.transition;
@@ -120,6 +139,9 @@ export function FollowCamera() {
       }
     }
     camera.lookAt(target.current);
+    cameraState.x = camera.position.x;
+    cameraState.y = camera.position.y;
+    cameraState.z = camera.position.z;
     const j = treeWorld.reducedMotion ? 0 : impactBus.jolt.strength;
     if (j > 0) {
       const t = clock.elapsedTime;

@@ -13,3 +13,6 @@ export const photoMode: { camera: PhotoCamera | null } = { camera: null };
 
 /** When true the performance monitor must not downgrade the quality tier (captures only). */
 export const probeState = { lockQuality: false };
+
+/** Live follow-camera state for the probe (V9 debug): position, and the occlusion clip fraction (1 = unclipped). */
+export const cameraState = { x: 0, y: 0, z: 0, clip: 1 };

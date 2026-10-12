@@ -84,6 +84,11 @@ test.describe("V9 navigation: no wedges", () => {
     // facing the tree; the only room is north–south along the facade. Everything after is keys.
     await page.evaluate(() => window.__pauWorld!.teleport(-18.5, -17, Math.PI / 2));
     await page.waitForTimeout(400);
+    // CAM-01: at this pose the V8 camera sat inside the Duplex block (the facade filled the frame). Now it is
+    // pulled in along its line of sight and never inside a building, here and throughout the drive below.
+    const cam0 = await page.evaluate(() => window.__pauWorld!.debug.camera());
+    expect(cam0.insideBuilding, `camera at (${cam0.x.toFixed(1)}, ${cam0.z.toFixed(1)})`).toBe(false);
+    expect(cam0.clip).toBeLessThan(0.95);
     const start = await car(page);
     let best = 0;
     for (const keys of [["KeyS", "KeyA"], ["KeyW", "KeyD"], ["KeyW", "KeyA"], ["KeyS", "KeyD"], ["KeyS"], ["KeyW"]]) {
@@ -102,6 +107,8 @@ test.describe("V9 navigation: no wedges", () => {
     const v = await vehicle(page);
     expect(v.state).toBe("car");
     expect(v.authority).toBe("car");
+    const cam1 = await page.evaluate(() => window.__pauWorld!.debug.camera());
+    expect(cam1.insideBuilding).toBe(false);
     expect(errors()).toEqual([]);
   });
 });
